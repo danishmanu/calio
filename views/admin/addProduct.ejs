@@ -1,0 +1,165 @@
+<%- include('../partials/admin-header.ejs') %>
+
+<%- include('../partials/admin-sidebar.ejs') %>
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="product-form-container">
+            <h2 class="form-title">Product Information</h2>
+            <form action="/admin/products/addProduct" method="post" enctype="multipart/form-data" onsubmit="return validProduct()">
+                <div class="row mb-3">
+                    
+                    <div class="col-12">
+                        <label for="product_name" class="form-label">Product Name</label>
+                        <input type="text"  class="form-control" id="product_name" name="name" placeholder="Enter Product Name">
+                        <p id="product_name-error" class="text-danger"></p>
+                    </div>
+                </div>
+    
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="category" class="form-label">Category</label>
+                        
+
+                       
+                        <select class="form-select p-3 w-100" name="category_Id" style="color: #666666; border: 1px solid #e4e6f6;" id="category_id" required>
+                            <option selected disabled>Select Category</option>
+                            <% category.forEach((cat)=>{ %>
+                            <option value="<%=cat._id%>"><%=cat.cat_name%></option>
+                            <% })  %>
+                        </select>
+                      
+                    </div>
+                    <div class="col-md-6">
+                        <label for="brand" class="form-label">Brand</label>
+                        <select class="form-select p-3 w-100 "style="color: #666666; border: 1px solid #e4e6f6;" name="brand_Id" id="brand" required>
+                            <option selected disabled>Select Brand</option>
+                            <% brands.forEach((brand)=>{ %>
+                                <option value="<%=brand._id%>"><%=brand.brand_name%></option>
+                                <% })  %>
+                        </select>
+                    </div>
+                </div>
+    
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="price" class="form-label">Price</label>
+                        <input type="text" class="form-control" id="price" placeholder="Enter Price" name="price">
+                        <p id="price-error" class="text-danger"></p>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="stock" class="form-label">Stock</label>
+                        <input type="text" class="form-control" id="stock" name="stock" placeholder="Enter Stock">
+                        <p id="stock-error" class="text-danger"></p>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <label for="description" class="form-label">Description</label>
+                    <textarea name="description" class="form-control" id="description" rows="6" placeholder="Enter Description"></textarea>
+                    <p id="description-error" class="text-danger"></p>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <label>Upload Images</label>
+                        <div class="form-group row">
+                            <div class="col-sm-3">
+                                <div class="image-placeholder">
+                                    <img src="/public/images/upload_image.jpg" alt="placeholder" class="img-fluid" id="image1-preview" />
+                                    <input type="file" class="form-control mt-2" name="image1" id="image1" onchange="previewImage(this, 'image1-preview')" accept="image/*" required/>
+                                </div>
+                            </div>
+                            <div class="col-sm-3">
+                                <div class="image-placeholder">
+                                    <img src="/public/images/upload_image.jpg" alt="placeholder" class="img-fluid" id="image2-preview" />
+                                    <input type="file" class="form-control mt-2" name="image2" id="image2" onchange="previewImage(this, 'image2-preview')" accept="image/*" required />
+                                </div>
+                            </div>
+                            <div class="col-sm-3">
+                                <div class="image-placeholder">
+                                    <img src="/public/images/upload_image.jpg" alt="placeholder" class="img-fluid" id="image3-preview" >
+                                    <input type="file" class="form-control mt-2" name="image3" id="image3" onchange="previewImage(this, 'image3-preview')" accept="image/*" required />
+                                </div>
+                            </div>
+                            <div class="col-sm-3">
+                                <div class="image-placeholder">
+                                    <img src="/public/images/upload_image.jpg" alt="placeholder" class="img-fluid" id="image4-preview" />
+                                    <input type="file" class="form-control mt-2" name="image4" id="image4" onchange="previewImage(this, 'image4-preview')" accept="image/*" required />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+    
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary">Add Product</button>
+                </div>
+            </form>
+        </div>
+
+    </div>
+    <!-- content-wrapper ends -->
+
+    <!-- partial:../../partials/_footer.html -->
+   
+    <!-- partial -->
+  </div>
+  <script>
+    
+
+      
+    function validProduct() {
+    const product_name = document.getElementById('product_name').value;
+    const price = document.getElementById('price').value;
+    const stock = document.getElementById('stock').value;
+    const description = document.getElementById('description').value;
+
+    
+    document.getElementById('product_name-error').textContent = '';
+    document.getElementById('description-error').textContent = '';
+    document.getElementById('price-error').textContent = '';
+    document.getElementById('stock-error').textContent = '';
+
+    if (!product_name || product_name.trim().length === 0) {
+        document.getElementById('product_name-error').textContent = 'Product Name field should not be empty!';
+        return false;
+    }
+
+    if (!price || price.trim().length === 0) {
+        document.getElementById('price-error').textContent = 'Price field should not be empty!';
+        return false;
+    } else if (isNaN(Number(price)) || Number(price) < 0) {
+        document.getElementById('price-error').textContent = 'Price should be a non-negative number!';
+        return false;
+    }
+
+    if (!stock || stock.trim().length === 0) {
+        document.getElementById('stock-error').textContent = 'Stock field should not be empty!';
+        return false;
+    } else if (isNaN(Number(stock)) || Number(stock) < 0) {
+        document.getElementById('stock-error').textContent = 'Stock should be a non-negative number!';
+        return false;
+    }
+
+    if (!description || description.trim().length === 0) {
+        document.getElementById('description-error').textContent = 'This field should not be empty!';
+        return false;
+    }
+
+    return true;
+}
+
+      function previewImage(input, previewId) {
+        const preview = document.getElementById(previewId);
+
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+                preview.src = e.target.result;
+            };
+
+            reader.readAsDataURL(input.files[0]);
+        } else {
+            preview.src = "/public/images/upload_image.jpg"; // Fallback to the placeholder image
+        }
+    }
+  </script>

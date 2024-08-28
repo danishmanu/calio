@@ -1,0 +1,38 @@
+<%- include('../partials/head.ejs') %>
+
+<body class="log_body">
+    <div class="otp_box ">
+        <h2 class="text-center mt-5 fw-bolder">OTP Verification</h2>
+        <p class="ps-5">Please enter the six-digit code from the email<br> we sent to <%= email %></p>
+        <div class="row">
+            <form action="/otp_verification" method="post">
+                <div class="d-flex justify-content-center">
+                    <input class="otp_inp m-2 test center form-control rounded p-0 width-50" type="text" name="otp" id="otp" maxlength="6" />
+                </div>
+                <p class="text-center text-danger " style="font-size: 13px;"><%= locals.inv_otp? inv_otp:null %></p>
+            </div>
+            <div class="d-flex justify-content-center text-danger pt-1 pb-2">OTP expires in: <span id="time">60</span> seconds</div>
+            <p class="otp-timer text-center" id="otp-timer"></p>
+
+            <div class="d-flex justify-content-center">
+                <button type="submit" value="submit" class="btn btn-primary px-5">Verify OTP</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        let timeleft = 60;
+        const timer = setInterval(() => {
+            timeleft--;
+            document.getElementById('time').innerText = timeleft;
+
+            if (timeleft <= 0) {
+                clearInterval(timer);
+                document.getElementById('otp-timer').innerHTML = "Didn’t receive OTP? <a href='' class='text-danger text-decoration-none'>Resend OTP</a>";
+            }
+        }, 1000);
+    </script>
+</body>
+
+
+<%- include('../partials/footer.ejs') %>

@@ -1,0 +1,69 @@
+<%- include('../partials/admin-header.ejs') %>
+<%- include('../partials/admin-sidebar.ejs') %>
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="row">
+     <div class="col-9">
+        <form action="" >
+            <input type="search" class="search_bar w-100 border-0 py-2 px-5 "  placeholder="Search">
+          </form>
+        </div>
+        <div class="col-3 ">
+            <a href="/admin/products/addProduct"><button type="submit"  class="btn btn-primary px-5 rounded-0">Add Products</button></a>
+        </div>
+    </div>
+          <div class="container-fluid w-60 p-0 p-md-3 ">
+            <h4>List Products</h4>
+            <table class="table table-wrapper ">
+           <thead class="bg-dark ">
+               <tr class="t_head">
+                <th>Name</th>
+                 <th>Name</th>
+                   <th>Category</th>
+                   <th>Brand</th>
+                   <th>Price</th>
+                   <th>Stock</th>
+                   <th class="me-0 pe-0 text-center">Action</th>
+               </tr>
+             </thead>
+             <tbody>
+              
+              <% products.forEach((product,index)=>{ %>
+
+             
+             
+                 
+               <tr class="">
+                <td><img src="/public/uploads/<%=product.images[0] %>" alt=""></td>
+                   <td><%=product.name %></td>
+                   <td><%=product.category_Id.cat_name %></td>
+                    <td><%=product.brand_Id.brand_name %></td>
+                    <td><%=product.price %></td>
+                    <td><%=product.stock %></td>
+                     
+                    <td class=" text-center d-flex justify-content-center ">
+                     <div class="d-flex flex-row ">
+                      
+                        
+                   
+                     <form action="/admin/products/edit/<%=product._id%>" method="get" ><button type="submit" class="btn btn-warning  ms-2"><i class="bi bi-trash"></i> Edit</button></form> 
+
+                   
+                     <form action="/admin/products/delete/<%=product._id%>?_method=DELETE" method="post" ><button type="submit" class="btn btn-danger ms-2"><i class="bi bi-trash"></i> Delete</button></form> 
+                   </div>  
+                   </td> 
+                
+                  </tr>
+                 
+                 
+                  <%}) %>  
+                
+               
+             </tbody>
+            </table>
+           </div>
+    </div>
+
+  </div>
+  <!-- main-panel ends -->
+  <%- include('../partials/admin-footer.ejs') %>

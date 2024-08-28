@@ -1,0 +1,107 @@
+<%- include('../partials/admin-header.ejs') %>
+<%- include('../partials/admin-sidebar.ejs') %>
+<div class="main-panel">
+    <div class="content-wrapper">
+        <% if (message.success) { %>
+            <div class="alert alert-success">
+              <%= message.success %>
+            </div>
+          <% } %>
+          <% if (message.error) { %>
+            <div class="alert alert-danger">
+              <%= message.error %>
+            </div>
+          <% } %>
+        <div class="row">
+           
+            <h3 class="text-dark mx-2">+Add New Category</h3>
+     <div class="col-9">
+        <form action="/admin/categories" method="post" onsubmit="return validCategory()" >
+            <input type="text" class=" w-100 py-2 px-4 " name="cat_name" id="cat_name"  placeholder="Enter Category Name" required>
+            <p id="error" class="text-danger"></p>
+        </div>
+        <div class="col-3 ">
+            <a ><button type="submit"  class="btn btn-primary px-5 rounded-0">Add Category</button></a>
+        </div>
+    </form>
+    </div>
+          <div class="container-fluid w-60 p-0 pt-md-3 ">
+            
+            <table class="table table-wrapper ">
+           <thead class="bg-dark ">
+               <tr class="t_head">
+              
+                 
+                   <th>Category Id</th>
+                   <th>Category Name</th>
+                  
+                  
+                   <th class="me-0 pe-0 text-center">Action</th>
+               </tr>
+             </thead>
+             <tbody>
+              
+                
+             <% categories.forEach((cat,index) => {  %>
+                
+          
+                 
+               <tr class="">
+                
+                   <td>#<%= index+1 %></td>
+                   <td><%= cat.cat_name%></td>
+                   
+                     
+                    <td class=" text-center d-flex justify-content-center ">
+                     <div class="d-flex flex-row ">
+                      
+                      <%if(cat.isDelete==false) {%>
+                      
+                        <form action="/admin/categories/<%= cat._id %>?_method=DELETE" method="post">
+                          <button type="submit" class="btn btn-warning ms-2"><i class="fa-regular fa-eye-slash"></i></i>Unlist</button>
+                      </form>
+                     
+                     
+                     <%} else {%>
+                        
+                      <form action="/admin/categories/<%= cat._id %>?_method=PATCH" method="post">
+                        <button type="submit" class="btn btn-success ms-2">
+                          <i class="fa-solid fa-eye"></i>
+                          list
+                        </button>
+                    </form>
+                    <% } %>
+                  </div>  
+                   </td> 
+                
+                  </tr>
+                 
+                  <%  }); %>
+                 
+                
+               
+             </tbody>
+            </table>
+           </div>
+    </div>
+    <!-- content-wrapper ends -->
+
+    <!-- partial:../../partials/_footer.html -->
+   
+    <!-- partial -->
+  </div>
+  <script>
+    function validCategory(){
+      cat_name=document.getElementById('cat_name').value;
+
+      document.getElementById('error').textContent='';
+      if(!cat_name || cat_name.trim().length==0){
+        document.getElementById('error').textContent='Category should not be empty';
+        return false
+      }
+      return true
+    }
+    
+  </script>
+  <!-- main-panel ends -->
+  <%- include('../partials/admin-footer.ejs') %>

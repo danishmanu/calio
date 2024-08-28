@@ -1,0 +1,113 @@
+<%- include('../partials/admin-header.ejs') %>
+
+<%- include('../partials/admin-sidebar.ejs') %>
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="product-form-container">
+            <h2 class="form-title">Product Information</h2>
+            
+            <form action="/admin/products/edit/<%= product._id %>?_method=PUT" method="post" enctype="multipart/form-data">
+                <div class="row mb-3">
+                    
+                    <div class="col-12">
+                        <label for="product_name" class="form-label">Product Name</label>
+                        <input type="text"  class="form-control" value="<%=product.name%>" id="product_name" name="name" placeholder="Enter Product Name">
+                    </div>
+                </div>
+    
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="category" class="form-label">Category</label>
+                        
+
+                       
+                        <select class="form-select p-3 w-100" name="category_Id" style="color: #666666; border: 1px solid #e4e6f6;" id="category_id">
+                            <option selected><%=product.category_Id.cat_name %></option>
+                            <% category.forEach((cat)=>{ %>
+                                <% if(cat.cat_name!==product.category_Id.cat_name){ %>
+                            <option value="<%=cat._id%>"><%=cat.cat_name%></option>
+                                    <% } %>
+                            <% })  %>
+                        </select>
+                      
+                    </div>
+                    <div class="col-md-6">
+                        <label for="brand" class="form-label">Brand</label>
+                        <select class="form-select p-3 w-100 "style="color: #666666; border: 1px solid #e4e6f6;" name="brand_id" id="brand_id">
+                            <option selected><%=product.brand_Id.brand_name %></option>
+                            <% brands.forEach((brand)=>{ %>
+                                <% if(brand.brand_name!==product.brand_Id.brand_name){ %>
+                            <option value="<%=brand._id%>"><%=brand.brand_name%></option>
+                                    <% } %>
+                            <% })  %>
+                        </select>
+                    </div>
+                </div>
+    
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="price" class="form-label">Price</label>
+                        <input type="text" class="form-control" id="price" value="<%=product.price%>" placeholder="Enter Price" name="price">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="stock" class="form-label">Stock</label>
+                        <input type="text" class="form-control" id="stock" value="<%=product.stock%>" name="stock" placeholder="Enter Stock">
+                    </div>
+                </div>
+                <div class="col-12">
+                    <label for="description" class="form-label">Description</label>
+                    <textarea name="description" class="form-control" id="description"  rows="6" placeholder="Enter Description"><%=product.description%></textarea>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <label>Upload Images</label>
+                        <div class="form-group row">
+                            <div class="col-sm-3">
+                                <div class="image-placeholder">
+                                    <img src="/public/uploads/<%=product.images[0] %>" alt="placeholder" class="img-fluid" id="image1-preview" />
+                                    <input type="file" class="form-control mt-2" value="" name="image1" id="image1" onchange="previewImage(this, 'image1-preview')" />
+                                </div>
+                            </div>
+                            <div class="col-sm-3">
+                                <div class="image-placeholder">
+                                    <img src="/public/uploads/<%=product.images[1] %>" alt="placeholder" class="img-fluid" id="image2-preview" />
+                                    <input type="file" class="form-control mt-2" name="image2" value="/public/uploads/<%=product.images[1] %>" id="image2" onchange="previewImage(this, 'image2-preview')" />
+                                </div>
+                            </div>
+                            <div class="col-sm-3">
+                                <div class="image-placeholder">
+                                    <img src="/public/uploads/<%=product.images[2] %>" alt="placeholder" class="img-fluid" id="image3-preview" >
+                                    <input type="file" class="form-control mt-2" name="image3" value="/public/uploads/<%=product.images[2] %>" id="image3" onchange="previewImage(this, 'image3-preview')" />
+                                </div>
+                            </div>
+                            <div class="col-sm-3">
+                                <div class="image-placeholder">
+                                    <img src="/public/uploads/<%=product.images[3] %>" alt="placeholder" class="img-fluid" id="image4-preview" />
+                                    <input type="file" class="form-control mt-2" value="/public/uploads/<%=product.images[3] %>" name="image4" id="image4" onchange="previewImage(this, 'image4-preview')" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+    
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary">Add Product</button>
+                </div>
+            </form>
+        </div>
+
+    </div>
+    <!-- content-wrapper ends -->
+
+    <!-- partial:../../partials/_footer.html -->
+   
+    <!-- partial -->
+  </div>
+  <script>
+    function previewImage(input,previewId){
+        const preview=document.getElementById(previewId);
+        preview.onload=function(){
+            URL.revokeObjectURL(preview.src)
+        }
+    }
+  </script>

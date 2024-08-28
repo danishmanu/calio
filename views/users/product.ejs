@@ -1,0 +1,156 @@
+<%- include('../partials/head.ejs') %>
+<%- include('../partials/header.ejs') %>
+
+<div class="container-fluid w-100 bg-primary mt-5 ps-5 d-flex align-items-center" style="height: 10vh">
+ 
+    <li class="breadcrumb-item" style="list-style: none;"><a href="#">Home</a></li>
+    <li class="breadcrumb-item" style="list-style: none;"><a href="#">Shop</a></li>
+    <li class="breadcrumb-item active" aria-current="page" style="list-style: none; max-width: 500px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
+        Product
+    </li>
+    
+</div>
+  <div class="row container d-flex justify-content-center justify-content-md-start">
+    <div class="col-md-6 d-flex justify-content-center justify-content-md-start">
+        <div class="col-2 ms-5 d-flex flex-column ">
+            <img  src="/public/uploads/<%= product.images[0] %>" alt="" class="w-100 border border-1 mt-2" onclick="changeMainImage(this)">
+            <img  src="/public/uploads/<%= product.images[1] %>" alt="" class="w-100 border border-1 mt-2" onclick="changeMainImage(this)">
+            <img  src="/public/uploads/<%= product.images[2] %>" alt="" class="w-100 border border-1 mt-2" onclick="changeMainImage(this)" >
+            <img  src="/public/uploads/<%= product.images[3] %>" alt="" class="w-100 border border-1 mt-2" onclick="changeMainImage(this)">
+        </div>
+        <div class="col-10">
+            <img src="/public/uploads/<%= product.images[0] %>" alt="" id="mainImage" class="w-100">
+        </div>
+        
+    </div>
+    <div class="col-md-6 mt-5 ms-5 ms-md-0  ">
+        <h2 class="fw-bold"> <%= product.name %></h2>
+         <h4 class="mt-4">₹2000</h4>
+         <% if(product.stock>0) {%>
+            <% if(product.stock>3) {%>
+         <h6 class="">Availability: <span class="primary"> <%= product.stock %> left in stock </span></h6>
+         <% }else{ %>
+            <h4 class=""> <span class="text-danger"> Only <%= product.stock %> stock left !  </span></h4>
+            <% } %>
+            
+         <div class="d-flex align-items-center">
+            <button class="btn btn-outline-secondary" type="button" id="minus" onclick="minus()">-</button>
+            <input type="number" name="quantity" class="form-control text-center mx-2"  value=1 style="width: 50px;" id="quantity">
+            <button class="btn btn-outline-secondary" type="button" id="plus" onclick="plus()">+</button>
+          </div>
+       
+     <button  class="btn btn-primary rounded rounded-5 px-3  mt-3 mb-3" onclick="addToCart()"  style="font-size: 12px;">ADD TO CART </button>
+
+        <% } else{%>
+            <h2 class="text-danger">Out of Stock!</h2>
+            <% }  %>
+
+            <h6 class="fw-bold text-muted">Description</h6>
+         <p><%= product.description %></p>
+    </div>
+  </div>
+ 
+    <% if(relatedProducts && relatedProducts.length > 0) { %>
+        <div class="d-flex justify-content-center">
+            <h2 class="fw-bold mt-5">Related Products</h2>
+            </div>
+  <% relatedProducts.forEach((element) => { %>
+    <div class="col-sm-6 col-md-4 col-lg-3 ms-2 border border-1">
+      <div class="card">
+        <a href="/product/<%= element._id %>">
+          <div class="icons d-flex flex-column">
+            <button class="btn mb-2"><i class="bi bi-heart"></i></button>
+            <button class="btn"><i class="bi bi-eye"></i></button>
+          </div>
+          <img src="/public/uploads/<%= element.images[0] %>" class="card-img-top" alt="Product Image">
+          <div class="card-body text-center">
+            <h5 class="product-title"><%= element.name %></h5>
+            <div class="price">
+              <span>₹<%= element.price %></span>
+              <span class="text-muted">₹360</span>
+            </div>
+            <div class="rating mt-2">
+              <i class="bi bi-star-fill"></i>
+              <i class="bi bi-star-fill"></i>
+              <i class="bi bi-star-fill"></i>
+              <i class="bi bi-star-fill"></i>
+              <i class="bi bi-star-fill"></i>
+              <span class="reviews">(65)</span>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+  <% }) %>
+<% } else { %>
+    <div class="d-flex justify-content-center">
+        <h2 class="fw-bold mt-5">No Related products</h2>
+        </div>
+<% } %>
+
+    
+   
+</div>
+<script>
+
+    function plus() {
+    let quantity = parseInt(document.getElementById('quantity').value);
+   
+    if(quantity<'<%=product.stock%>'){
+      quantity++;
+      document.getElementById('quantity').value = quantity;
+    }
+   
+}
+function minus() {
+    let quantity = parseInt(document.getElementById('quantity').value);
+   
+    if(quantity>1){
+      quantity--;
+      document.getElementById('quantity').value = quantity;
+    }
+   
+}
+function addToCart(){
+  const productId='<%= product._id %>'
+  const quantity=document.getElementById('quantity').value
+
+  fetch(`/addToCart/${productId}`,{
+    method:'post',
+    headers:{'Content-Type':'application/json',}
+  ,
+  body:JSON.stringify({quantity:quantity})
+}).then(res=>{
+  if(res.ok){
+    Swal.fire({
+    icon:'success',
+    title:'Added to Cart!',
+    text:'The item has been successfully addes to your cart.',
+    showConfirmButton:false,
+    timer:1500
+  })
+  
+  }
+  else{
+    console.log("something went wrong")
+  }
+})
+.catch(err=>{
+  console.error('Error:',err)
+})
+}
+
+
+    function changeMainImage(thumb) {
+        const mainImage = document.getElementById('mainImage');
+        mainImage.src = thumb.src;
+    }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+   <!-- Bootstrap JS (for navbar toggle) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Bootstrap Icons (optional) -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+</body>
+</html>
