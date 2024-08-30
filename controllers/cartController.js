@@ -79,12 +79,15 @@ catch(err){
         user_Id=req.session.user
         product_Id=req.params.id
         let {price,quantity}=req.body
+        console.log(price,quantity)
+        console.log("hello guys how are you")
         let cart=await Cart.updateOne({user_Id,"items.product_Id": product_Id },{$set:{
             "items.$.quantity": quantity,
-            "items.$.price": price
+            "items.$.price": price,
+          
         }})
         if (cart) {
-            res.status(200).json({ message: "Item updated" });
+           
             res.redirect('/cart')
         } else {
             res.status(404).json({ message: "Cart or product not found" });

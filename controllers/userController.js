@@ -154,7 +154,13 @@ exports.getOtp=(req,res)=>{
   inv_otp=req.session.inv_otp
   req.session.inv_otp=null
   email=req.session.userdata.email
+  if(!req.session.user){
     res.render("users/otp_verification",{inv_otp,email})
+  }
+  else{
+    res.redirect('/')
+  }
+   
 }
 exports.checkOtp=async(req,res)=>{
   const otp = await Otp_collection.findOne({otp:req.body.otp,email:req.session.userdata.email})
