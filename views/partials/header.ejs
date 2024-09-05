@@ -27,8 +27,10 @@
                         <input type="text" placeholder="What are you looking for?">
                     </div>
                     <a href="#"><i class="bi bi-heart"></i></a>
-                    <a href="#"><i class="bi bi-cart"></i></a>
+                    <a href="/cart"><i class="bi bi-cart"></i></a>
                     <% if(user){ %>
+
+                        <a href="/profile"><i class="bi bi-person"></i></a>
                         <form action="/logout" method="post">
                             <button class="btn btn-danger ps-3 align-items-center pb-1">Logout</button>
                         </form>

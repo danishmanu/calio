@@ -28,8 +28,9 @@ body{
     border: none;
    
 }
-.btn-primary:hover{
-    background-color: #d4ae6f; 
+
+.btn-primary:active{
+    background-color: #ecc17c !important; 
    
 }
 .google_btn{
@@ -198,7 +199,9 @@ a{
     line-height: 18px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
-
+.address-box{
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
 .icons .btn i {
     font-size: 16px;
     color: #333;
@@ -299,6 +302,9 @@ a{
     letter-spacing: 3px;
     padding-left: 6px;
   }
+  .cart-bg{
+    background-color: #e9f7ff;
+  }
   
   .notfound h2 {
     font-family: 'Cabin', sans-serif;
@@ -332,4 +338,59 @@ a{
       font-size: 16px;
     }
   }
-  
+
+  .address-form {
+    max-width: 600px;
+    margin: 50px auto;
+    padding: 20px;
+    background-color: white;
+    border-radius: 5px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+}
+.btn-custom {
+    background-color: #C4A484;
+    color: white;
+}
+@media (max-width: 575.98px) {
+    .form-row > .col-md-6 {
+        margin-bottom: 15px;
+    }
+}
+p{
+    margin: 0;
+}
+.address-card {
+    background-color: #fffef9;
+   
+    border-radius: 10px;
+    padding: 20px;
+    margin: 20px 0;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.add-new-address {
+    background-color: #fffef9;
+    /* Light pink background */
+    border-radius: 10px;
+    padding: 20px;
+   margin: 20px 0;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.add-new-address:hover {
+    background-color: #ffffff;
+    
+}
+
+.icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #333;
+}
+
+.icon-btn:hover {
+    color: #ffcf5e;
+}

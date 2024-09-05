@@ -180,6 +180,11 @@ exports.checkOtp=async(req,res)=>{
 }
 
 exports.getProduct=async(req,res)=>{
+  try{
+
+  }catch(error){
+    console.log('error')
+  }
   id=req.params.id;
   let product=await Product.findById(id)
   const relatedProducts = await Product.find({ category_Id: product.category_Id,_id: { $ne: product._id } });
@@ -200,3 +205,5 @@ exports.logout = (req, res) => {
       }
   })
 }
+
+

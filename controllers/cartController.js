@@ -81,19 +81,44 @@ catch(err){
         let {price,quantity}=req.body
         console.log(price,quantity)
         console.log("hello guys how are you")
-        let cart=await Cart.updateOne({user_Id,"items.product_Id": product_Id },{$set:{
-            "items.$.quantity": quantity,
-            "items.$.price": price,
-          
-        }})
-        if (cart) {
-           
-            res.redirect('/cart')
-        } else {
-            res.status(404).json({ message: "Cart or product not found" });
+        let cartitem=await Cart.findOne({user_Id,"items.product_Id": product_Id })
+        if(cartitem){
+            let item=cartitem.items.find(item=>item.product_Id.toString()===product_Id.toString());
+            console.log(item.price)
+            dif=price-item.price
+            total=cartitem.total_price+dif
+            let cart=await Cart.updateOne({user_Id,"items.product_Id": product_Id },{$set:{
+                "items.$.quantity": quantity,
+                "items.$.price": price,
+                total_price:total
+            }})
+            if (cart) {
+                res.status(200).json({total});
+             
+            } else {
+                res.status(404).json({ message: "Cart or product not found" });
+            }
         }
+       
     }
     catch(error){
         res.status(500).json({message:"An error occurred"})
     }
+  }
+  exports.deleteCart=async(req,res)=>{
+    try{
+        id=req.params.id;
+        user_Id=req.session.user
+    await Cart.updateOne({user_Id}, {$pull: { items: { product_Id: id } }})
+        let cart=await Cart.findOne({user_Id})
+          total=cart.items.reduce((total,item)=> total=total+item.price,0)
+          console.log(total)
+          await Cart.updateOne({user_Id}, { $set: { total_price: total }})
+            res.status(200).json({message:"item deleted successfully"})
+    }
+   
+   catch(error){
+        console.error(error)
+    }
+
   }

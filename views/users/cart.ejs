@@ -1,8 +1,22 @@
 <%- include('../partials/head.ejs') %>
 <%- include('../partials/header.ejs') %>
+<div class="container-fluid w-100 bg-primary mt-5 ps-5 d-flex align-items-center" style="height: 10vh">
+ 
+    <li class="breadcrumb-item" style="list-style: none;"><a href="#">Home</a></li>
+    <li class="breadcrumb-item active" aria-current="page" style="list-style: none; max-width: 500px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
+        Cart
+    </li>
+    
+</div>
 <section>
     <div class="container">
+    <div class="row d-flex " style="">
+       
+    <div class="col-12 col-md-9">
+      
         <table class="table mt-5">
+            <% if(cart && cart.items.length > 0){ %> 
+                
             <thead>
                 <tr>
                     <th scope="col">Items</th>
@@ -16,128 +30,212 @@
             </thead>
             <tbody>
                 
-                    <% if(cart){ %>
+                   
             <% cart.items.forEach((product)=>{ %>
                 <tr>
 
-                  
                         <td><img src="/public/uploads/<%=product.product_Id.images[0]%>" alt="" style="width: 50px;"></td>
                     <td><%=product.product_Id.name%></td>
                     <td><%=product.product_Id.price%></td>
                 <!-- {{/each}} -->
                 <td>
                     <div class="d-flex align-items-center">
-                        <button class="btn btn-outline-secondary" type="button" id="minus" onclick="minus('<%= product.product_Id._id%>','<%= product.product_Id.stock%>','<%= product.product_Id.name%>','<%= product.product_Id.price%>')">-</button>
+                        <button class="btn btn-outline-secondary" type="button" id="minus_<%=product.product_Id._id%>" onclick="minus('<%= product.product_Id._id%>','<%= product.product_Id.stock%>','<%= product.product_Id.name%>','<%= product.product_Id.price%>')">-</button>
                         <input type="number" name="quantity" class="form-control text-center mx-2"  value=<%= product.quantity %> style="width: 50px;" id="quantity_<%=product.product_Id._id%>"/>
-                        <button class="btn btn-outline-secondary" type="button" id="plus" onclick="plus('<%= product.product_Id._id%>','<%= product.product_Id.stock%>','<%= product.product_Id.name%>','<%= product.product_Id.price%>')">+</button>
+                        <button class="btn btn-outline-secondary" type="button" id="plus_<%=product.product_Id._id%>" onclick="plus('<%= product.product_Id._id%>','<%= product.product_Id.stock%>','<%= product.product_Id.name%>','<%= product.product_Id.price%>')">+</button>
                       </div>
                 </td>
-                <td id="price_<%=product.product_Id._id%>"><%=product.price*product.quantity  %></td>
+                <td id="price_<%=product.product_Id._id%>"><%=product.price  %> <span>₹</span></td>
                 <td>
-                    <a href="" class="btn btn-danger" onclick="deleteCart('<%=product.product_Id._id%>')">Remove</a>
+                    <button href=""  class="btn btn-danger" type="button"  onclick="deleteCart('<%=product.product_Id._id%>')">Remove</button>
                 </td>
                 </tr>
                 <% }) %>
-                <!-- {{/each}} -->
-                <%  } else{  %>
-                    <tr>
-                    <th >Cart is empty</th>
-                </tr>
-                <% } %>
+                
+              
+                    
+              
             </tbody>
+            
         </table>
+        
     </div>
+
+    <div class="col-12 col-md-3 bg-light mt-5 pt-1" style="">
+        <h3>Cart Totals</h3>
+        <hr>
+        <table>
+            <tr>
+                <th>Price</th>
+                <td class="ps-3 total" id="total">:<%=cart.total_price%>₹</td>
+            </tr>
+            <tr>
+                <th>Delivery Charges</th>
+                <td class="ps-3 text-success " id="delivery">:Free</td>
+            </tr>
+          
+            <tr>
+                
+                <th>Total</th>
+                <td class="ps-3"id="total">:<%=cart.total_price%>₹</td>
+            </tr>
+            <tr>
+               
+            </tr>
+        </table>
+        <button type="button" onclick="placeOrder" class="btn btn-primary w-100 mx-0">PLACE ORDER</button>
+        
+     
+        
+    </div>
+</div>
+    <%  } else{  %>
+
+        <div class="cart-bg container mt-5 d-flex flex-column align-items-center justify-content-center rounded-5 mb-0" style="height: 450px;">
+            <img class="w-50 w-md-10 pt-1" src="/public/images/empty_cart.png" alt="" style="background: cover; height: 300px; width: 100px;">
+           <div class="w-100 d-flex justify-content-center flex-column" style="width: 100%;">
+            <h1 class="text-center w-100">Your cart is empty</h1>
+            <p class="text-center w-100">Add items to it now.</p>
+            <button class=" btn btn-primary rounded-1 justify-content-center px-0 mb-0">Continue Shopping</button>
+           </div>
+           
+        </div>
+        
+
+    <% } %>
+</div>
 </section>
 <script>
-    function deleteCart(id){
+    
+    
+
+  function deleteCart(id){
         Swal.fire({
         title: 'Are you sure?',
         text: "Do you want to delete the item?",
         icon: 'warning',
         showCancelButton: true,
+       
         confirmButtonColor: '#3085d6',
         cancelButtonColor: '#d33',
         confirmButtonText: 'Yes, delete it!',
         cancelButtonText: 'No, cancel!'
-    }).then((result)=>{
-        if(result.Confirmed){
-            fetch(`/deleteCart/${id}`,{
-                method:"delete",
-                headers:{
-                    "Content-Type":"application/json"
+    }).then((result) => {
+        if (result.isConfirmed) {
+            
+            fetch(`/deleteCart/${id}`, {
+                method: 'get',
+                headers: {
+                    "Content-Type": "application/json"
                 }
-            }).then((res)=>{
-                if(res.ok){
+            }).then((res) => {
+                if (res.ok) {
                     Swal.fire(
                         'Deleted!',
-                        'Your item has been delted.',
+                        'Your item has been deleted.',
                         'success'
-                    ).then(()=>{
-                        window.location.href='/cart-items'
-                    })
-                }
-                else{
+                    ).then(() => {
+                        
+                        window.location.href = '/cart';
+                    });
+                } else {
                     Swal.fire(
                         'Error!',
                         'There was a problem deleting the item.',
                         'error'
-
-                    )
+                    );
                 }
-            }).catch(err=>{
-                console.log('Error',err)
+            }).catch(err => {
+                console.error('Error:', err);
                 Swal.fire(
                     'Error!',
                     'There was a problem processing your request.',
                     'error'
                 );
-
-            })
+            });
         } else if (result.dismiss === Swal.DismissReason.cancel) {
-            // User canceled the action
+           
             Swal.fire(
                 'Cancelled',
                 'Your item delete was cancelled.',
                 'error'
             ).then(() => {
-                // Optionally redirect or do something else after cancel
-                window.location.href = '/cart-items';
+               
+                window.location.href = '/cart';
             });
         }
-    });
-       }
-function updateCart(id,quantity,name,price){
+    });
+       }
 
+async function updateCart(id,quantity,name,price){
+try{
     const product_Id=id
-    fetch(`/updateCart/${product_Id}`,{
+    const response=await fetch(`/updateCart/${product_Id}`,{
         method:'post',
         headers:{'Content-Type':'application/json'},
         body:JSON.stringify({quantity:quantity,price})
     })
-// .then((res)=>{
-//         if(res.ok){
-//             Swal.fire({
-//     icon: 'success',
-//     html: `<strong>You've changed</strong> <br><span style='font-weight: bold;'>${name}</span><br>QUANTITY to '${quantity}'`,
-//     iconHtml: '<i class="fa fa-check-circle" style="color: #4CAF50;"></i>', 
-//     showConfirmButton: false,
-//     background: '#333',
-//     color: '#fff', 
-//     timer: 3000, 
-//     customClass: {
-//         popup: 'swal-custom-popup'
-//     }
-// });
-//         }
-//         else{
-//             console.log("error")
-//         }
-//     })
-.catch(err=>{
-  console.error('Error:',err)
-})
+    if(response.ok){
+        Swal.fire({
+      position: 'bottom',
+  
+    html: `<i class="fa fa-check-circle" style="color: #4CAF50;"></i> <strong>You've changed</strong> <br><span style='font-weight: bold;'>${name}</span><br>QUANTITY to '${quantity}'`,
+    
+    showConfirmButton: false,
+    background: '#333',
+    color: '#fff', 
+    timer: 2500, 
+    customClass: {
+        popup: 'swal-custom-popup'
+    }
+});
+let data=await response.json()
+const total=data.total
+ document.getElementById("total").innerText=`:${total}₹`
+}
+
+        else{
+            const errorData = await response.json();
+            console.error('Error:', errorData.message);
+            alert('Failed to update cart');
+        }
+    
+}
+  
+catch(err){
+    console.error('An error occurred:', error);
+        alert('Something went wrong!');
+}
      
 }
+async function placeOrder() {
+    try {
+        
+        let response = await fetch("/checkout", {
+            method: "GET"
+        });
+
+       
+        if (response.ok) {
+          
+            let data = await response.json();
+
+            
+            console.log("Order placed successfully:");
+           
+            
+        } else {
+           
+            console.error("Failed to place the order. Status:", response.status);
+            Swal.fire('Error', 'There was an issue placing your order.', 'error');
+        }
+    } catch (error) {
+        
+        console.error("Error while placing the order:", error);
+        Swal.fire('Error', 'Something went wrong. Please try again.', 'error');
+    }
+}
+
 
 function plus(id,stock,name,price) {
   
@@ -148,9 +246,24 @@ function plus(id,stock,name,price) {
       quantity++;
       document.getElementById(`quantity_${id}`).value = quantity;
       tot_price=quantity*price
-      document.getElementById(`price_${id}`).innerText=tot_price;
+      document.getElementById(`price_${id}`).innerHTML=`${tot_price}<span>₹</span>`;
       updateCart(id,quantity,name,tot_price)
     
+    }
+    else{
+        Swal.fire({
+      position: 'bottom',
+  
+    html: `<i class="fa-solid fa-circle-exclamation" style="color: #db0f0f;"></i> <strong>Max number of product reached</strong>`,
+    text:``,
+    showConfirmButton: false,
+    background: '#333',
+    color: '#fff', 
+    timer: 1000, 
+    customClass: {
+        popup: 'swal-custom-popup'
+    }
+});
     }
    
 }
@@ -164,7 +277,7 @@ function minus(id,stock,name,price) {
       quantity--;
       document.getElementById(`quantity_${id}`).value = quantity;
       tot_price=quantity*price
-      document.getElementById(`price_${id}`).innerText= tot_price;
+      document.getElementById(`price_${id}`).innerHTML=`${tot_price}<span>₹</span>`;
      updateCart(id,quantity,name,tot_price)
     }
    

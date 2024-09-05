@@ -1,0 +1,147 @@
+<%- include('../partials/head.ejs') %>
+<%- include('../partials/header.ejs') %>
+<div class="container-fluid w-100 bg-primary mt-5 ps-5 d-flex align-items-center" style="height: 10vh">
+ 
+    <li class="breadcrumb-item" style="list-style: none;"><a href="/">Home</a></li>
+    <li class="breadcrumb-item active" aria-current="page" style="list-style: none; max-width: 500px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
+       My Account
+    </li>
+
+</div>
+<section>
+
+<div class="container bg-light mt-5">
+    <div class="d-flex align-items-center profile-card p-3">
+        <div class="profile-img">
+            <img src="https://via.placeholder.com/100" alt="Profile" class="rounded-circle">
+        </div>
+        <div class="profile-info flex-grow-1 ms-3">
+            <h5 class="mb-0"> <%= user.username %></h5>
+            <p class="text-muted mb-0"> <%= user.email %></p>
+        </div>
+        <div>
+            <button type="button" class="btn btn-primary">Edit</button>
+        </div>
+        
+    </div>
+    
+    <div class="container">
+    <div class="row">
+        
+        <div class="col-md-6 d-flex flex-column">
+            <label for="">Username</label>
+            <input class="border-0" type="text" value="<%=user.username  %>">
+        </div>
+        <div class="col-md-6 d-flex flex-column">
+            <label for="">Email</label>
+            <input class="border-0" type="text" disabled value="<%=user.email  %>">
+        </div>
+        <div class="col-md-6 d-flex flex-column">
+            <label for="">mobile No</label>
+            <input class="border-0"  type="text" value="<%=user.mobile  %>" style="background-color: rgb(255, 250, 230);">
+        </div>
+        <div class="col-md-6 d-flex flex-column"></div>
+</div>
+</div>
+</div>
+<div class="container col-md-12 rounded bg-light mt-5 mb-5 py-3 ">
+    <div class="mt-4"><h2 class="text-center">Addresses Details</h2></div>
+    <hr>
+    <div class="row d-flex justify-contern-center align-items-center">
+        <% if(addresses && addresses.address.length!=0) %>
+        <% addresses.address.forEach((address)=>{ %>
+     <div class="col-md-6 " id="address_<%=address._id%>">
+        
+            <div class="address-card">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="mb-1"><strong><%= address.name %></strong></p>
+                        <p class="mb-1"><%= address.address_line %></p>
+                        <p class="mb-1"><%= address.city %>,<%= address.state %> -<%= address.pincode %></p>
+                        <p class="mb-0">Mobile:<%=address.phone  %> </p>
+                    </div>
+                    <div class="d-flex align-items-start ">
+                        <button onclick="editAddress('<%=address._id%>')" class="icon-btn " title="Edit">
+                            <i class="fas fa-edit" style="margin-right: 12px;"></i>
+                        </button>
+                        <button onclick="deleteAddress('<%=address._id%>')" class="icon-btn ml-4" title="Delete">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <% }) %>
+
+        <!-- Add New Address Button -->
+        <div class="col-md-6 d-flex align-items-center">
+            <div class="add-new-address" style="padding-left: 100px; padding-right: 100px">
+                <a href="/profile/addAddress" class="primary">+ Add New Address</a>
+            </div>
+        </div>
+    
+    </div>
+</div>
+
+
+</section>
+<script>
+    document.addEventListener("DOMContentLoaded",()=>{
+        const addressSaved=localStorage.getItem('addressSaved');
+     
+     if(addressSaved==="true"){
+         Swal.fire({
+             icon: 'success',
+             title: 'Success',
+             text: 'Your address has been successfully saved!',
+         });
+         localStorage.removeItem('addressSaved')
+     }
+    })
+    async function deleteAddress(id){
+        try{
+            let response=await fetch(`/profile/deleteAddress/${id}`,{
+            method:"DELETE"
+
+        })
+        if(response.ok){
+          document.getElementById(`address_${id}`).remove()
+            
+        }
+        else{
+            throw new Error('something went wrong');
+        }
+        }catch(error){
+            console.error('Error:', error) 
+        }
+       
+    }
+    function editAddress(id){
+        fetch(`/profile/editAddress/${id}`,{
+            method:"get",
+            
+           
+
+        }).then((res)=>{
+            if(res.ok){
+                window.location.href=`/profile/editAddress/${id}`
+            }
+            else{
+                throw new Error('something went wrong');
+            }
+
+        }).catch(err=>{
+            console.error('Error:', err) 
+        })
+
+    }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- Bootstrap JS (for navbar toggle) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Bootstrap Icons (optional) -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+</body>
+</html>
