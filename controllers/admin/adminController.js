@@ -2,6 +2,7 @@ const User = require("../../models/User");
 const Product = require('../../models/Product');
 const Category = require('../../models/Category');
 const Brands = require('../../models/Brand');
+const Order = require('../../models/Order');
 const bcrypt=require("bcrypt")
 
 
@@ -57,6 +58,10 @@ catch(err){
 }
 
 exports.main=(req,res)=>{
+    res.redirect("/admin/dashboard")
+}
+
+exports.getDash=(req,res)=>{
     res.render("admin/dashboard")
 }
 exports.getusers=async(req,res)=>{
@@ -113,6 +118,95 @@ exports.getProducts=async(req,res)=>{
     console.log(err)
    }
 }
+exports.getOrders=async(req,res)=>{
+    try{
+
+        const orders=await Order.find().sort({createdAt:-1})
+        orders.forEach(order => {
+            order.formattedDate=new Date(order.createdAt).toLocaleDateString('en-GB',{
+                day:'2-digit',
+                month:"short",
+                year:"numeric"
+            })
+        });
+       
+        res.render("admin/orders",{orders})
+    }
+   catch(err){
+    console.log(err)
+   }
+}
+exports.deliverOrder = async (req, res) => {
+    try {
+        console.log("hekjeiu");
+        const { product_Id, user_Id, order_Id } = req.body;
+        console.log(req.body)
+
+        const order = await Order.findOne({ user_Id: user_Id, _id: order_Id, "items.product_Id": product_Id });
+        if (!order) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+
+        const item = order.items.find(item => item.product_Id.toString() === product_Id);
+        if (!item) {
+            return res.status(404).json({ message: 'Product not found in the order' });
+        }
+
+        if (item.orderStatus === 'delivered') {
+            return res.status(400).json({ message: 'Order is already delivered' });
+        }
+
+        if (item.orderStatus === 'canceled') {
+            return res.status(400).json({ message: 'Canceled orders cannot be delivered' });
+        }
+
+        item.orderStatus = 'delivered';
+
+        await order.save();
+
+        return res.status(200).json({ message: 'Order marked as delivered successfully' });
+    } catch (error) {
+        console.error('Error marking order as delivered:', error);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+exports.cancelOrder = async (req, res) => {
+    try {
+        const { product_Id, user_Id, order_Id } = req.body;
+
+       
+        const order = await Order.findOne({ user_Id, _id: order_Id, "items.product_Id": product_Id });
+        if (!order) {
+            return res.status(404).json({ message: 'Order or product not found' });
+        }
+
+        const item = order.items.find(item => item.product_Id.toString() === product_Id);
+        if (!item) {
+            return res.status(404).json({ message: 'Product not found in the order' });
+        }
+        if (item.orderStatus === 'delivered') {
+            return res.status(400).json({ message: 'Delivered orders cannot be canceled' });
+        }
+
+        if (item.orderStatus === 'canceled') {
+            return res.status(400).json({ message: 'Order is already canceled' });
+        }
+
+        item.orderStatus = 'canceled';
+
+       
+        await order.save();
+
+        return res.status(200).json({ message: 'Order canceled successfully' });
+    } catch (error) {
+        console.error('Error canceling order:', error);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+  
+
 
 exports.getAddProduct=async(req,res)=>{
     try{
@@ -226,29 +320,49 @@ exports.getBrand=async(req,res)=>{
     console.log(err)
    }
 }
-exports.addBrand=async(req,res)=>{
-    try{
-        brand_name=req.body.brand_name
-    const exist=await Brands.findOne({brand_name})
-    if(exist){
-        req.flash('error', 'Sorry brand already exists!');
-        res.redirect("/admin/brands")
-
-    }
-    else{
-        const brand=new Brands({
-            brand_name
-           })
-           await brand.save()
-           req.flash('success', 'New brand added successfully!');
-           res.redirect("/admin/brands")
-    }
+exports.addBrand = async (req, res) => {
+    try {
+   
+      const { brandName, popularBrand } = req.body;
+      const brandImage = req.file; 
+  
       
+      const exist = await Brands.findOne({ brand_name: brandName });
+      if (exist) {
+       
+        return res.status(400).json({
+          success: false,
+          message: 'Brand name already exists.',
+        });
+      }
+  
+      
+      const brand = new Brands({
+        brand_name: brandName,
+        brand_image: brandImage ? brandImage.filename : null, 
+        isPopular: popularBrand === 'true', 
+      });
+  
+     
+      await brand.save();
+  
+      
+      return res.status(200).json({
+        success: true,
+        message: 'New brand added successfully!',
+        brand,
+      });
+    } catch (err) {
+      console.error(err);
+  
+      
+      return res.status(500).json({
+        success: false,
+        message: 'Server error. Please try again later.',
+      });
     }
-   catch(err){
-    console.log(err)
-   }
-}
+  };
+  
 exports.deleteBrand = async (req, res) => {
 
     try {

@@ -1,6 +1,40 @@
 <%- include('../partials/head.ejs') %>
 <%- include('../partials/header.ejs') %>
+
+<style>
+    .product-img {
+        width: 50px;
+        height: 50px;
+        object-fit: cover;
+        border-radius: 5px;
+    }
+    .status-badge {
+        font-size: 0.9rem;
+        padding: 5px 10px;
+        border-radius: 12px;
+    }
+    .badge-delivered {
+        background-color: #d4f4e0;
+        color: #28a745;
+    }
+    .badge-canceled{
+        background-color: #ede9fe;
+        color: #bd4330;
+    }
+    .badge-shipping {
+        background-color: #ede9fe;
+        color: #6f42c1;
+    }
+    .invoice-btn {
+        background-color: #6f42c1;
+        color: white;
+        border-radius: 8px;
+        padding: 6px 12px;
+    }
+</style>
+
 <div class="container-fluid w-100 bg-primary mt-5 ps-5 d-flex align-items-center" style="height: 10vh">
+    
  
     <li class="breadcrumb-item" style="list-style: none;"><a href="/">Home</a></li>
     <li class="breadcrumb-item active" aria-current="page" style="list-style: none; max-width: 500px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
@@ -9,46 +43,100 @@
 
 </div>
 <section>
+    <div class="container-fluid">
+        <!-- Navbar -->
+        <nav class="navbar navbar-expand-lg navbar-light bg-light d-md-none">
+          <div class="container-fluid">
+            <a class="navbar-brand" href="#">My Account</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+          </div>
+        </nav>
+      
+        <div class="row">
+          <!-- Sidebar (collapsible in small screens) -->
+          <div class="col-md-3 col-lg-2 collapse d-md-block bg-light vh-100 p-3" id="sidebarMenu">
+            <h4 class="text-center mb-4 d-none d-md-block">My Account</h4>
+            <ul class="nav flex-column">
+              <li class="nav-item mb-2">
+                <a class="nav-link active" href="#profile"><i class="bi bi-person"></i> Profile</a>
+              </li>
+              <li class="nav-item mb-2">
+                <a class="nav-link" href="#wallet"><i class="bi bi-wallet2"></i> Wallet</a>
+              </li>
+              <li class="nav-item mb-2">
+                <a class="nav-link" href="#address"><i class="bi bi-geo-alt"></i> Address</a>
+              </li>
+              <li class="nav-item mb-2">
+                <a class="nav-link" href="#order"><i class="bi bi-card-list"></i> Orders</a>
+              </li>
+            </ul>
+          </div>
+      
+          <!-- Main Content -->
+          <div class="col-md-9 col-lg-10 p-4">
+            <div class="container rounded-5 bg-light mt-5">
+                <div class="d-flex align-items-center profile-card p-3">
+                    <div class="profile-img">
+                        <img src="https://via.placeholder.com/100" alt="Profile" class="rounded-circle">
+                    </div>
+                    
+                    <div class="profile-info flex-grow-1 ms-3">
+                        <h5 class="mb-0"> <%= user.username %></h5>
+                        <p class="text-muted mb-0"> <%= user.email %></p>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editModal">Edit</button>
+                    <div class="modal fade " id="editModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Edit User Details</h5>
+                               <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form action="" id="editForm">
+                                        <div class="mb-3">
+                                            <label for="name" class="form-label">Name</label>
+                                            <input type="text" class="form-control" id="name" name="name" value="<%= user.username %>">
+                                            <p id="name-error" class="text-danger text-decoration-none"></p>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="email" class="form-label">Email</label>
+                                            <input type="text" class="form-control" id="email" name="email" disabled value="<%= user.email %>">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="name" class="form-label">Mobile</label>
+                                            <input type="text" class="form-control" id="phone" name="phone" value="<%= user.phone %>">
+                                            <p id="phone-error" class="text-danger text-decoration-none"></p>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">close</button>
+                                    <button type="submit" class="btn btn-primary" form="editForm">Save Changes</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+                    
+                </div>
+                
+                
+            </div>
+          </div>
+        </div>
+      </div>
+      
 
-<div class="container bg-light mt-5">
-    <div class="d-flex align-items-center profile-card p-3">
-        <div class="profile-img">
-            <img src="https://via.placeholder.com/100" alt="Profile" class="rounded-circle">
-        </div>
-        <div class="profile-info flex-grow-1 ms-3">
-            <h5 class="mb-0"> <%= user.username %></h5>
-            <p class="text-muted mb-0"> <%= user.email %></p>
-        </div>
-        <div>
-            <button type="button" class="btn btn-primary">Edit</button>
-        </div>
-        
-    </div>
-    
-    <div class="container">
-    <div class="row">
-        
-        <div class="col-md-6 d-flex flex-column">
-            <label for="">Username</label>
-            <input class="border-0" type="text" value="<%=user.username  %>">
-        </div>
-        <div class="col-md-6 d-flex flex-column">
-            <label for="">Email</label>
-            <input class="border-0" type="text" disabled value="<%=user.email  %>">
-        </div>
-        <div class="col-md-6 d-flex flex-column">
-            <label for="">mobile No</label>
-            <input class="border-0"  type="text" value="<%=user.mobile  %>" style="background-color: rgb(255, 250, 230);">
-        </div>
-        <div class="col-md-6 d-flex flex-column"></div>
-</div>
-</div>
-</div>
+
 <div class="container col-md-12 rounded bg-light mt-5 mb-5 py-3 ">
     <div class="mt-4"><h2 class="text-center">Addresses Details</h2></div>
     <hr>
     <div class="row d-flex justify-contern-center align-items-center">
-        <% if(addresses && addresses.address.length!=0) %>
+        <% if(addresses && addresses.address && addresses.address.length>0 ){ %>
         <% addresses.address.forEach((address)=>{ %>
      <div class="col-md-6 " id="address_<%=address._id%>">
         
@@ -71,24 +159,170 @@
                 </div>
             </div>
         </div>
-        <% }) %>
+        <% })} %>
 
         <!-- Add New Address Button -->
         <div class="col-md-6 d-flex align-items-center">
             <div class="add-new-address" style="padding-left: 100px; padding-right: 100px">
-                <a href="/profile/addAddress" class="primary">+ Add New Address</a>
+                <a href="/profile/addAddress?profile=true" class="primary">+ Add New Address</a>
             </div>
         </div>
     
     </div>
 </div>
 
+<div class="row">
+<div class="container">
+   
+<% if(orders && orders.length>0){ %>
+<div class="container my-5">
+    <h3 class="mb-4">Order History</h3>
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Order ID</th>
+                    <th>Product</th>
+                    <th>Qty</th>
+                    <th>Date</th>
+                    <th>Total Amount</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% orders.forEach((order)=>{ %>
+                    <% order.items.forEach(item => {%>
+                <tr>
+                    <td><%=order._id %></td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <img src="/public/uploads/<%=item.image  %>" alt="Product" class="product-img me-3">
+                            <div>
+                                
+                                <div><%=item.productName  %></div>
+                                <small class="text-muted">Women's Clothes</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <%=item.quantity  %>
+                    </td>
+                    <td id="date"><%=order.formattedDate %></td>
+                    <td>₹ <%=item.quantity*item.price  %></td>
+                    <td id="status">
+                        <% if (item.orderStatus === "pending") { %>
+                            <span class="status-badge badge-shipping " id="status">Pending</span>
+                            <td>
+                                <button class="btn btn-danger" onclick="cancel(`<%=item.product_Id%>`)">cancel</button>
+                            </td>
+                        <% } else if(item.orderStatus ==='delivered') { %>
+                            <span class="status-badge badge-delivered" id="status">Delivered</span>
+                            <td>
+                            <button class="btn " style="background-color: rgb(120, 120, 120);" onclick="rtnproduct(`<%=item.product_Id%>`,`<%=order._id%>`)">Return</button>
+                            </td>
+                       
+                        <% } else if(item.orderStatus ==='canceled') { %>  
+                            <span class="status-badge badge-canceled" id="status" >Cancelled</span>
+                        <% } %>
+                      
+                    </td>
+                    
+                </tr>
+               
+                <%  });  }) %>
+            </tbody>
+        </table>
+    </div>
+</div>
+<% }  %>
+
+</div>
+</div>
+
 
 </section>
 <script>
+    function rtnproduct(product_Id,order_Id){
+        Swal.fire({
+  title: 'Enter your reason to return',
+  input: 'text',  
+   customClass: {
+    title: 'swal-custom-title'
+},
+  inputPlaceholder: 'Enter your reason here',
+  showCancelButton: true,
+  confirmButtonText: 'Submit',
+  showLoaderOnConfirm: true,
+  preConfirm: (value) => {
+    if (!value) {
+      Swal.showValidationMessage('You need to write something!');
+    }
+    return value;
+  }
+}).then(async(result) => {
+  if (result.isConfirmed) {
+  let response=await fetch("/returnProduct",{
+    method:"post",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({product_Id,order_Id,reason:value})
+  })
+  }
+});
+
+    }
+   function cancel(product_Id) {
+    // Show confirmation dialog
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "Do you want to cancel this order?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, cancel it!'
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            try {
+               
+                let response = await fetch(`/orders/cancel/${product_Id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ product_Id })
+                });
+
+                if (response.ok) {
+                   
+                    Swal.fire(
+                        'Cancelled!',
+                        'Your order has been canceled.',
+                        'success'
+                    );
+                    
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    throw new Error('Failed to cancel the order.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+               
+                Swal.fire(
+                    'Error!',
+                    'Something went wrong. Please try again later.',
+                    'error'
+                );
+            }
+        }
+    });
+}
+
     document.addEventListener("DOMContentLoaded",()=>{
         const addressSaved=localStorage.getItem('addressSaved');
-     
+        const userSaved=localStorage.getItem('userSaved');
      if(addressSaved==="true"){
          Swal.fire({
              icon: 'success',
@@ -97,6 +331,61 @@
          });
          localStorage.removeItem('addressSaved')
      }
+     if(userSaved==="true"){
+         Swal.fire({
+             icon: 'success',
+             text: 'Your profile has been updated',
+            
+         });
+         localStorage.removeItem('userSaved')
+     }
+    })
+    document.getElementById("editForm").addEventListener("submit",async function(e){
+         e.preventDefault();
+         document.getElementById('name-error').textContent = '';
+         document.getElementById('phone-error').textContent = '';
+        const username=document.getElementById("name").value.trim()
+       
+        const phone=document.getElementById("phone").value.trim()
+        if(!username){
+            document.getElementById('name-error').textContent = 'Username should not be empty';
+            return;
+        }
+        const mobileRegex = /^[6-9]\d{9}$/;
+        if(!phone || !mobileRegex.test(phone)){
+            document.getElementById('phone-error').textContent = 'Mobile number should be a valid 10 digit';
+            return;
+        }
+        try {
+            let response=await fetch("/profile/editUserDetails",{
+                method:"post",
+                headers:{"Content-Type":"application/json"},
+                body:JSON.stringify({username,phone})
+            })
+            if(response.ok){
+                let data=await response.json()
+                var modalE=document.getElementById("editModal")
+                var modal=bootstrap.Modal.getInstance(modalE)
+                modal.hide();
+                localStorage.setItem('userSaved',"true")
+                window.location.href="/profile";
+              
+            }
+            else{
+                Swal.fire({
+                    icon:"warning",
+                    title:"eror"
+                })
+            
+            }
+        
+        } catch (error) {
+            Swal.fire({
+                    icon:"warning",
+                    title:"eror"
+                })
+        }
+       
     })
     async function deleteAddress(id){
         try{
@@ -124,7 +413,7 @@
 
         }).then((res)=>{
             if(res.ok){
-                window.location.href=`/profile/editAddress/${id}`
+                window.location.href=`/profile/editAddress/${id}?profile=true`
             }
             else{
                 throw new Error('something went wrong');
@@ -137,11 +426,4 @@
     }
 </script>
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-<!-- Bootstrap JS (for navbar toggle) -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<!-- Bootstrap Icons (optional) -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-</body>
-</html>
+<%- include('../partials/footer.ejs') %>

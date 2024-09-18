@@ -394,3 +394,163 @@ p{
 .icon-btn:hover {
     color: #ffcf5e;
 }
+.order-summary {
+    max-width: 561px;
+    margin: 50px auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .order-summary h5 {
+    font-weight: bold;
+    margin-bottom: 20px;
+  }
+
+  .order-summary .product-list {
+    border-bottom: 1px solid #e0e0e0;
+    margin-bottom: 15px;
+  }
+
+  .order-summary .totals {
+    margin-bottom: 15px;
+  }
+
+  .order-summary .totals p {
+    margin: 0;
+    font-weight: bold;
+  }
+
+  .order-summary .totals .total-price {
+    font-size: 1.25rem;
+  }
+
+  .order-summary label {
+    font-weight: normal;
+    margin-right: 10px;
+  }
+
+  .order-summary .place-order-btn {
+    width: 100%;
+    padding: 10px;
+    background-color: #d1a857;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 1rem;
+  }
+  .quantity-input {
+    width: 50px;
+    height: 35px; 
+    border: 1px solid #ced4da; 
+    border-radius: 5px; 
+    font-size: 16px; 
+}
+
+.quantity-input:focus {
+    outline: none; 
+    box-shadow: none;
+}
+
+.btn-outline-secondary {
+    padding: 0.375rem 0.75rem; 
+    font-size: 1rem; 
+}
+.swal-custom-title{
+  font-size: 20px;
+}
+.icon-feature {
+  text-align: center;
+  padding: 15px;
+}
+
+.icon-feature i {
+  font-size: 2rem;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.icon-feature h5 {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+.card-text .a{
+font-size: 14px;
+}
+.icon-feature p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #777;
+}
+
+.icon-feature-container {
+  background-color: #f8f9fa;
+  padding: 30px 0;
+}
+.footer {
+  background-color: #000;
+  color: #fff;
+  padding-top:40px ;
+  padding-bottom: 10px;
+}
+.card-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+ 
+  color: rgb(205, 205, 205);
+  padding: 20px;
+  text-align: left;
+}
+.brand_img{
+  height: 210px;
+  width: 210px;
+}
+.card-img-overlay {
+  display: flex;
+  align-items: flex-end;
+}
+
+.card-body {
+  position: relative;
+  z-index: 1;
+}
+
+.card img {
+  object-fit: cover;
+  height: 100%;
+}
+.footer h5 {
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+.bot-card{
+  height: 300px;
+}
+.main_card{
+ height: 624px;
+}
+.footer p,
+.footer a {
+  color: #bbb;
+  margin-bottom: 5px;
+  font-size: 0.9rem;
+}
+
+.footer a:hover {
+  color: #fff;
+  text-decoration: none;
+}
+
+.footer .social-icons a {
+  color: #bbb;
+  font-size: 1.2rem;
+  margin-right: 10px;
+}
+
+.footer .social-icons a:hover {
+  color: #fff;
+}

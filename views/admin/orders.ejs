@@ -1,0 +1,215 @@
+<%- include('../partials/admin-header.ejs') %>
+<%- include('../partials/admin-sidebar.ejs') %>
+<style>
+    .product-img {
+        width: 50px;
+        height: 50px;
+        object-fit: cover;
+        border-radius: 5px;
+    }
+    .status-badge {
+        font-size: 0.9rem;
+        padding: 5px 10px;
+        border-radius: 12px;
+    }
+    .badge-delivered {
+        background-color: #d4f4e0;
+        color: #28a745;
+    }
+    .badge-canceled{
+        background-color: #ede9fe;
+        color: #bd4330;
+    }
+    .badge-shipping {
+        background-color: #ede9fe;
+        color: #6f42c1;
+    }
+    .invoice-btn {
+        background-color: #6f42c1;
+        color: white;
+        border-radius: 8px;
+        padding: 6px 12px;
+    }
+</style>
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="row">
+     <div class="col-9">
+        <form action="" >
+            <input type="search" class="search_bar w-100 border-0 py-2 px-5 "  placeholder="Search">
+          </form>
+        </div>
+        <div class="col-3 ">
+            <a href="/admin/products/addProduct"><button type="submit"  class="btn btn-primary px-5 rounded-0">Add Products</button></a>
+        </div>
+    </div>
+    <div class="row">
+        <div class="container">
+           
+        <% if(orders && orders.length>0){ %>
+        <div class="container my-5">
+            <h3 class="mb-4">Order History</h3>
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Product</th>
+                            <th>Qty</th>
+                            <th>Date</th>
+                            <th>Total Amount</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% orders.forEach((order)=>{ %>
+                            <% order.items.forEach(item => {%>
+                        <tr>
+                            <td><%=order._id %></td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <img src="/public/uploads/<%=item.image  %>" alt="Product" class="product-img me-3">
+                                    <div>
+                                        
+                                        <div><%=item.productName  %></div>
+                                       
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                
+                                <%=item.quantity  %>
+                            </td>
+                            <td id="date"><%=order.formattedDate %></td>
+                            <td>₹ <%=item.quantity*item.price  %></td>
+                            <td id="status">
+                                <% if (item.orderStatus === "pending") { %>
+                                    <span class="status-badge badge-shipping " id="status">Pending</span>
+                                    <td>
+                                        <button class="btn btn-danger" type="button" onclick="cancel(`<%=item.product_Id%>`,'<%=order.user_Id%>','<%=order._id%>')">cancel</button>
+                                        <button class="btn btn-success" type="button" onclick="delivery(`<%=item.product_Id%>`,'<%=order.user_Id%>','<%=order._id%>')">delivery</button>
+                                   
+                                    </td>
+                                <% } else if(item.orderStatus ==='delivered') { %>
+                                    <span class="status-badge badge-delivered" id="status">Delivered</span>
+                               
+                                <% } else if(item.orderStatus ==='canceled') { %>
+                                    <span class="status-badge badge-canceled" id="status" >Cancelled</span>
+                                <% } %>
+                              
+                            </td>
+                            
+                        </tr>
+                       
+                        <%  });  }) %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <% }  %>
+        
+        </div>
+        </div>  
+
+    </div>
+
+  </div>
+ 
+   <script>
+    function delivery(product_Id, user_Id, order_Id) {
+   
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "Do you want to mark this order as delivered?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, mark as delivered!'
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            try {
+                let response = await fetch(`/admin/orders/deliver`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ product_Id, user_Id, order_Id })
+                });
+
+                if (response.ok) {
+                    Swal.fire(
+                        'Delivered!',
+                        'The order has been marked as delivered.',
+                        'success'
+                    );
+                    
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    throw new Error('Failed to update the order status.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+               
+                Swal.fire(
+                    'Error!',
+                    'Something went wrong. Please try again later.',
+                    'error'
+                );
+            }
+        }
+    });
+}
+
+    function cancel(product_Id, user_Id, order_Id) {
+ 
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "Do you want to cancel this order?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, cancel it!'
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            try {
+                let response = await fetch(`/admin/orders/cancel`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ product_Id, user_Id, order_Id }) 
+                });
+
+                if (response.ok) {
+                    Swal.fire(
+                        'Cancelled!',
+                        'Order has been canceled.',
+                        'success'
+                    );
+
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    throw new Error('Failed to cancel the order.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+
+                Swal.fire(
+                    'Error!',
+                    'Something went wrong. Please try again later.',
+                    'error'
+                );
+            }
+        }
+    });
+}
+
+   </script>
+  <%- include('../partials/admin-footer.ejs') %>

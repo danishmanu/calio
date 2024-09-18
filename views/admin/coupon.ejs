@@ -1,0 +1,193 @@
+<%- include('../partials/admin-header.ejs') %>
+<%- include('../partials/admin-sidebar.ejs') %>
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="row">
+     <div class="col-9">
+        <form action="" >
+            <input type="search" class="search_bar w-100 border-0 py-2 px-5 "  placeholder="Search">
+          </form>
+        </div>
+        <div class="col-3 ">
+         <button type="button"  class="btn btn-primary px-5 rounded-0" data-toggle="modal" data-target="#add_coupon">Add Coupon</button>
+        </div>
+        <!-- Button trigger modal -->
+
+  
+  <!-- Modal -->
+  <div class="modal fade" id="add_coupon" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLongTitle">Add New Coupon</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+            <form action="" id="addCouponform" >
+                <div class="mb-3">
+                    <label for="name" class="form-label">Coupon Code</label>
+                    <input type="text" class="form-control" id="coupon_code" name="coupon_code" value="">
+                    <p id="coupon_codeError" class="text-danger text-decoration-none"></p>
+                </div>
+                <div class="mb-3">
+                    <label for="email" class="form-label">Discount(In %)</label>
+                    <input type="number" class="form-control" id="discount" name="discount"  value="">
+                    <p id="discountError" class="text-danger text-decoration-none"></p>
+                </div>
+                <div class="mb-3">
+                    <label for="name" class="form-label">Start date</label>
+                    <input type="datetime-local" class="form-control" onclick="disablePrevios()" id="startDate" name="startDate" value="" required>
+                  
+                </div>
+                <div class="mb-3">
+                    <label for="name" class="form-label">End date</label>
+                    <input type="datetime-local"  class="form-control" id="endDate" name="endDate" value="" required>
+                    <p id="endError" class="text-danger text-decoration-none"></p>
+                </div>
+           
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="button" onclick="return validate()" class="btn btn-primary">Save changes</button>
+        </div>
+    </form>
+      </div>
+    </div>
+  </div>
+    </div>
+          <div class="container-fluid w-60 p-0 p-md-3 ">
+            <h4>List Products</h4>
+            <table class="table table-wrapper ">
+           <thead class="bg-dark ">
+               <tr class="t_head">
+                <th>coupon code</th>
+                 <th>discount (In %)</th>
+                   <th>start date</th>
+                   <th>end date</th>
+                  <th class="me-0 pe-0 text-center">Action</th>
+               </tr>
+             </thead>
+             <tbody>
+              
+             
+
+             
+             <% coupons.forEach((coupon)=>{ %>
+                 
+               <tr class="">
+                
+                  
+                   <td><%= coupon.coupon_code %></td>
+                    <td> <%= coupon.discount %> %</td>
+                    <td> <%= coupon.startDate %></td>
+                    <td> <%= coupon.endDate %></td>
+                     
+                    <td class=" text-center d-flex justify-content-center ">
+                     <div class="d-flex flex-row ">
+                      
+                        
+                   
+                     <form action="/admin/products/edit" method="get" ><button type="submit" class="btn btn-warning  ms-2"><i class="bi bi-trash"></i> Edit</button></form> 
+
+                   
+                     <form action="/admin/products/delete/?_method=DELETE" method="post" ><button type="submit" class="btn btn-danger ms-2"><i class="bi bi-trash"></i> Delete</button></form> 
+                   </div>  
+                   </td> 
+                
+                  </tr>
+                  <% }) %>
+                 
+                 
+             </tbody>
+            </table>
+           </div>
+    </div>
+
+  </div>
+  <script>
+    function disablePrevios(){
+        var now = new Date().toISOString().slice(0, 16).replace("T", " ");
+        document.getElementsByName("startDate")[0].min = now;
+
+        document.getElementById("startDate").addEventListener("change",function(){
+            let startDateValue=document.getElementById("startDate").value
+            document.getElementsByName("endDate")[0].min=startDateValue
+        })
+       
+    }
+   
+    async function validate(){
+        document.getElementById("coupon_codeError").textContent = "";
+        document.getElementById("discountError").textContent="";
+          document.getElementById("endError").textContent=""
+        code=document.getElementById("coupon_code").value.trim()
+        startDate=new Date(document.getElementById("startDate").value)
+        endDate=new Date(document.getElementById("endDate").value)
+        discount=document.getElementById("discount").value.trim()
+        if(code.length<=0){
+            document.getElementById("coupon_codeError").innerText="This field should not be empty"
+            return false
+        }
+        if(discount.length==0){
+            document.getElementById("discountError").innerText="This field should not be empty"
+            return false
+        }
+        if(discount<=0){
+            document.getElementById("discountError").innerText="This should be a non negative number"
+            return false
+        }
+        if(endDate<=startDate){
+            document.getElementById("endError").innerText="Ending date should be greater than starting date"
+            return false
+        }
+        let couponData = {
+        coupon_code: code,
+        discount: discount,
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+    };
+
+  try {
+        const response = await fetch('/admin/coupons/add', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(couponData),
+        });
+
+        if (response.ok) {
+            
+            Swal.fire({
+                icon: 'success',
+                title: 'Coupon added successfully',
+                showConfirmButton: false,
+                timer: 1500
+            }).then(() => {
+              
+                window.location.reload(); 
+            });
+        } else {
+            const errorData = await response.json();
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: `Error: ${errorData.message}`,
+            });
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: 'An error occurred while adding the coupon.',
+        });
+    }
+
+    return true;
+}
+  </script>
+  <!-- main-panel ends -->
+  <%- include('../partials/admin-footer.ejs') %>    

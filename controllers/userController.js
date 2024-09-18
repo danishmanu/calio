@@ -27,6 +27,7 @@ exports.main=(async(req,res)=>{
     let products=await Product.find({isDelete:false})
     console.log(products)
     let user=req.session.user
+    
         res.render("users/home",{products,user})
     
     
@@ -78,7 +79,13 @@ if(user){
   return res.redirect("/login");
 }
 })
+exports.forgetPass=async()=>{
+  try{
+      res.render("users/forgetPass")
+  }catch(error){
 
+  }
+}
 exports.getSignup=(req,res)=>{
   if(req.session.user){
     res.redirect("/")
@@ -194,6 +201,7 @@ exports.getProduct=async(req,res)=>{
   res.render("users/product",{product,relatedProducts,user})
 
 }
+
 exports.logout = (req, res) => {
   req.session.destroy((err) => {
       if (err) {

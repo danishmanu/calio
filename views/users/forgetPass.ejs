@@ -1,0 +1,21 @@
+<%- include('../partials/head.ejs') %>
+
+<body class="log_body">
+    <div class="otp_box ">
+        <h2 class="text-center mt-5 fw-bolder">Reset your Password</h2>
+        <p class="ps-5">please enter your email id to reset password</p>
+        <div class="row">
+            <form action="/otp_verification" method="post">
+                <div class="d-flex justify-content-center">
+                    <input class="otp_inp m-2 test center form-control rounded p-0 width-50" type="text" name="otp" id="otp" maxlength="6" />
+                </div>
+               </div>
+           
+        </form>
+    </div>
+
+   
+</body>
+
+
+<%- include('../partials/footer.ejs') %>

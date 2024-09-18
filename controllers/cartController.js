@@ -18,11 +18,18 @@ exports.Auth=(async(req,res,next)=>{
     console.log(user)
     res.render("users/cart",{user,cart})
   }
-  exports.addToCart=async (req,res)=>{
+
+    exports.addToCart = async (req, res) => {
+        if (!req.session.user) {
+           
+            return res.status(401).json({ message: 'You must be logged in to add items to your cart' });
+        }
+    
     try{
-        console.log("helo guys")
+        console.log(req.session.user)
     let quantity=parseInt(req.body.quantity)
    user_Id=req.session.user
+  
     product_Id=req.params.id;
     let product=await Product.findById(product_Id)
         if(!product){
@@ -66,7 +73,8 @@ exports.Auth=(async(req,res,next)=>{
             console.log(" iam here4")
             await cart.save()
         }
-     res.status(200).json({message:"Item added to cart"});
+        cartItemCount=cart.items.length
+     res.status(200).json({message:"Item added to cart",cartItemCount});
     console.log(" iam here5")
 }
 catch(err){

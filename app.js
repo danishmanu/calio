@@ -10,6 +10,8 @@ const methodOverride = require('method-override')
 const userRoutes=require("./routes/userRoutes")
 const adminRoutes=require("./routes/adminRoutes")
 const passport=require("./config/passport")
+const cartMiddleware = require('./middleware/cartMiddleware');
+
 
 const port= process.env.PORT;
 app.use("/public",express.static(path.join(__dirname, 'public')));
@@ -34,11 +36,11 @@ app.use((req, res, next) => {
   });
 app.use(passport.initialize())
 app.use(passport.session())
-app.use("/",userRoutes)
+app.use("/",cartMiddleware,userRoutes)
 app.use("/admin",adminRoutes)
 
-// app.use((req, res, next) => {
-//   res.status(404).render("404");
-// });
+app.use((req, res, next) => {
+  res.status(404).render("404");
+});
 
 app.listen(port,()=>console.log(`http://localhost:${port}/`))

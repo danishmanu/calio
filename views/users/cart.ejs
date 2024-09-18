@@ -8,7 +8,7 @@
     </li>
     
 </div>
-<section>
+<section class="mb-5">
     <div class="container">
     <div class="row d-flex " style="">
        
@@ -39,15 +39,22 @@
                     <td><%=product.product_Id.price%></td>
                 <!-- {{/each}} -->
                 <td>
-                    <div class="d-flex align-items-center">
-                        <button class="btn btn-outline-secondary" type="button" id="minus_<%=product.product_Id._id%>" onclick="minus('<%= product.product_Id._id%>','<%= product.product_Id.stock%>','<%= product.product_Id.name%>','<%= product.product_Id.price%>')">-</button>
-                        <input type="number" name="quantity" class="form-control text-center mx-2"  value=<%= product.quantity %> style="width: 50px;" id="quantity_<%=product.product_Id._id%>"/>
-                        <button class="btn btn-outline-secondary" type="button" id="plus_<%=product.product_Id._id%>" onclick="plus('<%= product.product_Id._id%>','<%= product.product_Id.stock%>','<%= product.product_Id.name%>','<%= product.product_Id.price%>')">+</button>
-                      </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex">
+                            <button class="btn btn-outline-secondary btn-sm" id="minus_<%=product.product_Id._id%>"  onclick="minus('<%= product.product_Id._id%>','<%= product.product_Id.stock%>','<%= product.product_Id.name%>','<%= product.product_Id.price%>')">
+                                <i class="bi bi-dash"></i>
+                            </button>
+                            <input type="number" ame="quantity" class="quantity-input text-center mx-2"  value=<%= product.quantity %> id="quantity_<%=product.product_Id._id%>" readonly>
+                            <button class="btn btn-outline-secondary btn-sm" type="button" id="plus_<%=product.product_Id._id%>" onclick="plus('<%= product.product_Id._id%>','<%= product.product_Id.stock%>','<%= product.product_Id.name%>','<%= product.product_Id.price%>')">
+                                <i class="bi bi-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
                 </td>
                 <td id="price_<%=product.product_Id._id%>"><%=product.price  %> <span>₹</span></td>
                 <td>
-                    <button href=""  class="btn btn-danger" type="button"  onclick="deleteCart('<%=product.product_Id._id%>')">Remove</button>
+                    <button href=""  class="btn" type="button"  onclick="deleteCart('<%=product.product_Id._id%>')"><i class="fa-regular fa-trash-can" style="color: black;"></i></button>
                 </td>
                 </tr>
                 <% }) %>
@@ -77,14 +84,15 @@
             <tr>
                 
                 <th>Total</th>
-                <td class="ps-3"id="total">:<%=cart.total_price%>₹</td>
+                <td class="ps-3"id="subtotal">:<%=cart.total_price%>₹</td>
             </tr>
             <tr>
                
             </tr>
         </table>
-        <button type="button" onclick="placeOrder" class="btn btn-primary w-100 mx-0">PLACE ORDER</button>
-        
+        <a href="/checkout">
+        <button type="button"  class="btn btn-primary w-100 mx-0">PLACE ORDER</button>
+    </a>
      
         
     </div>
@@ -103,7 +111,7 @@
         
 
     <% } %>
-</div>
+
 </section>
 <script>
     
@@ -192,6 +200,7 @@ try{
 let data=await response.json()
 const total=data.total
  document.getElementById("total").innerText=`:${total}₹`
+ document.getElementById("subtotal").innerText=`:${total}₹`
 }
 
         else{
@@ -208,34 +217,6 @@ catch(err){
 }
      
 }
-async function placeOrder() {
-    try {
-        
-        let response = await fetch("/checkout", {
-            method: "GET"
-        });
-
-       
-        if (response.ok) {
-          
-            let data = await response.json();
-
-            
-            console.log("Order placed successfully:");
-           
-            
-        } else {
-           
-            console.error("Failed to place the order. Status:", response.status);
-            Swal.fire('Error', 'There was an issue placing your order.', 'error');
-        }
-    } catch (error) {
-        
-        console.error("Error while placing the order:", error);
-        Swal.fire('Error', 'Something went wrong. Please try again.', 'error');
-    }
-}
-
 
 function plus(id,stock,name,price) {
   
@@ -283,11 +264,4 @@ function minus(id,stock,name,price) {
    
 }
 </script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-<!-- Bootstrap JS (for navbar toggle) -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<!-- Bootstrap Icons (optional) -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-</body>
-</html>
+<%- include('../partials/footer.ejs') %>

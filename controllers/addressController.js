@@ -12,13 +12,17 @@ exports.Auth=(async(req,res,next)=>{
   
   })
   exports.getAddAddress=async (req,res)=> {
+   console.log(req.query);
    
-    res.render("users/addAddress",{user:req.session.user,address:null})
+    res.render("users/addAddress",{user:req.session.user,address:null,profile:req.query.profile})
    
     
   }
   exports.addAddress=async (req,res)=> {
    try{
+    console.log("hello guys")
+    profile=req.query.profile 
+    console.log(req.query,profile)
     const {name,country,state ,city,pincode,phone,address_line}=req.body
     console.log(name,country,state ,city,pincode,phone,address_line)
      const user_Id=req.session.user
@@ -51,6 +55,7 @@ exports.Auth=(async(req,res,next)=>{
          }
          await Address.create(address)
      }
+     
     res.status(200).json({success:true,message:"new address addded"})
     
    }
@@ -63,6 +68,7 @@ exports.Auth=(async(req,res,next)=>{
   exports.editAddress=async (req,res)=>{
     try{
       console.log("hello")
+      
       const user_Id=req.session.user
       const {name,phone,country,city,state,pincode,address_line,address_Id}=req.body
       let address=await Address.findOne({user_Id,"address._id": address_Id })
@@ -77,6 +83,7 @@ exports.Auth=(async(req,res,next)=>{
           "address.$.pincode": pincode,
           "address.$.address_line": address_line
       }})
+      
       res.status(200).json({ success: true, message: 'Address updated successfully'});
       }else {
         res.status(404).json({ success: false, message: 'Address not found' });
@@ -94,8 +101,10 @@ exports.Auth=(async(req,res,next)=>{
     try{
       console.log("helo o")
       const id=req.params.id;
+      profile=req.query.profile
       user=req.session.user;
       console.log(id)
+      profile=null
        let address=await Address.findOne({user_Id:user})
        if(!address){
         return res.status(404).json({ message: "Address not found for this user" });
@@ -105,7 +114,7 @@ exports.Auth=(async(req,res,next)=>{
        if (!curaddress) {
         return res.status(404).json({ message: "Address not found" });
       }
-      res.render("users/addAddress",{user,address:curaddress})
+      res.render("users/addAddress",{user,address:curaddress,profile})
 
        
      

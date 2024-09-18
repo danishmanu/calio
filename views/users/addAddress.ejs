@@ -143,6 +143,7 @@
         const url = "<%= address ? '/profile/editAddress' : '/profile/addAddress' %>";
         const method=`<%= address ? 'put' : 'post' %>`;
         const address_Id="<%= address ? address._id : null %>";
+        const profile='<%=profile %>'?? null
         try{
           const response=await fetch(url,{
           method:method,
@@ -163,8 +164,15 @@
         })
         const data=await response.json();
         if(data.success==true){
-          localStorage.setItem('addressSaved',"true")
+          if(profile==true){
+            localStorage.setItem('addressSaved',"true")
                   window.location.href='/profile'
+          }
+          else{
+             localStorage.setItem('addressSaved',"true")
+                  window.location.href='/checkout'
+          }
+         
                 
         }
          else {
@@ -189,11 +197,4 @@
     ;
     </script>
     
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-<!-- Bootstrap JS (for navbar toggle) -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<!-- Bootstrap Icons (optional) -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-</body>
-</html>
+    <%- include('../partials/footer.ejs') %>
