@@ -1,5 +1,6 @@
 const mongoose=require("mongoose");
 
+
 const couponSchema=new mongoose.Schema({
     coupon_code:{
         type:String,
@@ -23,7 +24,12 @@ const couponSchema=new mongoose.Schema({
 
     }
     ,users:[{
-        type:String,
+        user_Id:{type:mongoose.Schema.Types.ObjectId,
+            ref:"User"
+        },
+        isBought:{type:Boolean,
+            default:false
+        }
         
     }
     ]

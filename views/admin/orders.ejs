@@ -66,7 +66,7 @@
                         <% orders.forEach((order)=>{ %>
                             <% order.items.forEach(item => {%>
                         <tr>
-                            <td><%=order._id %></td>
+                            <td><%= order._id.toString().slice(-6) %></td>
                             <td>
                                 <div class="d-flex align-items-center">
                                     <img src="/public/uploads/<%=item.image  %>" alt="Product" class="product-img me-3">
@@ -89,7 +89,6 @@
                                     <td>
                                         <button class="btn btn-danger" type="button" onclick="cancel(`<%=item.product_Id%>`,'<%=order.user_Id%>','<%=order._id%>')">cancel</button>
                                         <button class="btn btn-success" type="button" onclick="delivery(`<%=item.product_Id%>`,'<%=order.user_Id%>','<%=order._id%>')">delivery</button>
-                                   
                                     </td>
                                 <% } else if(item.orderStatus ==='delivered') { %>
                                     <span class="status-badge badge-delivered" id="status">Delivered</span>

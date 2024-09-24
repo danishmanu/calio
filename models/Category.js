@@ -5,6 +5,13 @@ const categorySchema=mongoose.Schema({
         required:true
     }
     ,
+    offer:{
+        
+        discountPercentage:{type:Number}
+        , expirAt:{type:Date},
+        status:{type:Boolean,default:true}
+    }
+    ,
     isDelete:{
         type:Boolean,
         default:false

@@ -48,12 +48,22 @@ const orderSchema=mongoose.Schema({
         image:{
             type:String
          }
+         ,  returnStatus: {
+            type: Object,
+           
+            default: null,
+          }
+       
+         ,returnReason:{
+            type:String
+
+         }
 
         ,price:{
             type:Number
         }, orderStatus: {
             type: String,
-            enum: ['pending', 'canceled', 'delivered'],
+            enum: ['pending', 'canceled', 'delivered',"returned"],
             default: 'pending'
         },
     }],
@@ -66,7 +76,10 @@ const orderSchema=mongoose.Schema({
         type: Boolean,
         default: false
     },
-   
+   discount:{
+    type:Number,
+    default:0
+   },
     totalAmount:{
         type:String,
         required:true

@@ -1,0 +1,418 @@
+<%- include('../partials/admin-header.ejs') %>
+<%- include('../partials/admin-sidebar.ejs') %>
+
+<div class="main-panel">
+    <div class="content-wrapper">
+        <!-- Display success or error messages -->
+        <% if (message.success) { %>
+            <div class="alert alert-success">
+              <%= message.success %>
+            </div>
+          <% } %>
+          <% if (message.error) { %>
+            <div class="alert alert-danger">
+              <%= message.error %>
+            </div>
+          <% } %>
+
+        <!-- Offer Management Section -->
+        <div class="container-fluid pt-4">
+            <div class="mb-3">Offer Management</div>
+            <!-- Navigation for offer types -->
+            <ul class="nav nav-tabs mb-4" id="offerTabs">
+                <li class="nav-item me-5">
+                    <a class="nav-link active custom-tab " id="productOffersTab" href="javascript:void(0)" onclick="showOfferSection('productOffers')">Product Offers</a>
+                </li>
+                <li class="nav-item me-5">
+                    <a class="nav-link custom-tab " id="categoryOffersTab" href="javascript:void(0)" onclick="showOfferSection('categoryOffers')">Category Offers</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link custom-tab " id="referralOffersTab" href="javascript:void(0)" onclick="showOfferSection('referralOffers')">Referral Offers</a>
+                </li>
+            </ul>
+
+            <!-- Offer sections -->
+            <div id="offerContent">
+                <!-- Product Offers (default section) -->
+                <div id="productOffers" class="offer-section">
+                    <h4>Product Offers</h4>
+                    <div class="d-flex justify-content-end">
+                        <button class="mb-3 btn btn-primary border-0" data-bs-toggle="modal" data-bs-target="#addProductOfferModal">
+                            <a href="#" class="text-decoration-none text-white">+ Add Offer</a>
+                        </button>
+                        
+<div class="modal fade" id="addProductOfferModal" tabindex="-1" aria-labelledby="addProductOfferModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addProductOfferModalLabel">Add Product Offer</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="add-productOffer">
+            <div class="modal-body">
+                <div id="productOffer-error" class="alert alert-danger d-none"></div>
+
+                <label for="productId"  class="mb-1">Select Product</label>
+                <select name="productId" class="form-select form-control mb-1" id=" ">
+                    <option value="" >select product</option>
+                    <% products.forEach(product => { %>
+                     <option value="<%= product._id %>" class=" mb-1"><%= product.name %></option>
+                    <% }) %>
+                </select>
+                <p id="productId-notvalid" class="text-danger fs-14 d-none" ></p>
+
+                <label for="productDiscountPercentage" class="mb-1">Discount Percentage</label>
+                <input id="productDiscountPercentage" class="form-control mb-1" name="productDiscountPercentage" type="text">
+                <p id="productDiscountPercentage-notvalid" class="text-danger fs-14 d-none" ></p>
+
+                <label for="ProductOffExpiry" class="mb-1">Expires at</label>
+                <input id="ProductOffExpiry" type="datetime-local" class="form-control mb-1" name="ProductOffExpiry" >
+                <p id="ProductOffExpiry-notvalid" class="text-danger fs-14 d-none"></p>
+
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" onclick="addProductOff()" class="btn btn-primary">Save changes</button>
+            </div>
+        </form>
+        </div>
+    </div>
+</div>
+                    </div>
+
+                    <!-- Product offers list -->
+                    <div class="table-responsive border mt-2">
+                        <table class="table table-striped">
+                            <thead class="bg-dark text-white">
+                                <tr>
+                               
+                                    <th scope="col">Product</th>
+                                    <th scope="col">Image</th>
+                                    <th scope="col">Discount(In%)</th>
+                                    <th scope="col">Expires At</th>
+                                    <th scope="col">Status</th>
+                                    <th scope="col" class="text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% if (products) { %>
+                                    <% products.forEach(product => { %>
+                                            <% if(product.offer && product.offer.discountPercentage){  %>    
+                                        <tr id="product-<%= product.productId %>" class="align-middle">
+                                            
+                                            <td><%= product.name %></td>
+                                            <td><img src="/public/uploads/<%= product.images[0] %>" alt="" style="width: 65px;"></td>
+                                            <td class="text-center"><%= product.offer.discountPercentage %></td>
+                                            <td><%= new Date(product.offer.expirAt).toLocaleString('en-US', {
+                                                day: '2-digit', month: '2-digit', year: 'numeric',
+                                                hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+                                            }) %></td>
+                                            <td class="<%= product.offer.status ? 'text-success' : 'text-danger' %>"><%= product.offer.status ? 'active' : 'expired' %></td>
+                                            <td class="text-end">
+                                                <button class="border-0" onclick="deleteProductOffer('/admin/deleteProductOffer/<%= product.productId %>','<%= product.productId %>')"><i class="fa-solid fa-trash text-danger fs-4"></i></button>
+                                                <button class="border-0"><i class="fas fa-edit text-primary fs-4"></i></button>
+                                            </td>
+                                        </tr>
+                                    <%} }) %>
+                                <% } %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="categoryOffers" class="offer-section" style="display: none;">
+                    <h4>Category Offers</h4>
+                    <div class="d-flex justify-content-end">
+                        <button class="mb-3 btn btn-primary border-0" data-bs-toggle="modal" data-bs-target="#addCategoryOfferModal">
+                            <a href="#" class="text-decoration-none text-white ">+ Add Offer</a>   
+                        </button>
+      <!-- category offer Modal -->
+      <div class="modal fade" id="addCategoryOfferModal" tabindex="-1" aria-labelledby="addCategoryOfferModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addCategoryOfferModalLabel">Add category Offer</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="add-categoryOffer">
+                <div class="modal-body">
+                    <div id="categoryOffer-error" class="alert alert-danger d-none"></div>
+
+                    <label for="categoryId"  class="mb-1">Select Product</label>
+                    <select name="categoryId" class="form-select form-control mb-1" id="">
+                        <option value="" >select category</option>
+                        <% categories.forEach(category => { %>
+                         <option value="<%= category._id %>" class=" mb-1"><%= category.cat_name %></option>
+                        <% }) %>
+                    </select>
+                    <p id="categoryId-notvalid" class="text-danger fs-14 d-none" ></p>
+
+                    <label for="categoryDiscountPercentage" class="mb-1">Discount Percentage</label>
+                    <input id="categoryDiscountPercentage" class="form-control mb-1" name="categoryDiscountPercentage" type="text">
+                    <p id="categoryDiscountPercentage-notvalid" class="text-danger fs-14 d-none" ></p>
+
+                    <label for="categoryOffExpiry" class="mb-1">Expires at</label>
+                    <input id="categoryOffExpiry" type="datetime-local" class="form-control mb-1" name="categoryOffExpiry" >
+                    <p id="categoryOffExpiry-notvalid" class="text-danger fs-14 d-none"></p>
+
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" onclick="addCategoryOff()" class="btn btn-primary">Save changes</button>
+                </div>
+            </form>
+            </div>
+        </div>
+    </div>
+
+                    </div>
+                    <div class="table-responsive border mt-2">
+                        <table class="table table-striped">
+                            <thead class="bg-dark text-white">
+                                <tr>
+                                
+                                    <th scope="col">Category</th>
+                                    <th scope="col">Discount Percentage (%)</th>
+                                    <th scope="col">Expires At</th>
+                                    <th scope="col">Status</th>
+                                    <th scope="col" class="text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% if (categories) { %>
+                                    <% categories.forEach(cat => { %>
+                                        <% if(cat.offer&&cat.offer.discountPercentage && cat.isDelete === false ){ %>
+                                        <tr id="category-<%= cat._id %>" class="align-middle">
+                                            
+                                            <td><%= cat.cat_name %></td>
+                                            <td><%= cat.offer.discountPercentage %></td>
+                                            <td><%= new Date(cat.offer.expirAt).toLocaleString('en-US', {
+                                                day: '2-digit', month: '2-digit', year: 'numeric',
+                                                hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+                                            }) %></td>
+                                            <td class="<%= cat.offer.status ? 'text-success' : 'text-danger' %>"><%= cat.offer.status  ? 'active' : 'expired' %></td>
+                                            <td class="text-end">
+                                                <button class="border-0" onclick="deleteCategoryOffer('<%= cat._id %>')"><i class="fa-solid fa-trash text-danger fs-4"></i></button>
+                                                <button class="border-0"><i class="fas fa-edit text-primary fs-4"></i></button>
+                                            </td> 
+                                        </tr>
+                                    <%} }) %>
+                                <% } %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div id="referralOffers" class="offer-section" style="display: none;">
+                    <h4>Referral Offers</h4>
+                    <div class="d-flex justify-content-end">
+                        <button class="mb-3 primary-btn border-0" data-bs-toggle="modal" data-bs-target="#addReferralOfferModal">
+                            <a href="#" class="text-decoration-none text-white">+ Add Offer</a>
+                        </button>
+                    </div>
+                    <p>Here you can manage your referral offers.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Modals here -->
+
+<!-- Partial footer -->
+ <script>
+      const productIdError = document.getElementById('productId-notvalid');
+        const discountPercentageError = document.getElementById('productDiscountPercentage-notvalid');
+        const expiryDateError = document.getElementById('ProductOffExpiry-notvalid');
+
+      
+        productIdError.classList.add('d-none');
+        discountPercentageError.classList.add('d-none');
+        expiryDateError.classList.add('d-none');
+  
+    async function addProductOff() {
+      
+        productIdError.classList.add('d-none');
+        discountPercentageError.classList.add('d-none');
+        expiryDateError.classList.add('d-none');
+        const productId = document.querySelector('[name="productId"]').value;
+        const discountPercentage = document.querySelector('[name="productDiscountPercentage"]').value;
+        const expiryDate = document.querySelector('[name="ProductOffExpiry"]').value;
+
+      
+
+       
+        let isValid = true;
+
+       
+        if (!productId) {
+            productIdError.innerText = 'Please select a product.';
+            productIdError.classList.remove('d-none');
+            isValid = false;
+        }
+
+       
+        if (!discountPercentage || isNaN(discountPercentage) || discountPercentage <= 0 || discountPercentage > 100) {
+            discountPercentageError.innerText = 'Please enter a valid discount percentage (1-100).';
+            discountPercentageError.classList.remove('d-none');
+            isValid = false;
+        }
+
+       
+        if (!expiryDate) {
+            expiryDateError.innerText = 'Please select an expiry date.';
+            expiryDateError.classList.remove('d-none');
+            isValid = false;
+        }
+        if (expiryDate<Date.now()) {
+            expiryDateError.innerText = 'expiry date must be greater than Date of today.';
+            expiryDateError.classList.remove('d-none');
+            isValid = false;
+        }
+
+       
+        if (isValid) {
+            try {
+               
+                const response = await fetch('/admin/offer/addProductOffer', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        productId,
+                        productDiscountPercentage: discountPercentage,
+                        ProductOffExpiry: expiryDate,
+                    }),
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                  
+                    location.reload();
+                } else {
+                    
+                    document.getElementById('productOffer-error').innerText = result.message || 'Error adding product offer.';
+                    document.getElementById('productOffer-error').classList.remove('d-none');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('productOffer-error').innerText = 'An error occurred. Please try again.';
+                document.getElementById('productOffer-error').classList.remove('d-none');
+            }
+        }
+    }
+    const categoryIdError = document.getElementById('categoryId-notvalid');
+const categoryDiscountPercentageError = document.getElementById('categoryDiscountPercentage-notvalid');
+const categoryExpiryDateError = document.getElementById('categoryOffExpiry-notvalid');
+
+// Initially hide the error messages
+categoryIdError.classList.add('d-none');
+categoryDiscountPercentageError.classList.add('d-none');
+categoryExpiryDateError.classList.add('d-none');
+
+async function addCategoryOff() {
+    // Reset validation messages
+    categoryIdError.classList.add('d-none');
+    categoryDiscountPercentageError.classList.add('d-none');
+    categoryExpiryDateError.classList.add('d-none');
+
+    // Get form data
+    const categoryId = document.querySelector('[name="categoryId"]').value;
+    const discountPercentage = document.querySelector('[name="categoryDiscountPercentage"]').value;
+    const expiryDate = document.querySelector('[name="categoryOffExpiry"]').value;
+
+    let isValid = true;
+
+    // Validate category
+    if (!categoryId) {
+        categoryIdError.innerText = 'Please select a category.';
+        categoryIdError.classList.remove('d-none');
+        isValid = false;
+    }
+
+    // Validate discount percentage
+    if (!discountPercentage || isNaN(discountPercentage) || discountPercentage <= 0 || discountPercentage > 100) {
+        categoryDiscountPercentageError.innerText = 'Please enter a valid discount percentage (1-100).';
+        categoryDiscountPercentageError.classList.remove('d-none');
+        isValid = false;
+    }
+
+    // Validate expiry date
+    if (!expiryDate) {
+        categoryExpiryDateError.innerText = 'Please select an expiry date.';
+        categoryExpiryDateError.classList.remove('d-none');
+        isValid = false;
+    }
+    if (expiryDate < Date.now()) {
+        categoryExpiryDateError.innerText = 'Expiry date must be in the future.';
+        categoryExpiryDateError.classList.remove('d-none');
+        isValid = false;
+    }
+
+    if (isValid) {
+        try {
+         
+            const response = await fetch('/admin/offer/addCategoryOffer', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    categoryId,
+                    discountPercentage: discountPercentage,
+                    expirAt: expiryDate,
+                }),
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                
+                location.reload();
+            } else {
+                
+                document.getElementById('categoryOffer-error').innerText = result.message || 'Error adding category offer.';
+                document.getElementById('categoryOffer-error').classList.remove('d-none');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('categoryOffer-error').innerText = 'An error occurred. Please try again.';
+            document.getElementById('categoryOffer-error').classList.remove('d-none');
+        }
+    }
+}
+
+
+    function showOfferSection(sectionId) {
+   
+    const offerSections = document.querySelectorAll('.offer-section');
+    offerSections.forEach(section => {
+        section.style.display = 'none';
+    });
+
+    
+    const offerTabs = document.querySelectorAll('.custom-tab');
+    offerTabs.forEach(tab => {
+        tab.classList.remove('active');
+    });
+
+  
+    const selectedSection = document.getElementById(sectionId);
+    if (selectedSection) {
+        selectedSection.style.display = 'block';
+    }
+
+    
+    const clickedTab = document.getElementById(sectionId + 'Tab');
+    if (clickedTab) {
+        clickedTab.classList.add('active');
+    }
+}
+ </script>
+<%- include('../partials/admin-footer.ejs') %>
+
+
+

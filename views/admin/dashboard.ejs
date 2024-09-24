@@ -1,93 +1,148 @@
 <%- include('../partials/admin-header.ejs') %>
 
 <%- include('../partials/admin-sidebar.ejs') %>
-      <div class="main-panel">
-        <div class="content-wrapper">
-          <div class="row">
-            <div class="col-lg-6 grid-margin stretch-card">
-              <div class="card">
-                <div class="card-body">
-                  <h4 class="card-title">Line chart</h4>
-                  <canvas id="lineChart"></canvas>
-                </div>
-              </div>
-            </div>
-            <div class="col-lg-6 grid-margin stretch-card">
-              <div class="card">
-                <div class="card-body">
-                  <h4 class="card-title">Bar chart</h4>
-                  <canvas id="barChart"></canvas>
-                </div>
-              </div>
-            </div>
+<div class="main-panel">
+  <div class="content-wrapper">
+    <div class="row">
+      <div>
+        <div class="btn-wrapper">
+          <a href="#" class="btn btn-otline-dark align-items-center"><i class="icon-share"></i> Share</a>
+          <a href="#" class="btn btn-otline-dark" id="printButton"
+          ><i class="icon-printer"></i> Print Sales Report</a>
+
+          <a href="#" class="btn btn-primary text-white me-0"><i class="icon-download"></i> Export</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-sm-12">
+        <div class="statistics-details d-flex align-items-center justify-content-between">
+          <div>
+            <p class="statistics-title">Total Order</p>
+            <h3 class="rate-percentage">
+              <%= orders.length %>
+            </h3>
           </div>
-          <div class="row">
-            <div class="col-lg-6 grid-margin stretch-card">
-              <div class="card">
-                <div class="card-body">
-                  <h4 class="card-title">Area chart</h4>
-                  <canvas id="areaChart"></canvas>
-                </div>
-              </div>
-            </div>
-            <div class="col-lg-6 grid-margin stretch-card">
-              <div class="card">
-                <div class="card-body">
-                  <h4 class="card-title">Doughnut chart</h4>
-                  <canvas id="doughnutChart"></canvas>
-                </div>
-              </div>
-            </div>
+          <div>
+            <p class="statistics-title">Total Sales</p>
+            <h3 class="rate-percentage">
+              <%= totalAmount %>
+            </h3>
           </div>
-          <div class="row">
-            <div class="col-lg-6 grid-margin grid-margin-lg-0 stretch-card">
-              <div class="card">
-                <div class="card-body">
-                  <h4 class="card-title">Pie chart</h4>
-                  <canvas id="pieChart"></canvas>
-                </div>
-              </div>
-            </div>
-            <div class="col-lg-6 grid-margin grid-margin-lg-0 stretch-card">
-              <div class="card">
-                <div class="card-body">
-                  <h4 class="card-title">Scatter chart</h4>
-                  <canvas id="scatterChart"></canvas>
-                </div>
+
+          <div class="d-none d-md-block">
+            <p class="statistics-title">Product Count</p>
+            <h3 class="rate-percentage">
+              <%= productsCount %>
+            </h3>
+          </div>
+
+          <div class="d-none d-md-block">
+            <p class="statistics-title">Users</p>
+            <h3 class="rate-percentage">
+              <%= usersCount %>
+            </h3>
+          </div>
+        </div>
+
+        <div class="row"></div>
+        <div class="col-lg-12 grid-margin stretch-card">
+          <div class="card">
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th>Order Id</th>
+                      <th>Product Name</th>
+                      <th>Quantity</th>
+                      <th>Payment Type</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% orders.forEach(order => { %>
+                      <% order.items.forEach(product => { %>
+                        <tr>
+                          <td><%=  order._id.toString().slice(-6) %></td>
+                          <td><%= product.productName %></td>
+                          <td><%= product.quantity %></td>
+                          <td><%= order.paymentMethod %></td>
+                         
+                            <td><%= order.paymentStatus==true ?"paid":"pending" %></td>
+                          
+                        </tr>
+                      <% }) %>
+                    <% }) %>
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
         </div>
-        <!-- content-wrapper ends -->
 
-        <!-- partial:../../partials/_footer.html -->
-       
-        <!-- partial -->
       </div>
-      <!-- main-panel ends -->
-  
-    <!-- container-scroller -->
-    <!-- base:js -->
+    </div>
+  </div>
+</div>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const printButton = document.getElementById('printButton');
+
+    // Extract query parameters from the URL (e.g., ?sort=month or ?startDate=2023-09-01&endDate=2023-09-30)
+    function getQueryParams() {
+      const urlParams = new URLSearchParams(window.location.search);
+      let params = {};
+
+      if (urlParams.has('sort')) {
+        params.sort = urlParams.get('sort');
+      }
+      if (urlParams.has('startDate') && urlParams.has('endDate')) {
+        params.startDate = urlParams.get('startDate');
+        params.endDate = urlParams.get('endDate');
+      }
+
+      return params;
+    }
+
     
-    
-       <script src="public/vendors/base/vendor.bundle.base.js"></script>
-    <!-- endinject -->
-    <!-- inject:js -->
-    <script src=" public/js/off-canvas.js"></script>
-    <script src=" public/js/hoverable-collapse.js"></script>
-    <script src=" public/js/template.js"></script>
-    <!-- endinject -->
-    <!-- plugin js for this page -->
-    <script src=" public/vendors/chart.js/Chart.min.js"></script>
-    <!-- End plugin js for this page -->
-    <!-- Custom js for this page-->
-    <script src="public/js/chart.js"></script>
-    <!-- End custom js for this page-->
-    <!-- font-awesome -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
-    
-    <script src="https://kit.fontawesome.com/a5e10914c4.js" crossorigin="anonymous"></script>
-    <!-- End font-awesome -->
-    </body>
-    
-    </html>
+    printButton.addEventListener('click', (e) => {
+      e.preventDefault();
+      const queryParams = getQueryParams();
+      let url = '/admin/generate-pdf?';
+
+      
+      if (queryParams.sort) {
+        url += sort=`${queryParams.sort}`;
+      } else if (queryParams.startDate && queryParams.endDate) {
+        url += startDate=`${queryParams.startDate}&endDate=${queryParams.endDate}`;
+      }
+
+      // Redirect to the PDF generation route
+      window.location.href = url;
+    });
+  });
+</script>
+
+
+<!-- content-wrapper ends -->
+<!-- main-panel ends -->
+<!-- container-scroller -->
+<!-- base:js -->
+<script src="public/vendors/base/vendor.bundle.base.js"></script>
+<!-- inject:js -->
+<script src="public/js/off-canvas.js"></script>
+<script src="public/js/hoverable-collapse.js"></script>
+<script src="public/js/template.js"></script>
+<!-- plugin js for this page -->
+<script src="public/vendors/chart.js/Chart.min.js"></script>
+<!-- Custom js for this page-->
+<script src="public/js/chart.js"></script>
+<!-- font-awesome -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+  integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+  crossorigin="anonymous"></script>
+<script src="https://kit.fontawesome.com/a5e10914c4.js" crossorigin="anonymous"></script>
+</body>
+</html>

@@ -25,7 +25,7 @@ exports.Auth=(async(req,res,next)=>{
 })
 exports.main=(async(req,res)=>{
     let products=await Product.find({isDelete:false})
-    console.log(products)
+   
     let user=req.session.user
     
         res.render("users/home",{products,user})
@@ -43,8 +43,7 @@ exports.getLogin=(req,res)=>{
 }
 exports.login=(async(req,res)=>{
   try{
-  console.log(req.body.log)
-  console.log(req.body.password)
+ 
   let {log,password}=req.body
   
  let user=await User.findOne({$and:[{$or:[{email:log},{username:log}]},{googleId:null}]})
@@ -57,7 +56,7 @@ if(user){
     res.redirect("/login")
    }
   else if(match){
-    console.log("ok")
+    
   req.session.user=user._id
     res.redirect("/home")
   }
@@ -67,7 +66,7 @@ if(user){
   }
  }
  else{
-  console.log("hai")
+
   req.flash('error','Sorry invalid user!')
   res.redirect("/login")
   
@@ -125,8 +124,6 @@ exports.signup=(async(req,res)=>{
       const created_at=new Date().getTime()
       const expires_at=created_at+1000*60
       
-      console.log(created_at)
-      console.log(expires_at)
       const otp=otp_generation();
       console.log(otp)   
 
@@ -190,13 +187,12 @@ exports.getProduct=async(req,res)=>{
   try{
 
   }catch(error){
-    console.log('error')
+    console.log(error)
   }
   id=req.params.id;
   let product=await Product.findById(id)
   const relatedProducts = await Product.find({ category_Id: product.category_Id,_id: { $ne: product._id } });
-  // let relatedProducts=await Product.findOne({category_Id:product.category_Id})
-  console.log(relatedProducts)
+  
   user=req.session.user
   res.render("users/product",{product,relatedProducts,user})
 

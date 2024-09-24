@@ -1,0 +1,235 @@
+<%- include('../partials/head.ejs') %>
+<%- include('../partials/header.ejs') %>
+<style>
+  
+    .product-card img {
+            object-fit: cover;
+            width: 100%;
+            max-height: 300px;
+        }
+        .card-title {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        .price {
+            color: #ff5722;
+            font-weight: bold;
+            font-size: 1.3rem;
+        }
+        .original-price {
+            text-decoration: line-through;
+            color: grey;
+            font-size: 1rem;
+        }
+        .discount {
+            color: green;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+        .delete-icon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: #999;
+            font-size: 1.3rem;
+            cursor: pointer;
+        }
+        .add-to-cart-btn {
+            background-color: #ff5722;
+            color: white;
+            font-weight: bold;
+        }
+    .wishlist-container {
+      text-align: center;
+    }
+    .wishlist-title {
+      font-size: 2.5rem;
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+    }
+    .wishlist-message {
+      font-size: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+    .wishlist-subtext {
+      font-size: 1rem;
+      color: #6c757d;
+    }
+    .wishlist-button {
+      background-color: #7d5a3e;
+      color: #fff;
+      font-size: 1rem;
+      padding: 0.75rem 2rem;
+      border: none;
+      border-radius: 0.25rem;
+      text-transform: uppercase;
+      font-weight: bold;
+    }
+    .wishlist-button:hover {
+      background-color: #5d452e;
+    }
+  </style>
+<div class="container-fluid w-100 bg-primary mt-5 ps-5 d-flex align-items-center" style="height: 10vh">
+    <li class="breadcrumb-item" style="list-style: none;"><a href="#">Home</a></li>
+    <li class="breadcrumb-item active" aria-current="page" style="list-style: none; max-width: 500px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
+      wishlist
+    </li>
+  </div>
+  <div class="container wishlist-container">
+    <% if(wishlist){ %>
+    <h1 class="wishlist-title mt-2">My Wishlist</h1>
+   
+  
+<div class="container mt-5">
+  <div class="row ">
+    <% wishlist.products.forEach((product)=>{ %>
+      <div class="wishlist-item col-md-6 col-lg-4 mb-4 justify-content-md-start justify-content-sm-center">
+        <a href="/product/<%= product._id %>">
+        <div class="card product-card shadow-sm position-relative">
+        
+         <i class="bi bi-trash delete-icon" onclick="confirmRemoveProduct(event,`<%=product._id%>`)"></i>
+              <img src="/public/uploads/<%=product.images[0]%>" alt="Product Image" class="card-img-top">
+              <div class="card-body text-center">
+                  <h5 class="card-title"><%= product.name %></h5>
+                 <% if(product.offer && product.offer.discountPercentage){ %>
+                  <div class="d-flex justify-content-center align-items-center">
+                      <span class="price">₹ <%=product.price-(product.price*(product.offer.discountPercentage/100))  %></span>
+                      <span class="original-price ms-2">₹ <%=product.price  %></span>
+                      <span class="discount">(<%= product.offer.discountPercentage %> % off)</span>
+                  </div>
+                  <% }else{ %>
+                    <span class="price">₹ <%=product.price  %></span>
+                    <%}  %>
+                    <button class="btn btn-primary  mt-3" onclick="addToCart(event,`<%=product._id%>`)">
+                      <i class="bi bi-cart3 "></i> Add to Cart
+                    </button>
+              </div>
+          </div>
+        </a>
+      </div>
+      <% }) %>
+  </div>
+</div>
+<% } %>
+<div id="empty" class="<%= wishlist&&wishlist.products.length>0 ? "d-none":"d-block"  %>"  >
+    <p class="wishlist-message mt-5">Your Wishlist is empty!!</p>
+    <p class="wishlist-subtext mb-5">Add a few products and then explore the coolest way to shop online!</p>
+    <a href="/shop" class="btn btn-primary mb-5">Continue Shopping</a>
+  </div>
+  </div>
+<script>
+function confirmRemoveProduct(event, product_Id) {
+    event.preventDefault();
+
+ 
+    Swal.fire({
+        title: 'Are you sure?',
+        text: 'Do you want to remove this product from your wishlist?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, remove it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            
+            removeProduct(event, product_Id);
+        }
+    });
+}
+async function removeProduct(event, product_Id) {
+    try {
+        const response = await fetch(`/wishlist/remove/${product_Id}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            Swal.fire({
+                title: 'Removed!',
+                text: 'Product has been removed from your wishlist.',
+                icon: 'success',
+                confirmButtonText: 'OK'
+            });
+
+            // Remove product element from DOM
+            const productElement = event.target.closest('.wishlist-item');
+            if (productElement) {
+                productElement.remove();  
+            }
+            const wishlistItems = document.querySelectorAll('.wishlist-item');
+            if (wishlistItems.length === 0) {
+                document.getElementById("empty").classList.add("d-block");
+                document.getElementById("wishlist-title").classList.add("d-none");
+            }
+        } else {
+            Swal.fire({
+                title: 'Error!',
+                text: 'Failed to remove product.',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+        }
+    } catch (error) {
+        Swal.fire({
+            title: 'Network Error!',
+            text: 'An error occurred. Please check your connection and try again.',
+            icon: 'error',
+            confirmButtonText: 'OK'
+        });
+    }
+}
+function addToCart(event, product_Id) {
+  event.preventDefault();
+
+  const quantity = 1;
+
+  fetch(`/addToCart/${product_Id}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ quantity: quantity }),
+  })
+    .then(async (res) => {
+      if (res.status === 401) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'You must log in first!',
+          text: 'Please log in to add items to your cart.',
+          confirmButtonText: 'Login',
+          showCancelButton: true,
+          cancelButtonText: 'Cancel',
+        }).then((result) => {
+          if (result.isConfirmed) {
+            window.location.href = '/login'; // Redirect to login on confirmation
+          }
+        });
+      } else if (res.ok) {
+        const data = await res.json();
+        document.getElementById('cart-count').innerText = data.cartItemCount; // Update the cart badge
+        Swal.fire({
+          icon: 'success',
+          title: 'Added to Cart!',
+          text: 'The item has been successfully added to your cart.',
+          showConfirmButton: false,
+          timer: 1500,
+        });
+
+        // Remove the product from the wishlist after adding to cart
+        removeProduct(event, product_Id);
+      } else {
+        console.log('Something went wrong');
+      }
+    })
+    .catch((err) => {
+      console.error('Error:', err);
+    });
+}
+
+
+</script>
+  <%- include('../partials/footer.ejs') %>
+

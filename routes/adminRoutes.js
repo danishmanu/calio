@@ -3,6 +3,7 @@ const router=express.Router();
 const upload = require('../middleware/multer');
 const adminController=require("../controllers/admin/adminController");
 const couponController=require("../controllers/admin/couponController")
+const offerController=require("../controllers/admin/offerController")
 router.get("/login",adminController.getLogin)
 router.post("/login",adminController.login)
 router.get("/",adminController.adminAuth,adminController.main)
@@ -45,5 +46,10 @@ router.post("/logout",adminController.adminAuth,adminController.logout)
 
 router.get("/coupon",adminController.adminAuth,couponController.getCoupon)
 router.post("/coupons/add",adminController.adminAuth,couponController.addCoupon)
+
+
+router.get("/offer",adminController.adminAuth,offerController.getOffer)
+router.post("/offer/addProductOffer",adminController.adminAuth,offerController.addProductOffer)
+router.post("/offer/addCategoryOffer",adminController.adminAuth,offerController.addCategoryOffer)
 
 module.exports=router

@@ -3,6 +3,7 @@ const Product = require('../../models/Product');
 const Category = require('../../models/Category');
 const Brands = require('../../models/Brand');
 const Order = require('../../models/Order');
+const Wallet = require('../../models/Wallet');
 const bcrypt=require("bcrypt")
 
 
@@ -43,6 +44,7 @@ if(!match){
 }
 else{
     req.session.admin=true
+
     res.redirect("/admin")
 }
 }else{
@@ -61,27 +63,22 @@ exports.main=(req,res)=>{
     res.redirect("/admin/dashboard")
 }
 
-exports.getDash=(req,res)=>{
-    res.render("admin/dashboard")
+exports.getDash=async (req,res)=>{
+    let orders=await Order.find().sort({createdAt:-1}).populate("user_Id")
+   console.log(orders)
+   let products=await Product.find()
+   let productsCount=products.length
+ let users=await User.find({isBlock:false})
+    let usersCount=users.length
+    let totalAmount = orders.reduce((acc, order) => acc + Number(order.totalAmount), 0);
+    res.render("admin/dashboard",{orders,usersCount,totalAmount,productsCount})
 }
 exports.getusers=async(req,res)=>{
     let users=await User.find({isAdmin:false});
     
     res.render("admin/users",{users})
 }
-// exports.deleteUser = async (req, res) => {
 
-//     try {
-//         id = req.params.id
-//         await User.deleteOne({ _id: id })
-       
-//         res.redirect("/admin/users")
-//     }
-//     catch (err) {
-//         console.log(err)
-//     }
-
-// }
 exports.blockUser = async (req, res) => {
     
     try {
@@ -161,7 +158,8 @@ exports.deliverOrder = async (req, res) => {
         }
 
         item.orderStatus = 'delivered';
-
+        order.paymentStatus=true
+       
         await order.save();
 
         return res.status(200).json({ message: 'Order marked as delivered successfully' });
@@ -194,8 +192,32 @@ exports.cancelOrder = async (req, res) => {
         }
 
         item.orderStatus = 'canceled';
-
-       
+if(item.paymentStatus==true){
+            let wallet=await Wallet.findOne({user_Id:order.user_Id})
+            if(!wallet){
+              const newWallet = new Wallet({
+                userId: order.user_Id,
+                balance: item.price,  
+                history: [{
+                    amount: item.price,
+                    status: 'credit',
+                    description: `Refund for canceled product ${item.productName}`
+                }]
+            });
+            await newWallet.save();
+        } else {
+          
+            wallet.balance += item.price; 
+            wallet.history.push({
+                amount: item.price-item.price*(item.discount/100),
+                status: 'credit',
+                description: `Refund for canceled product ${item.productName}`
+            });
+            await wallet.save();
+        }
+    }
+    
+          
         await order.save();
 
         return res.status(200).json({ message: 'Order canceled successfully' });

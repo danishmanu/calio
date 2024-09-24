@@ -6,6 +6,12 @@ const productSchema=new mongoose.Schema({
         type:String,
         required:true
     },
+    offer:{
+        offerType:{type:String},
+        discountPercentage:{type:Number},
+        expirAt:{type:Date},
+        status:{type:Boolean, default:true}
+    },
     category_Id:{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Category',  

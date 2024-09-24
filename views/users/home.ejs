@@ -32,16 +32,24 @@
                 <div class="card">
                     <a href="/product/<%= product._id %>">
                     <div class="icons d-flex flex-column">
-                        <button class="btn mb-2"><i class="bi bi-heart"></i></button>
+                        <button type="button" class="btn mb-2" onclick="addToWishlist(event,`<%=product._id%>`)"><i class="bi bi-heart"></i></button>
                         <button class="btn"><i class="bi bi-eye"></i></button>
                     </div>
                     <img src="/public/uploads/<%= product.images[0] %>" class="card-img-top" alt="Product Image">
                     <div class="card-body text-center">
                         <h5 class="product-title"><%=product.name %></h5>
+                        <% if(product.offer &&product.offer.discountPercentage ){%>
                         <div class="price">
-                            <span>₹<%=product.price%></span>
-                            <span class="text-muted">₹360</span>
+                            <span>₹<%=product.price-(product.price*(product.offer.discountPercentage/100))%></span>
+                            <span class="text-muted">₹<%=product.price%></span>
+                            <span class="text-success">(<%=product.offer.discountPercentage%>%Off)</span>
                         </div>
+                        <% } else{ %>
+                        <div class="price">
+                          <span>₹<%=product.price%></span>
+                          
+                      </div>
+                      <% } %>
                         <div class="rating mt-2">
                             <i class="bi bi-star-fill"></i>
                             <i class="bi bi-star-fill"></i>
@@ -193,4 +201,64 @@
     </div>
 </div>
 
+<script>
+ 
+      async function addToWishlist(event,product_Id) {
+  try {
+    event.preventDefault()
+    let response = await fetch("/addToWishlist", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ product_Id })
+    });
+
+    let data = await response.json();
+
+    if (data.success) {
+    
+      Swal.fire({
+        icon: 'success',
+        title: 'Added!',
+        text: 'Product added to wishlist successfully.',
+        showConfirmButton: false,
+        timer: 1500
+      });
+      console.log(data.count)
+      document.getElementById("wishlist-count").innerText = data.count; 
+    }
+    else if(data.exist){
+      Swal.fire({
+        icon: 'info',
+        title: 'Already in Wishlist!',
+        text: 'This product is already in your wishlist.',
+        showCancelButton: true,
+        confirmButtonText: 'Go to Wishlist',
+        cancelButtonText: 'Continue Shopping'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          
+          window.location.href = "/wishlist";
+        }
+      });
+    }
+     else {
+      
+      Swal.fire({
+        icon: 'error',
+        title: 'Failed!',
+        text: 'Could not add the product to wishlist.',
+        confirmButtonText: 'Try Again'
+      });
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    Swal.fire({
+      icon: 'error',
+      title: 'Error!',
+      text: 'An error occurred while adding the product to the wishlist.',
+      confirmButtonText: 'OK'
+    });
+  }
+      }
+</script>
 <%- include('../partials/footer.ejs') %>

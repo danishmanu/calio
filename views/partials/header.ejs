@@ -27,12 +27,20 @@
                         <input type="text" placeholder="What are you looking for?">
                     </div>
                     
-                    <a href="#"><i class="bi bi-heart"></i></a>
+                    <a href="/wishlist" class="position-relative">
+                        <i class="bi bi-heart"></i>
+                        <% if (user && wishlist) { %>
+                            <span id="wishlist-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary" style="font-size: 8px; margin-top: 5px;">
+                                <%= wishlist.products.length %>
+                            </span>
+                        <% } %>
+                    </a>
                     <a href="/cart" class=" position-relative"><i class="bi bi-cart"></i> 
-                       
+                       <% if(user&&cart){ %>
                          <span id="cart-count" class="position-absolute top-0  translate-middle badge rounded-pill bg-primary" style="font-size: 8px; margin-top: 7px;">
-                        <%= user&&cart ? cart.items.length:null  %>
+                        <%=cart.items.length%>
                          </span>
+                        <% } %>
                         </a>
                     <% if(user){ %>
 
