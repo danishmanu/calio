@@ -5,8 +5,29 @@ const Brands = require('../../models/Brand');
 const Order = require('../../models/Order');
 const Wallet = require('../../models/Wallet');
 const bcrypt=require("bcrypt")
+const moment = require('moment'); 
 
+function getDateRange(sortType){
+    let startDate=new Date();
+    let endDate=new Date()
+    switch (sortType) {
+        case "week":
+            startDate.setDate(startDate.getDate()-7);
+            break;
+            case "month":
+                startDate.setMonth(startDate.getMonth()-1);
+                break;
+                case 'year':
 
+                    startDate.setFullYear(startDate.getFullYear() - 1);
+                    break;
+                  default:
+                   
+                    return null;
+                }
+              
+                return { startDate, endDate };
+              }
 exports.adminAuth=((req,res,next)=>{
     if(req.session.admin){
        return next()
@@ -63,16 +84,37 @@ exports.main=(req,res)=>{
     res.redirect("/admin/dashboard")
 }
 
-exports.getDash=async (req,res)=>{
-    let orders=await Order.find().sort({createdAt:-1}).populate("user_Id")
-   console.log(orders)
-   let products=await Product.find()
-   let productsCount=products.length
- let users=await User.find({isBlock:false})
-    let usersCount=users.length
+exports.getDash = async (req, res) => {
+    const sortType = req.query.sort || 'all'; 
+    
+   
+    const { startDate, endDate } = getDateRange(sortType) || {};
+
+    
+    let orderQuery = {};
+    if (startDate && endDate) {
+        orderQuery = {
+            createdAt: { $gte: startDate, $lte: endDate }
+        };
+    }
+
+  
+    let orders = await Order.find(orderQuery).sort({ createdAt: -1 }).populate("user_Id");
+    console.log(orders);
+
+    let products = await Product.find();
+    let productsCount = products.length;
+
+    let users = await User.find({ isBlock: false });
+    let usersCount = users.length;
+
+   
     let totalAmount = orders.reduce((acc, order) => acc + Number(order.totalAmount), 0);
-    res.render("admin/dashboard",{orders,usersCount,totalAmount,productsCount})
+    let payableAmount = orders.reduce((acc, order) => acc + Number(order.payableAmount), 0);
+    totalDiscount=totalAmount-payableAmount
+    res.render("admin/dashboard", { orders, usersCount, totalAmount, productsCount, sortType,totalDiscount });
 }
+
 exports.getusers=async(req,res)=>{
     let users=await User.find({isAdmin:false});
     
@@ -244,6 +286,7 @@ exports.getAddProduct=async(req,res)=>{
 exports.addProduct=async(req,res)=>{
     try{
        const {name,category_Id,brand_Id,description,stock,price}=req.body
+       console.log(price,typeof(price))
        const images = [
         req.files['image1'] ? req.files['image1'][0].filename : null,
         req.files['image2'] ? req.files['image2'][0].filename : null,
@@ -255,7 +298,7 @@ exports.addProduct=async(req,res)=>{
         category_Id,
         brand_Id,
         description,
-        price,
+        price:parseFloat(price),
         stock,
         images:images.filter(image=> image !==null)
        })
@@ -347,7 +390,7 @@ exports.addBrand = async (req, res) => {
    
       const { brandName, popularBrand } = req.body;
       const brandImage = req.file; 
-  
+  console.log(brandName,popularBrand,brandImage)
       
       const exist = await Brands.findOne({ brand_name: brandName });
       if (exist) {
@@ -361,7 +404,7 @@ exports.addBrand = async (req, res) => {
       
       const brand = new Brands({
         brand_name: brandName,
-        brand_image: brandImage ? brandImage.filename : null, 
+        brandImage: brandImage ? brandImage.filename : null, 
         isPopular: popularBrand === 'true', 
       });
   
@@ -369,11 +412,7 @@ exports.addBrand = async (req, res) => {
       await brand.save();
   
       
-      return res.status(200).json({
-        success: true,
-        message: 'New brand added successfully!',
-        brand,
-      });
+     res.redirect("/admin/brands")
     } catch (err) {
       console.error(err);
   

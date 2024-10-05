@@ -5,6 +5,7 @@ const cartController=require("../controllers/cartController");
 const addressController=require("../controllers/addressController");
 const passport = require("passport");
 const profileController=require("../controllers/profileController")
+const aboutController=require("../controllers/aboutController")
 const shopController=require("../controllers/shopcontroller")
 const checkoutController=require("../controllers/checkoutController")
 const wishlistController=require("../controllers/wishlistController")
@@ -30,7 +31,7 @@ router.post("/signup",userController.signup)
 router.post("/logout", userController.logout)
 
 router.get("/cart",cartController.Auth,cartController.getCart)
-router.post("/addToCart/:id",cartController.Auth,cartController.addToCart)
+router.post("/addToCart/:id",cartController.addToCart)
 
 
 router.post("/updateCart/:id",cartController.Auth,cartController.updateCart)
@@ -55,5 +56,7 @@ router.post("/addToWishlist",addressController.Auth,wishlistController.addToWish
 router.delete("/wishlist/remove/:productId",addressController.Auth,wishlistController.removeWishlist)
 router.post('/wallet/verify-payment',addressController.Auth,checkoutController.verifyWallet
 )
-  
+
+router.get("/about",aboutController.getAbout)
+router.get("/contact",aboutController.getContact)
 module.exports=router

@@ -96,11 +96,7 @@
         </div>
 
     </div>
-    <!-- content-wrapper ends -->
-
-    <!-- partial:../../partials/_footer.html -->
-   
-    <!-- partial -->
+  
   </div>
   <script>
     
@@ -108,7 +104,10 @@
       
     function validProduct() {
     const product_name = document.getElementById('product_name').value;
-    const price = document.getElementById('price').value;
+    const priceInput = document.getElementById('price').value;
+    const price = parseFloat(priceInput.replace(/,/g, ''));
+    
+    console.log(price)
     const stock = document.getElementById('stock').value;
     const description = document.getElementById('description').value;
 
@@ -159,7 +158,7 @@
 
             reader.readAsDataURL(input.files[0]);
         } else {
-            preview.src = "/public/images/upload_image.jpg"; // Fallback to the placeholder image
+            preview.src = "/public/images/upload_image.jpg"; 
         }
     }
   </script>

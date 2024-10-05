@@ -289,8 +289,8 @@ function enableCoupons() {
 
 coupons.forEach(coupon => {
     isDisabled=false
-    if(appliedCoupon){
-        isDisabled=true
+    if(!appliedCoupon){
+        isDisabled=false
     }
     const couponElement = `
     <div class="coupon-item border-bottom pb-2 mb-2">
@@ -311,7 +311,7 @@ coupons.forEach(coupon => {
 document.getElementById('couponsList').addEventListener('change', function(event) {
     if (event.target.name === 'couponRadio') {
         document.getElementById('couponCode').value = event.target.value;
-       }
+        }
     });
    async function applyCoupon() {
     document.getElementById("couponMessage").innerText =" "
@@ -351,16 +351,16 @@ document.getElementById('couponsList').addEventListener('change', function(event
                     </div>
                 </div>
             `;
-            // Insert after the coupon form
+            
             document.getElementById("coupon").insertAdjacentHTML("afterend", appliedCouponHTML);
         } else {
-            // If it exists, update its contents
+            
             document.getElementById('appliedCouponDiscount').innerText = discountAmount.toFixed(2);
             document.getElementById('appliedCouponCode').innerText = data.coupon_code;
             appliedCouponSection.classList.remove('d-none');
         }
 
-        // Hide the coupon input form
+        
         document.getElementById("applyCoupon").classList.add("d-none");
         disableCoupons()
 
@@ -371,7 +371,7 @@ document.getElementById('couponsList').addEventListener('change', function(event
 }
 async function removeCoupon() {
     let coupon_code = document.getElementById("appliedCouponCode").innerText;
-
+    
     try {
         let response = await fetch(`/checkout/removeCoupon/${coupon_code}`, {
             method: "PUT",
@@ -397,6 +397,7 @@ async function removeCoupon() {
                     couponRadio.checked = false;
                 });
                 enableCoupons()
+               
             } else {
                 console.error("Failed to remove coupon: ", data.message);
             }
@@ -454,14 +455,13 @@ async function removeCoupon() {
         const amount = document.getElementById("total").innerText.trim(); 
       
        
-       
         let data = {
             address_Id: address,
             paymentMethod: paymentMethod,
            
           
         };
-        
+       
         let response = await fetch("/checkout", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -470,6 +470,7 @@ async function removeCoupon() {
         
         if (response.ok) {
             const data = await response.json();
+           
             if (data.cod === true) {
                 Swal.fire({
                     icon: 'success',
@@ -487,24 +488,42 @@ async function removeCoupon() {
                     order_id: data.razorpayOrderId,
                     handler: async function (response) {
     try {
-      
+        let paymentId = response.razorpay_payment_id || null;
+        let razorpaySignature = response.razorpay_signature || null;
+        let razorpayOrderId = response.razorpay_order_id;
+
+       
         const updateResponse = await fetch("/updatePaymentStatus", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                orderId: data.orderId,  
-                paymentId: response.razorpay_payment_id,  
-                razorpaySignature: response.razorpay_signature  
+                orderId: data.orderId,
+                paymentId: paymentId, 
+                razorpaySignature: razorpaySignature,
+                razorpayOrderId: razorpayOrderId,
+                addressId: address
             })
         });
 
         if (updateResponse.ok) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Payment Success!',
-                text: 'Your payment was successful!',
-            });
-            window.location.href = "/";
+            const result = await updateResponse.json();
+
+            if (paymentId) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Payment Success!',
+                    text: 'Your payment was successful!',
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Payment Failed',
+                    text: 'Payment failed, but your order has been placed.',
+                })
+                window.location.href = "/";
+            }
+
+          
         } else {
             Swal.fire({
                 icon: 'error',
@@ -536,12 +555,16 @@ async function removeCoupon() {
                 rzp.open();
             }
         } else {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Something went wrong while placing the order.',
-            });
-        }
+    
+    const errorData = await response.json();
+
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: errorData.message || 'Something went wrong.',
+    });
+  }
+
     } catch (error) {
         console.error('Error:', error);
     }

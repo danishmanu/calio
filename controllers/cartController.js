@@ -44,116 +44,159 @@ exports.Auth=(async(req,res,next)=>{
 };
 
 
-    exports.addToCart = async (req, res) => {
-     
-    try{
-       
-    let quantity=parseInt(req.body.quantity)
-   user_Id=req.session.user
-  console.log("here1")
-    product_Id=req.params.id;
-    let product=await Product.findById(product_Id)
-        if(!product){
-            console.log("here2")
-            res.status(404).json({message:'Product not found'})
-        }
-        let price=0;
-        console.log("here3")
-        if (product.offer && product.offer.discountPercentage && new Date(product.offer.expirAt) > Date.now()) {
-            console.log("here4")
-            let discount = (product.price * product.offer.discountPercentage) / 100;
-            price = product.price - discount;
-        } else {
-            console.log("here5")
-            price = product.price;
-        }
-        console.log("here6")
-        let cart=await Cart.findOne({user_Id})
+exports.addToCart = async (req, res) => {
+    try {
+
+      let quantity = parseInt(req.body.quantity);
+      const user_Id = req.session.user;
       
-        if(cart){
-            console.log("here7")
-            const itemIndex=cart.items.findIndex(item=>item.product_Id.toString()===product_Id.toString())
-            if(itemIndex>-1){
-                console.log("here8")
-                cart.items[itemIndex].quantity +=quantity
-                cart.items[itemIndex].price=price
-            }
-            else{
-                console.log("here9")
-                
-                cart.items.push({
-                    product_Id,
-                    quantity,
-                    price:price
-                })
-            }
-            console.log("here10")
-            cart.total_price=cart.items.reduce((acc,item)=> acc+item.price*item.quantity,0)
-            await cart.save()
-        }
-        else{
-            console.log("here11")
-            cart=new Cart({
-                user_Id,
-                items:[
-                    {product_Id:product._id,
-                        quantity,
-                        price:price
-                    }
-                ],
-                total_price:quantity*price
+      if (!user_Id) {
+        console.log("i am here")
+        return res.status(401).json({ success: false, user: false, message: 'User not logged in' });
+      }
+      if(quantity<=0){
+        return res.status(401).json({ success: false,  message: 'Quantity must be greater than 0' });
+      }
+      const product_Id = req.params.id;
+      const product = await Product.findById(product_Id);
+  
+      if (!product) {
+        return res.status(404).json({ success: false, message: 'Product not found' });
+      }
+  
+      let price = product.price;
+  
+      if (product.offer && product.offer.discountPercentage && product.offer.expirAt && new Date(product.offer.expirAt) > Date.now()) {
+        const discount = (product.price * product.offer.discountPercentage) / 100;
+        price = product.price - discount;
+      }
+  
+      let cart = await Cart.findOne({ user_Id });
+  
+      if (cart) {
+        const itemIndex = cart.items.findIndex(item => item.product_Id.toString() === product_Id.toString());
+  
+        if (itemIndex > -1) {
         
-            });
-            console.log("here12")
-            await cart.save()
+          if (quantity + cart.items[itemIndex].quantity > 10 || quantity + cart.items[itemIndex].quantity > product.stock) {
+            return res.status(409).json({ success: false, message: 'Maximum products reached' });
+          }
+  
+       
+          cart.items[itemIndex].quantity += quantity;
+          cart.items[itemIndex].price = price;
+        } else {
+        
+          if (quantity > 10 || quantity > product.stock) {
+            return res.status(409).json({ success: false, message: 'Maximum products reached' });
+          }
+  
+          
+          cart.items.push({
+            product_Id,
+            quantity,
+            price: price
+          });
         }
-        cartItemCount=cart.items.length
-     res.status(200).json({message:"Item added to cart",cartItemCount});
-   
-}
-catch(err){
-    res.status(500).json({message:"An error occurred"})
-}
- 
+  
+        
+        cart.total_price = cart.items.reduce((acc, item) => acc + item.price * item.quantity, 0);
+        await cart.save();
+  
+     } else {
+      
+        if (quantity > 10 || quantity > product.stock) {
+          return res.status(400).json({ success: false, message: 'Maximum products reached' });
+        }
+  
+        cart = new Cart({
+          user_Id,
+          items: [
+            {
+              product_Id: product._id,
+              quantity,
+              price: price
+            }
+          ],
+          total_price: quantity * price
+        });
+  
+        await cart.save();
+      }
+  
+      const cartItemCount = cart.items.length;
+      res.status(200).json({ success: true, message: 'Item added to cart', cartItemCount });
+  
+    } catch (err) {
+      console.error('Error:', err);
+      res.status(500).json({ message: 'An error occurred' });
+    }
   };
-  exports.updateCart=async(req,res)=>{
-    try{
-        user_Id=req.session.user
-        product_Id=req.params.id
-        let {price,quantity}=req.body
-       
-       
-        let cartitem=await Cart.findOne({user_Id,"items.product_Id": product_Id })
-        if(cartitem){
-            let item=cartitem.items.find(item=>item.product_Id.toString()===product_Id.toString());
-           
-            dif=price-item.price
-            total=cartitem.total_price+dif
-            let cart=await Cart.updateOne({user_Id,"items.product_Id": product_Id },{$set:{
+  
+  exports.updateCart = async (req, res) => {
+    
+    try {
+      const user_Id = req.session.user;
+      const product_Id = req.params.id;
+      const { quantity } = req.body;
+   
+  
+      let product = await Product.findById(product_Id);
+    
+      let price = product.price;
+  
+    
+      if (product.offer && product.offer.discountPercentage && product.offer.expirAt && new Date(product.offer.expirAt) > Date.now()) {
+        const discount = (product.price * product.offer.discountPercentage) / 100;
+        price = product.price - discount;
+      }
+  
+      let cartitem = await Cart.findOne({ user_Id, "items.product_Id": product_Id });
+  
+      if (cartitem) {
+        let item = cartitem.items.find(item => item.product_Id.toString() === product_Id.toString());
+        
+        if (item) {
+          
+          const oldTotalPrice = cartitem.items.reduce((acc, item) => acc += item.price * item.quantity, 0);
+          item.quantity = quantity;
+          item.price = price;
+  
+          
+          const newTotalPrice = cartitem.items.reduce((acc, item) => acc += item.price * item.quantity, 0);
+  
+         
+          let updatedCart = await Cart.updateOne(
+            { user_Id, "items.product_Id": product_Id },
+            { 
+              $set: {
                 "items.$.quantity": quantity,
                 "items.$.price": price,
-                total_price:total
-            }})
-            if (cart) {
-                res.status(200).json({total});
-             
-            } else {
-                res.status(404).json({ message: "Cart or product not found" });
+                total_price: newTotalPrice 
+              }
             }
+          );
+  
+          res.status(200).json({success:true, total: newTotalPrice, message: "Cart updated" });
+        } else {
+          res.status(404).json({ message: "Product not found in cart" });
         }
-       
+      } else {
+        res.status(404).json({ message: "Cart not found" });
+      }
+    } catch (error) {
+      console.error("An error occurred:", error);
+      res.status(500).json({ message: "An error occurred" });
     }
-    catch(error){
-        res.status(500).json({message:"An error occurred"})
-    }
-  }
+  };
+  
   exports.deleteCart=async(req,res)=>{
     try{
         id=req.params.id;
         user_Id=req.session.user
     await Cart.updateOne({user_Id}, {$pull: { items: { product_Id: id } }})
         let cart=await Cart.findOne({user_Id})
-          total=cart.items.reduce((total,item)=> total=total+item.price,0)
+          total=cart.items.reduce((acc,item)=>  acc=item.price * item.quantity,0)
          
           await Cart.updateOne({user_Id}, { $set: { total_price: total }})
             res.status(200).json({message:"item deleted successfully"})

@@ -175,7 +175,16 @@
       });
          }
   
-  async function updateCart(id,quantity,name,price){
+  async function updateCart(id,quantity,name,price,stock){
+    
+if(quantity<=0){
+  Swal.fire({
+    icon:"error",
+    title:"error",
+    text:"quantity should begreater than 0"
+  })
+  return false
+}
   try{
       const product_Id=id
       const response=await fetch(`/updateCart/${product_Id}`,{
@@ -183,8 +192,11 @@
           headers:{'Content-Type':'application/json'},
           body:JSON.stringify({quantity:quantity,price})
       })
-      if(response.ok){
-          Swal.fire({
+      let data=await response.json()
+      if(data.success){
+      
+  
+  Swal.fire({
         position: 'bottom',
     
       html: `<i class="fa fa-check-circle" style="color: #4CAF50;"></i> <strong>You've changed</strong> <br><span style='font-weight: bold;'>${name}</span><br>QUANTITY to '${quantity}'`,
@@ -192,27 +204,26 @@
       showConfirmButton: false,
       background: '#333',
       color: '#fff', 
-      timer: 2500, 
+      timer: 1000, 
       customClass: {
           popup: 'swal-custom-popup'
       }
   });
-  let data=await response.json()
   const total=data.total
    document.getElementById("total").innerText=`:${total}₹`
    document.getElementById("subtotal").innerText=`:${total}₹`
   }
   
           else{
-              const errorData = await response.json();
-              console.error('Error:', errorData.message);
-              alert('Failed to update cart');
+              
+              
+              alert(`${data.message}`);
           }
       
   }
     
   catch(err){
-      console.error('An error occurred:', error);
+      console.error('An error occurred:', err);
           alert('Something went wrong!');
   }
        
@@ -223,12 +234,12 @@
       let quantity = parseInt(document.getElementById(`quantity_${id}`).value);
   
       console.log("helo")
-      if(quantity<stock){
+      if(quantity<stock && quantity<10){
         quantity++;
         document.getElementById(`quantity_${id}`).value = quantity;
         tot_price = (quantity * parseFloat(price)).toFixed(2); 
         document.getElementById(`price_${id}`).innerHTML=`${tot_price}<span>₹</span>`;
-        updateCart(id,quantity,name,tot_price)
+        updateCart(id,quantity,name,tot_price,stock)
       
       }
       else{
@@ -249,7 +260,7 @@
      
   }
   
-  function minus(id,stock,name,price) {
+  function minus(id,stock,name,price,stock) {
     
       let quantity = parseInt(document.getElementById(`quantity_${id}`).value);
      

@@ -45,7 +45,8 @@ router.post("/logout",adminController.adminAuth,adminController.logout)
 
 
 router.get("/coupon",adminController.adminAuth,couponController.getCoupon)
-router.post("/coupons/add",adminController.adminAuth,couponController.addCoupon)
+router.post("/coupon",adminController.adminAuth,couponController.addCoupon)
+router.delete("/coupon/:couponId",adminController.adminAuth,couponController.deleteCoupon)
 
 
 router.get("/offer",adminController.adminAuth,offerController.getOffer)

@@ -1,5 +1,6 @@
 body{
     font-family: sans-serif;
+    
 }
 .log_body{
     display: flex;
@@ -8,7 +9,7 @@ body{
     justify-content: center;
     
 }
-.log_container{
+.log_container{       
    width: 800px;
    height: 300px;
    
@@ -554,3 +555,13 @@ font-size: 14px;
 .footer .social-icons a:hover {
   color: #fff;
 }
+.gradient-custom {
+  
+  background: #cd9cf2;
+  
+ 
+  background: -webkit-linear-gradient(to top left, rgba(205, 156, 242, 1), rgba(246, 243, 255, 1));
+  
+ 
+  background: linear-gradient(to top left, rgba(205, 156, 242, 1), rgba(246, 243, 255, 1))
+  }

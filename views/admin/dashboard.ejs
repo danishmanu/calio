@@ -16,7 +16,7 @@
     </div>
 
     <div class="row">
-      <div class="col-sm-12">
+      <div class="col-sm-12 mt-3">
         <div class="statistics-details d-flex align-items-center justify-content-between">
           <div>
             <p class="statistics-title">Total Order</p>
@@ -37,12 +37,19 @@
               <%= productsCount %>
             </h3>
           </div>
-
           <div class="d-none d-md-block">
             <p class="statistics-title">Users</p>
             <h3 class="rate-percentage">
               <%= usersCount %>
             </h3>
+          </div>
+          <div>
+            <p class="statistics-title">Sort by</p>
+            <select class="form-select" id="sortBy" aria-label="Sort by">
+              <option value="week">Week</option>
+              <option value="month">Month</option>
+              <option value="year">Year</option>
+            </select>
           </div>
         </div>
 
@@ -89,8 +96,9 @@
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     const printButton = document.getElementById('printButton');
+    const sortBy=document.getElementById("sortBy");
 
-    // Extract query parameters from the URL (e.g., ?sort=month or ?startDate=2023-09-01&endDate=2023-09-30)
+
     function getQueryParams() {
       const urlParams = new URLSearchParams(window.location.search);
       let params = {};
@@ -106,7 +114,11 @@
       return params;
     }
 
-    
+    sortBy.addEventListener('change', ()=>{
+      const selectedSort=sortBy.value;
+      let url='/admin/dashboard?sort='+selectedSort;
+      window.location.href=url;
+    })
     printButton.addEventListener('click', (e) => {
       e.preventDefault();
       const queryParams = getQueryParams();
@@ -131,11 +143,11 @@
 <!-- container-scroller -->
 <!-- base:js -->
 <script src="public/vendors/base/vendor.bundle.base.js"></script>
-<!-- inject:js -->
+
 <script src="public/js/off-canvas.js"></script>
 <script src="public/js/hoverable-collapse.js"></script>
 <script src="public/js/template.js"></script>
-<!-- plugin js for this page -->
+
 <script src="public/vendors/chart.js/Chart.min.js"></script>
 <!-- Custom js for this page-->
 <script src="public/js/chart.js"></script>

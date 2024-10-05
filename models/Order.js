@@ -80,6 +80,10 @@ const orderSchema=mongoose.Schema({
     type:Number,
     default:0
    },
+   payableAmount:{
+    type:String,    
+    required:true
+   },
     totalAmount:{
         type:String,
         required:true

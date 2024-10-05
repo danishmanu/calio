@@ -31,7 +31,7 @@
               </li>
             <% }); %>
           </ul>
-       
+
       </nav>
 
       <!-- Category Filter -->
@@ -115,7 +115,7 @@
 </div>
 <script>
    function applyFilter() {
-        const filterValue = document.getElementById('filter').value;
+        const filterValue=document.getElementById('filter').value;
         const url = new URL(window.location.href);
         url.searchParams.set('filter', filterValue);
         window.location.href = url;

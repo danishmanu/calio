@@ -1,5 +1,5 @@
 const mongoose=require("mongoose")
-
+const {v4: uuidv4}=require('uuid')
 
 const userSchema=new mongoose.Schema({
     username:{
@@ -10,6 +10,13 @@ const userSchema=new mongoose.Schema({
        type:String,
        required:true,
        trim:true
+    },
+    refferalCode:{
+        type:String,
+        required: false 
+    },
+    reference:{
+        type:String
     },
     googleId:{
         type:String,
@@ -36,5 +43,11 @@ default:false
         default:false
     }
 },{timestamps: true })
+userSchema.pre('save',function(next){
+    if(!this.refferalCode){
+        this.refferalCode= this.username.slice(0,3)+uuidv4().slice(0,8)
+    }   
+    next(); 
+})
 const User=mongoose.model("User",userSchema)
 module.exports=User

@@ -10,7 +10,7 @@ exports.getShop = async (req, res) => {
     let { brand, category, filter } = req.query;
     let query = {};
 
-    // Apply filters based on brand and category
+   
     if (brand) {
       query.brand_Id = await Brands.findOne({ brand_name: brand }).select('_id');
     }

@@ -47,7 +47,7 @@
             
          <div class="d-flex align-items-center">
             <button class="btn btn-outline-secondary" type="button" id="minus" onclick="minus()">-</button>
-            <input type="number" name="quantity" class="form-control text-center mx-2"  value=1 style="width: 50px;" id="quantity">
+            <input type="number" name="quantity" class="form-control text-center mx-2"  value=1 style="width: 50px;" id="quantity" readonly>
             <button class="btn btn-outline-secondary" type="button" id="plus" onclick="plus()">+</button>
           </div>
        
@@ -123,49 +123,75 @@ function minus() {
     }
    
 }
-function addToCart() {
-  const productId = '<%= product._id %>';
-  const quantity = document.getElementById('quantity').value;
+async function addToCart() {
+  const productId = '<%= product._id %>'; 
+  const quantity = document.getElementById('quantity').value; 
 
-  fetch(`/addToCart/${productId}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ quantity: quantity }),
-  })
-    .then(async (res) => {
-      if (res.status === 401) {
-        Swal.fire({
-          icon: 'warning',
-          title: 'You must log in first!',
-          text: 'Please log in to add items to your cart.',
-          confirmButtonText: 'Login',
-          showCancelButton: true,
-          cancelButtonText: 'Cancel',
-        }).then((result) => {
-          if (result.isConfirmed) {
-            window.location.href = '/login'; // Redirect to login on confirmation
-          }
-        });
-      } else if (res.ok) {
-        const data = await res.json();
-        document.getElementById('cart-count').innerText = data.cartItemCount; // Update the cart badge
-        Swal.fire({
-          icon: 'success',
-          title: 'Added to Cart!',
-          text: 'The item has been successfully added to your cart.',
-          showConfirmButton: false,
-          timer: 1500,
-        });
-      } else {
-        console.log('Something went wrong');
-      }
-    })
-    .catch((err) => {
-      console.error('Error:', err);
+  try {
+    const response = await fetch(`/addToCart/${productId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ quantity: quantity }), 
     });
+
+    const data = await response.json();
+
+    if (data.success === false && data.user === false) {
+      // User not logged in
+      Swal.fire({
+        icon: 'warning',
+        title: 'You must log in first!',
+        text: 'Please log in to add items to your cart.',
+        confirmButtonText: 'Login',
+        showCancelButton: true,
+        cancelButtonText: 'Cancel',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          window.location.href = '/login'; 
+        }
+      });
+    } else if (data.success === false) {
+      // Other business logic errors
+      Swal.fire({
+        icon: 'error',
+        title: 'Could not add to cart',
+        text: data.message, 
+        showConfirmButton: true,
+      });
+    } else if (data.success === true) {
+      // Successful addition to the cart
+      document.getElementById('cart-count').innerText = data.cartItemCount; 
+      Swal.fire({
+        icon: 'success',
+        title: 'Added to Cart!',
+        text: 'The item has been successfully added to your cart.',
+        showConfirmButton: false,
+        timer: 1500,
+      });
+    } else {
+      // Catch unexpected issues
+      console.error('Something went wrong');
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Something went wrong. Please try again later.',
+        showConfirmButton: true,
+      });
+    }
+  } catch (err) {
+    // Handle network or other errors
+    console.error('Error:', err);
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'An error occurred. Please try again later.',
+      showConfirmButton: true,
+    });
+  }
 }
+
 
 
 

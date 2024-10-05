@@ -11,7 +11,10 @@ const couponSchema=new mongoose.Schema({
         required:true
         
     }
-    ,
+    ,minAmount:{
+        type:Number
+    },
+   
     endDate:{
         type:Date,
         required:true

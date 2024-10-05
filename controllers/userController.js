@@ -3,7 +3,7 @@ const Otp_collection=require("../models/otp")
 const { db } = require("../models/User")
 const Product = require('../models/Product');
 const sendEmail=require("../services/sendEmail")
-
+const Wallet=require("../models/Wallet")
 const bcrypt=require("bcrypt")
 
 function otp_generation(){
@@ -92,19 +92,26 @@ exports.getSignup=(req,res)=>{
   else{
     msg=req.session.exist;
     match=req.session.pas_match
+    const {refferalcode}=req.query
+    if(refferalcode){
+      req.session.refferalCode=refferalcode
+    }
     req.session.exist=req.session.pas_match=null
     res.render("users/signup",{msg,match})
   }
     
 }
 exports.signup=(async(req,res)=>{
+
    userdata={
         username:req.body.username,
         email:req.body.email,
         password:req.body.password,
-        phone:req.body.phone
+        phone:req.body.phone,
+        reference:req.session.refferalCode? req.session.refferalCode:""
+        
  } 
-
+console.log(userdata.reference)
     
  let existUser=await User.findOne({$or:{username:userdata.username,email:userdata.email}})
  if(existUser){
@@ -166,22 +173,70 @@ exports.getOtp=(req,res)=>{
   }
    
 }
-exports.checkOtp=async(req,res)=>{
-  const otp = await Otp_collection.findOne({otp:req.body.otp,email:req.session.userdata.email})
-  if(otp && new Date().getTime() <= otp.expiresAt){
-    req.session.userdata.password=await bcrypt.hash(req.session.userdata.password,10)
-        await User.create(req.session.userdata)
-        user=await User.findOne({email:req.session.userdata.email})
-        req.session.user=user._id
-        
-   res.redirect('/')
+exports.checkOtp = async (req, res) => {
+  try {
+    const otp = await Otp_collection.findOne({
+      otp: req.body.otp,
+      email: req.session.userdata.email
+    });
+
+    // Check if OTP is valid and not expired
+    if (otp && new Date().getTime() <= otp.expiresAt) {
+      // Hash the user's password before creating their account
+      req.session.userdata.password = await bcrypt.hash(req.session.userdata.password, 10);
+      await User.create(req.session.userdata);
+
+      // Check for the referred user based on referral code
+      const reffered_user = await User.findOne({
+        refferalCode: req.session.userdata.reference
+      });
+
+      if (reffered_user) {
+        // Find wallet of the referred user
+        let wallet = await Wallet.findOne({ user_Id: reffered_user._id });
+
+        if (wallet) {
+         
+          wallet.balance += 50;
+          wallet.history.push({
+            amount: 50,
+            status: 'credit',
+            description: `Amount for referral of ${req.session.userdata.username}`
+          });
+
+          await wallet.save();  
+        } else {
+          console.log("i am coorectly her")
+          const newWallet = new Wallet({
+            user_Id: reffered_user._id,
+            balance: 50,
+            history: [{
+              amount: 50,
+              status: 'credit',
+              description: `Amount for referral of ${req.session.userdata.username}`
+            }]
+          });
+
+          await newWallet.save();  
+        }
+      }
+
+      // Find the newly created user and set their session
+      const user = await User.findOne({ email: req.session.userdata.email });
+      req.session.user = user._id;
+
+    
+      return res.redirect('/');
+    } else {
+      
+      req.session.inv_otp = "Sorry, invalid OTP";
+      return res.redirect("/otp_verification");
+    }
+  } catch (error) {
+    console.error("Error during OTP verification:", error);
+    res.status(500).send("Internal Server Error");
   }
-  else{
-    req.session.inv_otp="sorry invalid otp"
-    res.redirect("/otp_verification")
-  }
- 
-}
+};
 
 exports.getProduct=async(req,res)=>{
   try{
@@ -191,6 +246,9 @@ exports.getProduct=async(req,res)=>{
   }
   id=req.params.id;
   let product=await Product.findById(id)
+  if(!product){
+    res.render("users/product",{user})
+  }
   const relatedProducts = await Product.find({ category_Id: product.category_Id,_id: { $ne: product._id } });
   
   user=req.session.user

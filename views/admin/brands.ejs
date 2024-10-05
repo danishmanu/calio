@@ -42,23 +42,23 @@
         </button>
       </div>
       <div class="modal-body">
-        <form id="addBrandForm" onsubmit="return validBrand()">
-          <!-- Brand Name Field -->
+        <form id="addBrandForm" action="/admin/brands" method="post" enctype="multipart/form-data" onsubmit="return validBrand()" >
+        
           <div class="form-group">
             <label for="brandName">Brand Name</label>
-            <input type="text" class="form-control" id="brandName" placeholder="Enter brand name" required>
+            <input type="text" class="form-control" id="brandName" name="brandName" placeholder="Enter brand name" required>
             <p class="text-danger" id="brandNameerror"></p>
           </div>
 
-          <!-- Image Upload Field -->
+        
           <div class="form-group">
             <label for="brandImage">Brand Image</label>
-            <input type="file" class="form-control-file" id="brandImage" required>
+            <input type="file" class="form-control-file" id="brandImage" name="brandImage" required>
           </div>
 
           <!-- Popular Brand Checkbox -->
           <div class="form-group form-check ms-5">
-            <input type="checkbox" class="form-check-input ms-5" id="popularBrand" style="margin-left: 10px;">
+            <input type="checkbox" class="form-check-input ms-5" id="popularBrand" name="popularBrand" style="margin-left: 10px;">
             <label class="form-check-label" for="popularBrand">Popular Brand</label>
           </div>
        
@@ -84,8 +84,9 @@
               
                  
                    <th>Brand Id</th>
+                   <th>Brand image</th>
                    <th>Brand Name</th>
-                  
+               
                   
                    <th class="me-0 pe-0 text-center">Action</th>
                </tr>
@@ -101,7 +102,8 @@
                 
                    <td>#<%= index+1 %></td>
                    <td><%= brand.brand_name%></td>
-                   
+                   <td><img src="/public/uploads/<%= brand.brandImage%>" alt=""></td>
+                 
                      
                     <td class=" text-center d-flex justify-content-center ">
                      <div class="d-flex flex-row ">
@@ -137,11 +139,7 @@
             </table>
            </div>
     </div>
-    <!-- content-wrapper ends -->
-
-    <!-- partial:../../partials/_footer.html -->
-   
-    <!-- partial -->
+  
   </div>
   <script>
   function validBrand() {
@@ -150,6 +148,7 @@
   let brand_image = document.getElementById('brandImage').files[0];
   let popular_brand = document.getElementById('popularBrand').checked;
 
+  console.log(brand_name)
   
   document.getElementById('brandNameerror').textContent = '';
 
@@ -163,34 +162,6 @@
     alert('Please upload a brand image');
     return false;
   }
-fetch('/admin/brands', { 
-    method: 'POST',
-    headers: {
-      
-    },
-    body: {brand_name,brand_image,popular_brand},
-    
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.success) {
-      
-      alert(data.message); 
-      $('#addBrand').modal('hide'); 
-      document.getElementById('addBrandForm').reset();
-    } else if (data.message === 'Brand name already exists.') {
-      
-      document.getElementById('brandNameerror').textContent = data.message;
-    } else {
-    
-      alert('Failed to add brand. Please try again.');
-    }
-  })
-  .catch(error => {
-    console.error('Error:', error);
-    alert('An error occurred while adding the brand.');
-  });
-
   return true;
 }
     

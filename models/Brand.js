@@ -4,7 +4,7 @@ const brandSchema=mongoose.Schema({
         type:String,
         required:true
     },
-    brand_img:{
+    brandImage:{
         type:String
       
     }

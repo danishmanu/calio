@@ -1,0 +1,39 @@
+<%- include('../partials/head.ejs') %>
+<%- include('../partials/header.ejs') %>
+<style>
+    .about-bg{
+        background-color: rgb(239, 239, 239);
+    }
+</style>
+
+<div class="container-fluid w-100 bg-primary mt-5 ps-5 d-flex align-items-center" style="height: 10vh">
+  <li class="breadcrumb-item" style="list-style: none;"><a href="#">Home</a></li>
+  <li class="breadcrumb-item active" aria-current="page" style="list-style: none; max-width: 500px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
+    About
+  </li>
+</div>
+<section class="mb-5 about-bg">
+    <div class="container">
+        <div class="row d-flex justify-content-center">
+            <h1 class="text-center fw-bolder mt-4">About Us</h1>
+            <div class="container mt-5 bg-light rounded rounded-5 shadow-sm p-4" >
+                <div class="row  h-100">
+                    <div class="col-md-6 ">
+                        <div class="container">
+                            <img class="img-fluid rounded rounded-4 "  src="/public/images/5c18510f77816e081c354a69c96a1f47.jpg" alt="Calio perfume bottle" style="height: 500px; width: 100%; object-fit: cover; border-radius: 15px;">
+                        </div>
+                    </div>
+                  
+                    <div class="col-md-6 mt-5">
+                        <h3 class="fw-bold">Calio</h3>
+                        <p class="mt-3" style="   font-size: 1.1rem; ">At Calio, we believe that fragrance is more than just a scent—it's a reflection of your personality, emotions, and memories. Our carefully curated selection of perfumes is designed to cater to every taste, from timeless classics to unique niche scents. We are passionate about offering high-quality, authentic fragrances that elevate your daily life and help you express yourself in a way that's uniquely you.</p>
+                        <p class="mt-3" style="   font-size: 1.1rem; ">We are committed to providing an exceptional shopping experience, whether you're browsing online or visiting us in person. Our knowledgeable team is here to guide you through your fragrance journey, ensuring you find the perfect scent that resonates with you. Thank you for making Calio a part of your story.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<%- include('../partials/footer.ejs') %>
