@@ -25,7 +25,7 @@
     </div>
     <div class="col-md-6 mt-5 ms-5 ms-md-0  ">
         <h2 class="fw-bold"> <%= product.name %></h2>
-           <% if(product.offer &&product.offer.discountPercentage ){%>
+           <% if(product.offer &&product.offer.discountPercentage && new Date()<product.offer.expirAt  ){%>
                         <div class="price">
                        <h4 class="mt-4">   <span>₹<%=product.price-(product.price*(product.offer.discountPercentage/100))%></span>
                             <span class="text-muted">₹<%=product.price%></span>

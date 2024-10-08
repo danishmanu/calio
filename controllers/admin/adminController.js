@@ -6,28 +6,34 @@ const Order = require('../../models/Order');
 const Wallet = require('../../models/Wallet');
 const bcrypt=require("bcrypt")
 const moment = require('moment'); 
+const htmlPdf = require('html-pdf');
+function getDateRange(sortType) {
+    let startDate = new Date();
+    let endDate = new Date();
 
-function getDateRange(sortType){
-    let startDate=new Date();
-    let endDate=new Date()
     switch (sortType) {
         case "week":
-            startDate.setDate(startDate.getDate()-7);
-            break;
-            case "month":
-                startDate.setMonth(startDate.getMonth()-1);
-                break;
-                case 'year':
+            startDate.setDate(startDate.getDate() - 7);
 
-                    startDate.setFullYear(startDate.getFullYear() - 1);
-                    break;
-                  default:
-                   
-                    return null;
-                }
-              
-                return { startDate, endDate };
-              }
+            break;
+        case "month":
+            startDate.setMonth(startDate.getMonth() - 1);
+            break;
+        case "year":
+            startDate.setFullYear(startDate.getFullYear() - 1);
+            break;
+            case "all":
+               
+                startDate = new Date(0); 
+                break;
+        default:
+            return null;
+    }
+
+   
+    return { startDate, endDate };
+}
+
 exports.adminAuth=((req,res,next)=>{
     if(req.session.admin){
        return next()
@@ -83,24 +89,22 @@ catch(err){
 exports.main=(req,res)=>{
     res.redirect("/admin/dashboard")
 }
-
 exports.getDash = async (req, res) => {
     const sortType = req.query.sort || 'all'; 
-    
    
     const { startDate, endDate } = getDateRange(sortType) || {};
 
-    
     let orderQuery = {};
+  
     if (startDate && endDate) {
         orderQuery = {
             createdAt: { $gte: startDate, $lte: endDate }
         };
     }
-
-  
+    
+   
     let orders = await Order.find(orderQuery).sort({ createdAt: -1 }).populate("user_Id");
-    console.log(orders);
+    
 
     let products = await Product.find();
     let productsCount = products.length;
@@ -108,18 +112,429 @@ exports.getDash = async (req, res) => {
     let users = await User.find({ isBlock: false });
     let usersCount = users.length;
 
-   
     let totalAmount = orders.reduce((acc, order) => acc + Number(order.totalAmount), 0);
     let payableAmount = orders.reduce((acc, order) => acc + Number(order.payableAmount), 0);
-    totalDiscount=totalAmount-payableAmount
-    res.render("admin/dashboard", { orders, usersCount, totalAmount, productsCount, sortType,totalDiscount });
-}
+    let totalDiscount = totalAmount - payableAmount;
+    const topSellingProducts = await Order.aggregate([
+        { $match: orderQuery },
+        { $unwind: "$items" },
+        {
+            $lookup: {
+                from: "products", 
+                localField: "items.product_Id",
+                foreignField: "_id",
+                as: "productDetails"
+            }
+        },
+        { $unwind: "$productDetails" }, 
+        { 
+            $group: {
+                _id: "$items.product_Id", 
+                totalQuantity: { $sum: "$items.quantity" },
+                totalSales: { $sum: "$items.price" }, 
+                productName: { $first: "$productDetails.name" } 
+            }
+        },
+        { $sort: { totalQuantity: -1 } }, 
+        { $limit: 5 } 
+    ]);
+    const topSellingBrands = await Order.aggregate([
+        { $match: orderQuery },
+        { $unwind: "$items" },
+        {
+            $lookup: {
+                from: "products", 
+                localField: "items.product_Id",
+                foreignField: "_id",
+                as: "productDetails"
+            }
+        },
+        { $unwind: "$productDetails" },
+        {
+            $lookup: {
+                from: "brands", 
+                localField: "productDetails.brand_Id", 
+                foreignField: "_id",
+                as: "brandDetails"
+            }
+        },
+        { $unwind: "$brandDetails" }, 
+        {
+            $group: {
+                _id: "$productDetails.brand_Id", 
+                totalQuantity: { $sum: "$items.quantity" }, 
+                totalSales: { $sum: "$items.price" }, 
+                brandName: { $first: "$brandDetails.brand_name" } 
+            }
+        },
+        { $sort: { totalQuantity: -1 } }, 
+        { $limit: 5 } 
+    ]);
 
+  
+    const topSellingCategories = await Order.aggregate([
+        { $match: orderQuery },
+        { $unwind: "$items" },
+        {
+            $lookup: {
+                from: "products", 
+                localField: "items.product_Id",
+                foreignField: "_id",
+                as: "productDetails"
+            }
+        },
+        { $unwind: "$productDetails" },
+        {
+            $lookup: {
+                from: "categories", 
+                localField: "productDetails.category_Id", 
+                foreignField: "_id",
+                as: "categoryDetails"
+            }
+        },
+        { $unwind: "$categoryDetails" },
+        {
+            $group: {
+                _id: "$productDetails.category_Id",
+                totalQuantity: { $sum: "$items.quantity" },
+                totalSales: { $sum: "$items.price" }, 
+                categoryName: { $first: "$categoryDetails.cat_name" } 
+            }
+        },
+        { $sort: { totalQuantity: -1 } }, 
+        { $limit: 5 } 
+    ]);
+    
+  
+    const currentDate = new Date();
+    data={}
+    switch (sortType) {
+      case "year":
+        filterStartDate = new Date(currentDate.getFullYear() - 4, 0, 1);
+        filterEndDate = new Date(currentDate.getFullYear() + 1, 0, 1);
+  
+        const yearlyData = await Order.aggregate([
+          {
+            $match: {
+              createdAt: { $gte: filterStartDate, $lt: filterEndDate },
+            },
+          },
+          {
+            $group: {
+              _id: { $year: "$createdAt" },
+              totalOrders: { $sum: 1 },
+              totalAmount: { $sum: { $toDouble: "$totalAmount" } }
+            },
+          },
+          { $sort: { _id: 1 } },
+        ]);
+  
+        let yearlyAmounts = new Array(5).fill(0);
+        let yearLabels = [
+          currentDate.getFullYear() - 4,
+          currentDate.getFullYear() - 3,
+          currentDate.getFullYear() - 2,
+          currentDate.getFullYear() - 1,
+          currentDate.getFullYear(),
+        ];
+  
+        yearlyData.forEach((d) => {
+          const index = yearLabels.indexOf(d._id);
+          if (index !== -1) {
+            yearlyAmounts[index] = d.totalAmount;
+          }
+        });
+        const yearlyTotalPrice = yearlyData.reduce(
+          (acc, curr) => acc + curr.totalAmount,
+          0
+        );
+        console.log(yearlyData)
+  
+        data = {
+          label: "Yearly",
+          labels: yearLabels,
+          values: yearlyAmounts,
+          totalPrice: yearlyTotalPrice,
+        };
+        break;
+  
+      case "month":
+        filterStartDate = new Date(currentDate.getFullYear(), 0, 1);
+        filterEndDate = new Date(currentDate.getFullYear() + 1, 0, 1);
+  
+        const monthlyData = await Order.aggregate([
+          {
+            $match: {
+              createdAt: { $gte: filterStartDate, $lt: filterEndDate },
+            },
+          },
+          {
+            $group: {
+              _id: { $month: "$createdAt" },
+              totalOrders: { $sum: 1 },
+              totalAmount: { $sum: { $toDouble: "$totalAmount" } }
+            },
+          },
+          { $sort: { _id: 1 } },
+        ]);
+  
+        let monthlyAmounts = new Array(12).fill(0);
+        monthlyData.forEach((d) => {
+          monthlyAmounts[d._id - 1] = d.totalAmount;
+        });
+        const monthlyTotalPrice = monthlyData.reduce(
+          (acc, curr) => acc + curr.totalAmount,
+          0
+        );
+        console.log(monthlyData)
+  
+        data = {
+          labels: [
+            "JAN",
+            "FEB",
+            "MAR",
+            "APR",
+            "MAY",
+            "JUN",
+            "JUL",
+            "AUG",
+            "SEP",
+            "OCT",
+            "NOV",
+            "DEC",
+          ],
+          label: "Monthly",
+          values: monthlyAmounts,
+          totalPrice: monthlyTotalPrice,
+        };
+        break;
+  
+      case "week":
+        const startOfWeek = new Date(currentDate);
+        startOfWeek.setDate(currentDate.getDate() - currentDate.getDay());
+        startOfWeek.setHours(0, 0, 0, 0);
+  
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6);
+        endOfWeek.setHours(23, 59, 59, 999);
+  
+        const weeklyData = await Order.aggregate([
+          {
+            $match: {
+              createdAt: { $gte: startOfWeek, $lte: endOfWeek },
+            },
+          },
+          {
+            $group: {
+              _id: { $dayOfWeek: "$createdAt" },
+              totalOrders: { $sum: 1 },
+              totalAmount: { $sum: { $toDouble: "$totalAmount" } }
+            },
+          },
+          { $sort: { _id: 1 } },
+        ]);
+  
+        let weeklyAmounts = new Array(7).fill(0);
+        weeklyData.forEach((d) => {
+          weeklyAmounts[d._id - 1] = d.totalAmount;
+        });
+  
+        const weeklyTotalPrice = weeklyData.reduce(
+          (acc, curr) => acc + curr.totalAmount,
+          0
+        );
+  
+        data = {
+          labels: ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"],
+          label: "Weekly",
+          values: weeklyAmounts,
+          totalPrice: weeklyTotalPrice,
+        };
+        break;
+  
+      default:
+        const startOfWeekDe = new Date(currentDate);
+        startOfWeekDe.setDate(currentDate.getDate() - currentDate.getDay());
+        startOfWeekDe.setHours(0, 0, 0, 0); 
+  
+        const endOfWeekDe = new Date(startOfWeekDe);
+        endOfWeekDe.setDate(startOfWeekDe.getDate() + 6);
+        endOfWeekDe.setHours(23, 59, 59, 999);
+  
+        const weeklyDataDe = await Order.aggregate([
+          {
+            $match: {
+              createdAt: { $gte: startOfWeekDe, $lte: endOfWeekDe },
+            },
+          },
+          {
+            $group: {
+              _id: { $dayOfWeek: "$createdAt" },
+              totalOrders: { $sum: 1 },
+              totalAmount: { $sum: { $toDouble: "$totalAmount" } }
+            },
+          },
+          { $sort: { _id: 1 } },
+        ]);
+  
+        let weeklyAmountsDe = new Array(7).fill(0);
+        weeklyDataDe.forEach((d) => {
+          weeklyAmountsDe[d._id - 1] = d.totalAmount;
+        });
+  
+        const weeklyTotalPriceDe = weeklyDataDe.reduce(
+          (acc, curr) => acc + curr.totalAmount,
+          0
+        );
+  
+        data = {
+          labels: ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"],
+          label: "Weekly",
+          values: weeklyAmountsDe,
+          totalPrice: weeklyTotalPriceDe,
+        };
+        break;
+    }
+  
+console.log(data)
+    res.render("admin/dashboard", {
+        orders,
+        usersCount,
+        totalAmount,
+        productsCount,
+        sortType,
+        totalDiscount,
+        data,
+        topSellingCategories,
+        topSellingBrands,
+        topSellingProducts,
+        sort:sortType
+    });
+};
 exports.getusers=async(req,res)=>{
     let users=await User.find({isAdmin:false});
     
     res.render("admin/users",{users})
 }
+exports.getSalesreport = async (req, res) => {
+    try {
+        
+        const sortType = req.query.sort || 'all'; 
+        console.log(req.query.sort,"djkfdjkjkdf")
+        const { startDate, endDate } = getDateRange(sortType) || {};
+
+        let orderQuery = {};
+
+        
+        if (startDate && endDate) {
+            orderQuery = {
+                createdAt: { $gte: startDate, $lte: endDate }
+            };
+        }
+
+        
+
+       
+        let orders = await Order.find(orderQuery)
+            .sort({ createdAt: -1 })
+            .populate("user_Id")
+            .populate("items.product_Id");
+
+       
+
+        let totalAmount = orders.reduce((acc, order) => acc + Number(order.totalAmount), 0);
+        let payableAmount = orders.reduce((acc, order) => acc + Number(order.payableAmount), 0);
+        let totalDiscount = totalAmount - payableAmount;
+
+        let htmlContent = `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Sales Report</title>
+            <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+            <style>
+                body {
+                    display: flex;
+                    justify-content: center; /* Center content horizontally */
+                    align-items: center; /* Center content vertically */
+                    height: 100vh; /* Full height of viewport */
+                    margin: 0; /* Remove default margin */
+                }
+                .container {
+                    width: 90%; /* Set a percentage width for responsiveness */
+                    max-width: 800px; /* Maximum width to control the size */
+                    margin: 0 auto; /* Center container */
+                }
+                .report-title {
+                    text-align: center;
+                    margin-bottom: 20px;
+                }
+                table {
+                    width: 100%; /* Full width of the container */
+                    border-collapse: collapse; /* Ensures table borders are collapsed */
+                }
+                th, td {
+                    padding: 8px;
+                    text-align: center; /* Center align the text in table cells */
+                    border: 1px solid #ddd; /* Adds borders to table cells */
+                }
+                th {
+                    background-color: #f2f2f2;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1 class="report-title">Sales Report</h1>
+                <h5 class="report-title">Period: ${startDate.toISOString().split('T')[0]} to ${endDate.toISOString().split('T')[0]}</h5>
+                
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>User ID</th>
+                            <th>Total Amount</th>
+                            <th>Payable Amount</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${orders.map(order => `
+                            <tr>
+                                <td>${order._id}</td>
+                                <td>${order.user_Id.username}</td>
+                                <td>₹${order.totalAmount}</td>
+                                <td>₹${order.payableAmount}</td>
+                                <td>${new Date(order.createdAt).toLocaleDateString()}</td>
+                            </tr>`).join('')}
+                    </tbody>
+                </table>
+                
+                <h4>Total Sales: ₹${totalAmount}</h4>
+                <h4>Payable Amount: ₹${payableAmount}</h4>
+                <h4>Total Discount: ₹${totalDiscount}</h4>
+            </div>
+        </body>
+        </html>
+    `;
+
+        htmlPdf.create(htmlContent).toBuffer((err, buffer) => {
+            if (err) {
+                return res.status(500).send(err);
+            }
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', 'attachment; filename=sales_report.pdf');
+            res.send(buffer);
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Error generating report.");
+    }
+};
+
 
 exports.blockUser = async (req, res) => {
     
@@ -157,19 +572,37 @@ exports.getProducts=async(req,res)=>{
     console.log(err)
    }
 }
-exports.getOrders=async(req,res)=>{
-    try{
+exports.getOrders = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1; 
+    const limit = 4; 
+    const skip = (page - 1) * limit;
 
-        const orders=await Order.find().sort({createdAt:-1})
-        orders.forEach(order => {
-            order.formattedDate=new Date(order.createdAt).toLocaleDateString('en-GB',{
-                day:'2-digit',
-                month:"short",
-                year:"numeric"
+    const totalOrders = await Order.countDocuments();
+    let orders = await Order.find()
+        .sort({ createdAt: -1 })  
+        .skip(skip)  
+        .limit(limit); 
+
+    
+    orders = orders.map(order => {
+        return {
+            ...order._doc,  
+            formattedDate: new Date(order.createdAt).toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
             })
-        });
-       
-        res.render("admin/orders",{orders})
+        };
+    });
+
+   
+    res.render('admin/orders', {
+        orders,
+        currentPage: page,
+        totalPages: Math.ceil(totalOrders / limit),
+    });
+    
     }
    catch(err){
     console.log(err)
@@ -239,21 +672,21 @@ if(item.paymentStatus==true){
             if(!wallet){
               const newWallet = new Wallet({
                 userId: order.user_Id,
-                balance: item.price,  
+                balance: (item.price*item.quantity)-((item.price*item.quantity)*order.discount/100),  
                 history: [{
-                    amount: item.price,
+                    amount:(item.price*item.quantity)-((item.price*item.quantity)*order.discount/100),
                     status: 'credit',
-                    description: `Refund for canceled product ${item.productName}`
+                    description: `Refund for canceled product ${item.productName} by Admin`
                 }]
             });
             await newWallet.save();
         } else {
           
-            wallet.balance += item.price; 
+            wallet.balance += (item.price*item.quantity)-((item.price*item.quantity)*order.discount/100); 
             wallet.history.push({
-                amount: item.price-item.price*(item.discount/100),
+                amount: (item.price*item.quantity)-((item.price*item.quantity)*order.discount/100),
                 status: 'credit',
-                description: `Refund for canceled product ${item.productName}`
+                description: `Refund for canceled product ${item.productName} by Admin`
             });
             await wallet.save();
         }

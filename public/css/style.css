@@ -557,11 +557,11 @@ font-size: 14px;
 }
 .gradient-custom {
   
-  background: #cd9cf2;
+  background: #d1d0d3;
   
  
-  background: -webkit-linear-gradient(to top left, rgba(205, 156, 242, 1), rgba(246, 243, 255, 1));
+  background: -webkit-linear-gradient(to top left, rgb(185, 182, 188), rgba(246, 243, 255, 1));
   
  
-  background: linear-gradient(to top left, rgba(205, 156, 242, 1), rgba(246, 243, 255, 1))
+  background: linear-gradient(to top left, rgb(195, 194, 196), rgba(246, 243, 255, 1))
   }

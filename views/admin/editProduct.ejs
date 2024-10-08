@@ -21,15 +21,14 @@
                         
 
                        
-                        <select class="form-select p-3 w-100" name="category_Id" style="color: #666666; border: 1px solid #e4e6f6;" id="category_id">
-                            <option selected><%=product.category_Id.cat_name %></option>
-                            <% category.forEach((cat)=>{ %>
-                                <% if(cat.cat_name!==product.category_Id.cat_name){ %>
-                            <option value="<%=cat._id%>"><%=cat.cat_name%></option>
-                                    <% } %>
-                            <% })  %>
+                        <select class="form-select p-3 w-100" name="category_Id" id="category_id">
+                            <option value="<%= product.category_Id._id %>" selected><%= product.category_Id.cat_name %></option>
+                            <% category.forEach((cat) => { %>
+                                <% if (cat.cat_name !== product.category_Id.cat_name) { %>
+                                    <option value="<%= cat._id %>"><%= cat.cat_name %></option>
+                                <% } %>
+                            <% }) %>
                         </select>
-                      
                     </div>
                     <div class="col-md-6">
                         <label for="brand" class="form-label">Brand</label>
@@ -65,25 +64,25 @@
                             <div class="col-sm-3">
                                 <div class="image-placeholder">
                                     <img src="/public/uploads/<%=product.images[0] %>" alt="placeholder" class="img-fluid" id="image1-preview" />
-                                    <input type="file" class="form-control mt-2" value="" name="image1" id="image1" onchange="previewImage(this, 'image1-preview')" />
+                                    <input type="file" class="form-control mt-2" value="<%=product.images[0] %>" name="image1" id="image1" onchange="previewImage(this, 'image1-preview')" />
                                 </div>
                             </div>
                             <div class="col-sm-3">
                                 <div class="image-placeholder">
                                     <img src="/public/uploads/<%=product.images[1] %>" alt="placeholder" class="img-fluid" id="image2-preview" />
-                                    <input type="file" class="form-control mt-2" name="image2" value="/public/uploads/<%=product.images[1] %>" id="image2" onchange="previewImage(this, 'image2-preview')" />
+                                    <input type="file" class="form-control mt-2" name="image2" value="<%=product.images[1] %>" id="image2" onchange="previewImage(this, 'image2-preview')" />
                                 </div>
                             </div>
                             <div class="col-sm-3">
                                 <div class="image-placeholder">
                                     <img src="/public/uploads/<%=product.images[2] %>" alt="placeholder" class="img-fluid" id="image3-preview" >
-                                    <input type="file" class="form-control mt-2" name="image3" value="/public/uploads/<%=product.images[2] %>" id="image3" onchange="previewImage(this, 'image3-preview')" />
+                                    <input type="file" class="form-control mt-2" name="image3" value="<%=product.images[2] %>" id="image3" onchange="previewImage(this, 'image3-preview')" />
                                 </div>
                             </div>
                             <div class="col-sm-3">
                                 <div class="image-placeholder">
                                     <img src="/public/uploads/<%=product.images[3] %>" alt="placeholder" class="img-fluid" id="image4-preview" />
-                                    <input type="file" class="form-control mt-2" value="/public/uploads/<%=product.images[3] %>" name="image4" id="image4" onchange="previewImage(this, 'image4-preview')" />
+                                    <input type="file" class="form-control mt-2" value="<%=product.images[3] %>" name="image4" id="image4" onchange="previewImage(this, 'image4-preview')" />
                                 </div>
                             </div>
                         </div>

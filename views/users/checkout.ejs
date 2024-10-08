@@ -169,7 +169,7 @@
                     
                 </div>
                
-                <p>₹<%= item.product_Id.offer&&item.product_Id.offer.discountPercentage? item.product_Id.price-item.product_Id.price*(item.product_Id.offer.discountPercentage/100):item.product_Id.price  %></p>
+                <p>₹<%= item.product_Id.offer&&item.product_Id.offer.discountPercentage &&item.product_Id.offer.expireAt>Date.now() ? item.product_Id.price-item.product_Id.price*(item.product_Id.offer.discountPercentage/100):item.product_Id.price  %></p>
               </div>
              <% }) %>
             </div>
@@ -203,6 +203,7 @@
                   Cash on delivery
                 </label>
               </div>
+              
               <div class="form-check">
                 <input class="form-check-input" type="radio" name="paymentMethod" value="RAZORPAY" id="upi" required>
                 <label class="form-check-label" for="upi">
@@ -513,7 +514,10 @@ async function removeCoupon() {
                     icon: 'success',
                     title: 'Payment Success!',
                     text: 'Your payment was successful!',
-                });
+                }).then(()=>{
+                    window.location.href='/profile'
+                })
+                
             } else {
                 Swal.fire({
                     icon: 'error',
@@ -552,7 +556,25 @@ async function removeCoupon() {
                     }
                 };
                 let rzp = new Razorpay(options);
-                rzp.open();
+                rzp.open(); rzp.on('payment.failed', function (response) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Payment Failed',
+                        text: 'Your payment has failed. Please try again.',
+                    });
+                   
+                    fetch("/updatePaymentStatus", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            orderId: data.orderId,  
+                            paymentId: null, 
+                            razorpaySignature: null,
+                            razorpayOrderId: null,
+                            addressId: address
+                        })
+                    });
+                });
             }
         } else {
     

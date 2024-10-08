@@ -1,59 +1,203 @@
 <%- include('../partials/admin-header.ejs') %>
 
 <%- include('../partials/admin-sidebar.ejs') %>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<style>
+  .card-custom {
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+  }
+
+  .card-custom:hover {
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-5px);
+  }
+
+  .card-header-custom {
+    
+    color: white;
+    text-align: center;
+    border-radius: 15px 15px 0 0;
+  }
+
+  .card-body-custom {
+    padding: 20px;
+    text-align: center;
+  }
+
+  .icon-custom {
+    font-size: 50px;
+    color: #007bff;
+    margin-bottom: 10px;
+  }
+
+  .btn-custom {
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px;
+    transition: all 0.2s ease;
+  }
+
+  .btn-custom:hover {
+    background-color: #0056b3;
+  }
+</style>
 <div class="main-panel">
   <div class="content-wrapper">
     <div class="row">
       <div>
-        <div class="btn-wrapper">
-          <a href="#" class="btn btn-otline-dark align-items-center"><i class="icon-share"></i> Share</a>
-          <a href="#" class="btn btn-otline-dark" id="printButton"
-          ><i class="icon-printer"></i> Print Sales Report</a>
-
-          <a href="#" class="btn btn-primary text-white me-0"><i class="icon-download"></i> Export</a>
+       
+        <div>
+          <p class="statistics-title">Sort by</p>
+          <select class="form-select" id="sortBy" aria-label="Sort by">
+            <option value="" <%= sort === '' ? 'selected' : '' %>>none</option>
+            <option value="week" <%= sort === 'week' ? 'selected' : '' %>>Week</option>
+            <option value="month" <%= sort === 'month' ? 'selected' : '' %>>Month</option>
+            <option value="year" <%= sort === 'year' ? 'selected' : '' %>>Year</option>
+          </select>
         </div>
       </div>
     </div>
 
     <div class="row">
       <div class="col-sm-12 mt-3">
-        <div class="statistics-details d-flex align-items-center justify-content-between">
-          <div>
-            <p class="statistics-title">Total Order</p>
-            <h3 class="rate-percentage">
-              <%= orders.length %>
-            </h3>
-          </div>
-          <div>
-            <p class="statistics-title">Total Sales</p>
-            <h3 class="rate-percentage">
-              <%= totalAmount %>
-            </h3>
-          </div>
+        <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" />
 
-          <div class="d-none d-md-block">
-            <p class="statistics-title">Product Count</p>
-            <h3 class="rate-percentage">
-              <%= productsCount %>
-            </h3>
-          </div>
-          <div class="d-none d-md-block">
-            <p class="statistics-title">Users</p>
-            <h3 class="rate-percentage">
-              <%= usersCount %>
-            </h3>
-          </div>
-          <div>
-            <p class="statistics-title">Sort by</p>
-            <select class="form-select" id="sortBy" aria-label="Sort by">
-              <option value="week">Week</option>
-              <option value="month">Month</option>
-              <option value="year">Year</option>
-            </select>
-          </div>
+<div class="container">
+<div class="row row-cols-1 row-cols-md-2 row-cols-xl-4">
+       <div class="col">
+		 <div class="card radius-10 border-start border-0 border-3 border-info">
+			<div class="card-body">
+				<div class="d-flex align-items-center">
+					<div>
+						<p class="mb-0 text-secondary">Total Orders</p>
+						<h4 class="my-1 text-info">  <%= orders.length %></h4>
+				
+					</div>
+					<div class="widgets-icons-2 rounded-circle bg-gradient-scooter text-white ms-auto"><i class="fa fa-shopping-cart"></i>
+					</div>
+				</div>
+			</div>
+		 </div>
+	   </div>
+	  
+	  <div class="col">
+		<div class="card radius-10 border-start border-0 border-3 border-success">
+		   <div class="card-body">
+			   <div class="d-flex align-items-center">
+				   <div>
+					   <p class="mb-0 text-secondary">Total Sales</p>
+					   <h4 class="my-1 text-success"> ₹<%= totalAmount %></h4>
+					   <!-- <p class="mb-0 font-13">-4.5% from last week</p> -->
+				   </div>
+				   <div class="widgets-icons-2 rounded-circle bg-gradient-ohhappiness text-white ms-auto"><i class="fa fa-bar-chart"></i>
+				   </div>
+			   </div>
+		   </div>
+		</div>
+	  </div>
+    <div class="col">
+      <div class="card radius-10 border-start border-0 border-3 border-danger">
+         <div class="card-body">
+           <div class="d-flex align-items-center">
+             <div>
+               <p class="mb-0 text-secondary">Discount</p>
+               <h4 class="my-1 text-danger">₹ <%= totalDiscount %></h4>
+               <!-- <p class="mb-0 font-13">+5.4% from last week</p> -->
+             </div>
+             <div class="widgets-icons-2 rounded-circle bg-gradient-bloody text-white ms-auto"><i class="fa fa-dollar"></i>
+             </div>
+           </div>
+         </div>
+      </div>
+      </div>
+	  <div class="col">
+		<div class="card radius-10 border-start border-0 border-3 border-warning">
+		   <div class="card-body">
+			   <div class="d-flex align-items-center">
+				   <div>
+					   <p class="mb-0 text-secondary">Total Users</p>
+					   <h4 class="my-1 text-warning">   <%= usersCount %></h4>
+					  
+				   </div>
+				   <div class="widgets-icons-2 rounded-circle bg-gradient-blooker text-white ms-auto"><i class="fa fa-users"></i>
+				   </div>
+			   </div>
+		   </div>
+		</div>
+	  </div> 
+	</div>
+</div>
+<div class="container mt-5">
+  <div class="row">
+    
+    <!-- Top Selling Products -->
+    <div class="col-md-4">
+      <div class="card card-custom">
+        <div class="card-header card-header-custom bg-primary">
+          <h5>Top Selling Products</h5>
         </div>
+        <div class="card-body card-body-custom">
+          <div class="icon-custom">📦</div>
+          <p class="card-text">Discover our best-selling products that customers love the most!</p>
+          <button id="showTopSellingProducts" class="btn btn-primary">View Products</button>
+   
+         
+        </div>
+      </div>
+    </div>
 
-        <div class="row"></div>
+    <!-- Top Selling Categories -->
+    <div class="col-md-4">
+      <div class="card card-custom">
+        <div class="card-header card-header-custom bg-primary">
+          <h5>Top Selling Categories</h5>
+        </div>
+        <div class="card-body card-body-custom">
+          <div class="icon-custom">📚</div>
+          <p class="card-text">Explore the categories with the highest sales!</p>
+          <button id="showTopSellingCategories" class="btn btn-primary">View Categories</button>
+        </div>
+      </div>
+    </div>
+
+   
+    <div class="col-md-4">
+      <div class="card card-custom">
+        <div class="card-header card-header-custom bg-primary">
+          <h5>Top Selling Brands</h5>
+        </div>
+        <div class="card-body card-body-custom">
+          <div class="icon-custom">🏷️</div>
+          <p class="card-text">Check out the brands that are leading in sales!</p>
+          <button id="showTopSellingBrands" class="btn btn-primary">View Brands</button>
+        </div>
+      </div>
+    </div>
+    
+  </div>
+</div>
+    
+
+        <div class="row">
+         
+        
+      
+        
+          <div class=" col-12  grid-margin stretch-card">
+            <div class="card">
+              <div class="card-body">
+                <h4 class="card-title">Area chart</h4>
+                <canvas id="areaChart"></canvas>
+              </div>
+            </div>
+          </div>
+          
+      
+      </div>
         <div class="col-lg-12 grid-margin stretch-card">
           <div class="card">
             <div class="card-body">
@@ -62,28 +206,33 @@
                   <thead>
                     <tr>
                       <th>Order Id</th>
-                      <th>Product Name</th>
-                      <th>Quantity</th>
+                      <th>Date</th>
+                      <th>Total price</th>
                       <th>Payment Type</th>
                       <th>Status</th>
                     </tr>
                   </thead>
                   <tbody>
                     <% orders.forEach(order => { %>
-                      <% order.items.forEach(product => { %>
+                   
                         <tr>
                           <td><%=  order._id.toString().slice(-6) %></td>
-                          <td><%= product.productName %></td>
-                          <td><%= product.quantity %></td>
+                          <td><%= order.createdAt.toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'short', 
+                            day: 'numeric',  
+                        }); %></td>
+                          <td>₹<%= order.payableAmount %></td>
                           <td><%= order.paymentMethod %></td>
                          
                             <td><%= order.paymentStatus==true ?"paid":"pending" %></td>
                           
                         </tr>
-                      <% }) %>
+                     
                     <% }) %>
                   </tbody>
                 </table>
+                <button id="printButton" class="btn btn-primary text-white me-0 mt-3"><i class="icon-download"></i> Download Sales Report</button>
               </div>
             </div>
           </div>
@@ -93,68 +242,140 @@
     </div>
   </div>
 </div>
+<div class="modal fade" id="topSellingProductsModal" tabindex="-1" role="dialog" aria-labelledby="topSellingProductsModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="topSellingProductsModalLabel">Top Selling Products</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <ul id="topSellingProductsList" class="list-group">
+         
+          <% topSellingProducts.forEach(product => { %>
+              <li class="list-group-item">
+                  <strong><%= product.productName %></strong> <br>
+                  Quantity Sold: <%= product.totalQuantity %> <br>
+                  Total Sales:₹<%= product.totalSales %>
+              </li>
+          <% }) %>
+        </ul>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="topSellingCategoriesModal" tabindex="-1" role="dialog" aria-labelledby="topSellingCategoriesModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="topSellingCategoriesModalLabel">Top Selling Categories</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <ul id="topSellingProductsList" class="list-group">
+         
+          <% topSellingCategories.forEach(cat => { %>
+              <li class="list-group-item">
+                  <strong><%= cat.categoryName %></strong> <br>
+                  Quantity Sold: <%= cat.totalQuantity %> <br>
+                  Total Sales: ₹<%= cat.totalSales %>
+              </li>
+          <% }) %>
+        </ul>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="topSellingBrandsModal" tabindex="-1" role="dialog" aria-labelledby="topSellingBrandsModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="topSellingBrandsModalLabel">Top Selling Products</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <ul id="topSellingProductsList" class="list-group">
+         
+          <% topSellingBrands.forEach(brand => { %>
+              <li class="list-group-item">
+                  <strong><%= brand.brandName %></strong> <br>
+                  Quantity Sold: <%= brand.totalQuantity %> <br>
+                  Total Sales: ₹<%= brand.totalSales %>
+              </li>
+          <% }) %>
+        </ul>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+      document.getElementById('showTopSellingProducts').addEventListener('click', function() {
+           
+            $('#topSellingProductsModal').modal('show');
+        });
+        document.getElementById('showTopSellingCategories').addEventListener('click', function() {
+           
+           $('#topSellingCategoriesModal').modal('show');
+       });
+       document.getElementById('showTopSellingBrands').addEventListener('click', function() {
+           
+           $('#topSellingBrandsModal').modal('show');
+       });
+  const chartData = <%- JSON.stringify(data) %>; 
+  
+</script>
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     const printButton = document.getElementById('printButton');
-    const sortBy=document.getElementById("sortBy");
+    const sortBy = document.getElementById("sortBy");
 
-
+    
     function getQueryParams() {
-      const urlParams = new URLSearchParams(window.location.search);
-      let params = {};
+        const urlParams = new URLSearchParams(window.location.search);
+        let params = {};
 
-      if (urlParams.has('sort')) {
-        params.sort = urlParams.get('sort');
-      }
-      if (urlParams.has('startDate') && urlParams.has('endDate')) {
-        params.startDate = urlParams.get('startDate');
-        params.endDate = urlParams.get('endDate');
-      }
+        if (urlParams.has('sort')) {
+            params.sort = urlParams.get('sort');
+        }
+        if (urlParams.has('startDate') && urlParams.has('endDate')) {
+            params.startDate = urlParams.get('startDate');
+            params.endDate = urlParams.get('endDate');
+        }
 
-      return params;
+        return params;
     }
 
-    sortBy.addEventListener('change', ()=>{
-      const selectedSort=sortBy.value;
-      let url='/admin/dashboard?sort='+selectedSort;
-      window.location.href=url;
-    })
-    printButton.addEventListener('click', (e) => {
-      e.preventDefault();
-      const queryParams = getQueryParams();
-      let url = '/admin/generate-pdf?';
-
-      
-      if (queryParams.sort) {
-        url += sort=`${queryParams.sort}`;
-      } else if (queryParams.startDate && queryParams.endDate) {
-        url += startDate=`${queryParams.startDate}&endDate=${queryParams.endDate}`;
-      }
-
-      // Redirect to the PDF generation route
-      window.location.href = url;
+  
+    sortBy.addEventListener('change', () => {
+        const selectedSort = sortBy.value;
+        
+        let url = '/admin/dashboard?sort=' + selectedSort;
+       
+        window.location.href = url;
     });
-  });
+
+   
+    printButton.addEventListener('click', () => {
+        const selectedSort = sortBy.value; 
+        let pdfurl = '/admin/generate-pdf?sort=' + selectedSort; 
+        window.location.href = pdfurl; 
+    });
+});
 </script>
 
-
-<!-- content-wrapper ends -->
-<!-- main-panel ends -->
-<!-- container-scroller -->
-<!-- base:js -->
-<script src="public/vendors/base/vendor.bundle.base.js"></script>
-
-<script src="public/js/off-canvas.js"></script>
-<script src="public/js/hoverable-collapse.js"></script>
-<script src="public/js/template.js"></script>
-
-<script src="public/vendors/chart.js/Chart.min.js"></script>
-<!-- Custom js for this page-->
-<script src="public/js/chart.js"></script>
-<!-- font-awesome -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
-  integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
-  crossorigin="anonymous"></script>
-<script src="https://kit.fontawesome.com/a5e10914c4.js" crossorigin="anonymous"></script>
-</body>
-</html>
+<%- include('../partials/admin-footer.ejs') %>

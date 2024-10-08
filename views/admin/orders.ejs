@@ -90,7 +90,7 @@
                                     <span class="status-badge badge-shipping " id="status">Pending</span>
                                     <td>
                                         <button class="btn btn-danger" type="button" onclick="cancel(`<%=item.product_Id%>`,'<%=order.user_Id%>','<%=order._id%>')">cancel</button>
-                                        <button class="btn btn-success" type="button" onclick="delivery(`<%=item.product_Id%>`,'<%=order.user_Id%>','<%=order._id%>')">delivery</button>
+                                        <button class="btn btn-success mt-1" type="button" onclick="delivery(`<%=item.product_Id%>`,'<%=order.user_Id%>','<%=order._id%>')">delivery</button>
                                     </td>
                                 <% } else if(item.orderStatus ==='delivered') { %>
                                     <span class="status-badge badge-delivered" id="status">Delivered</span>
@@ -113,11 +113,34 @@
         
         </div>
         </div>  
-
+        <nav aria-label="Page navigation">
+            <ul class="pagination">
+              <!-- Previous Page Button -->
+              <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
+                <a class="page-link" href="?page=<%= currentPage - 1 %>" aria-label="Previous">
+                  <span aria-hidden="true">&laquo;</span>
+                </a>
+              </li>
+          
+             
+              <% for (let i = 1; i <= totalPages; i++) { %>
+                <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+                  <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+                </li>
+              <% } %>
+          
+          
+              <li class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
+                <a class="page-link" href="?page=<%= currentPage + 1 %>" aria-label="Next">
+                  <span aria-hidden="true">&raquo;</span>
+                </a>
+              </li>
+            </ul>
+          </nav>
     </div>
 
   </div>
- 
+  
    <script>
     function delivery(product_Id, user_Id, order_Id) {
    

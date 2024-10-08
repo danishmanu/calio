@@ -37,6 +37,8 @@ router.post("/addToCart/:id",cartController.addToCart)
 router.post("/updateCart/:id",cartController.Auth,cartController.updateCart)
 router.get("/deleteCart/:id",cartController.Auth,cartController.deleteCart)
 router.get("/profile",cartController.Auth,profileController.getProfile)
+router.get("/profile/orderDetail/:orderId",cartController.Auth,profileController.getOrderDetails)
+
 router.get("/profile/addAddress",addressController.Auth,addressController.getAddAddress)
 router.post("/profile/addAddress",addressController.Auth,addressController.addAddress)
 router.post("/profile/editUserDetails",addressController.Auth,profileController.editUserDetails)
@@ -56,7 +58,9 @@ router.post("/addToWishlist",addressController.Auth,wishlistController.addToWish
 router.delete("/wishlist/remove/:productId",addressController.Auth,wishlistController.removeWishlist)
 router.post('/wallet/verify-payment',addressController.Auth,checkoutController.verifyWallet
 )
-
+router.get("/downloadInvoice/:orderId", cartController.Auth, profileController.downloadInvoice);
+router.post("/orderDetails/getRepaymentDetails", cartController.Auth, checkoutController.getRepaymentDetails);
+router.post("/orderDetails/repayment", cartController.Auth, checkoutController.confirmRepayment);
 router.get("/about",aboutController.getAbout)
 router.get("/contact",aboutController.getContact)
 module.exports=router

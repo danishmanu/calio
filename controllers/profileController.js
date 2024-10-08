@@ -3,6 +3,7 @@ const Otp_collection=require("../models/otp")
 const Address = require("../models/Address")
 const Order = require("../models/Order")
 const Wallet = require("../models/Wallet")
+const generatePdf = require("../services/generateInvoice")
 
 exports.getProfile=async (req,res)=>{
     const user=await User.findOne({_id:req.session.user})
@@ -75,3 +76,37 @@ exports.editUserDetails=async (req,res)=>{
     console.error(error)
    }
 }
+exports.getOrderDetails=async (req,res) => {
+    try {
+        let user=req.session.user
+        let orderId=req.params.orderId
+        console.log(orderId)
+        console.log(user)
+        let order=await Order.findOne({user_Id:user,_id:orderId}).populate("user_Id")
+        console.log("i am here ")
+        if(!order){
+            console.log("i would not be here");
+            return res.redirect("/")
+            
+            
+        }
+        console.log("i will be here");
+        res.render("users/orderDetail",{user,order})
+    } catch (error) {
+        
+    }
+}
+
+exports.downloadInvoice = async (req, res) => {
+    try {
+        console.log("called generafjfjkdfte order")
+        const orderId = req.params.orderId;
+        const user = req.session.user;
+
+        await generatePdf(orderId, user, res);
+
+    } catch (error) {
+        console.error('Error in downloadInvoice:', error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};

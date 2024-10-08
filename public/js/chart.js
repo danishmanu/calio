@@ -1,9 +1,12 @@
 $(function() {
-  /* ChartJS
-   * -------
-   * Data and config for chartjs
-   */
+  
   'use strict';
+  
+  
+
+
+ 
+
   var data = {
     labels: ["2013", "2014", "2014", "2015", "2016", "2017"],
     datasets: [{
@@ -99,7 +102,6 @@ $(function() {
       ],
     }],
 
-    // These labels appear in the legend and in the tooltips when hovering different arcs
     labels: [
       'Pink',
       'Blue',
@@ -114,10 +116,10 @@ $(function() {
     }
   };
   var areaData = {
-    labels: ["2013", "2014", "2015", "2016", "2017"],
+    labels: chartData.labels,
     datasets: [{
-      label: '# of Votes',
-      data: [12, 19, 3, 5, 2, 3],
+      // label: '# of Votes',
+      data: chartData.values,
       backgroundColor: [
         'rgba(255, 99, 132, 0.2)',
         'rgba(54, 162, 235, 0.2)',

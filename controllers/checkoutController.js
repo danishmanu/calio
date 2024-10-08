@@ -73,7 +73,7 @@ exports.getCheckout=async(req,res)=>{
       
          const addresses=await Address.findOne({user_Id:user})
         const cart=await Cart.findOne({user_Id:user}).populate("items.product_Id")
-        if(!cart){
+        if(!cart || cart.items.length<=0){
         res.redirect("/")
         }
         const appliedCoupon = await Coupon.findOne({
@@ -130,7 +130,7 @@ exports.checkout = async (req, res) => {
       // Handling COD payment
       if (paymentMethod === "COD") {
           const totalAmount = cart.items.reduce((acc, item) => {
-              const price = item.product_Id.offer?.discountPercentage
+              const price = item.product_Id.offer?.discountPercentage &&item.product_Id.offer.expirAt>Date.now()
                   ? item.product_Id.price - item.product_Id.price * (item.product_Id.offer.discountPercentage / 100)
                   : item.product_Id.price;
               return acc + price * item.quantity;
@@ -158,7 +158,7 @@ exports.checkout = async (req, res) => {
                   productName: item.product_Id.name,
                   quantity: item.quantity,
                   image: item.product_Id.images[0],
-                  price: item.product_Id.offer?.discountPercentage
+                  price: item.product_Id.offer?.discountPercentage&&item.product_Id.offer.expirAt>Date.now()
                       ? item.product_Id.price - item.product_Id.price * (item.product_Id.offer.discountPercentage / 100)
                       : item.product_Id.price
               })),
@@ -191,7 +191,7 @@ exports.checkout = async (req, res) => {
       // Handling Razorpay payment
       if (paymentMethod === "RAZORPAY") {
           const totalAmount = cart.items.reduce((acc, item) => {
-              const price = item.product_Id.offer?.discountPercentage
+              const price = item.product_Id.offer?.discountPercentage &&item.product_Id.offer.expirAt>Date.now()
                   ? item.product_Id.price - item.product_Id.price * (item.product_Id.offer.discountPercentage / 100)
                   : item.product_Id.price;
               return acc + price * item.quantity;
@@ -251,7 +251,7 @@ exports.updatePaymentStatus = async (req, res) => {
 
       const users = await User.findOne({ _id: user });
 
-      // Calculate discount
+      
       let discount = 0;
       const coupon = await Coupon.findOne({
           "users.user_Id": user,
@@ -264,7 +264,7 @@ exports.updatePaymentStatus = async (req, res) => {
       const totalAmount = cart.items.reduce((acc, item) => acc + item.product_Id.price * item.quantity, 0);
       const payableAmount = totalAmount - discount;
 
-      // Create order
+      
       const order = new Order({
           user_Id: cart.user_Id,
           deliveryAddress: {
@@ -281,7 +281,7 @@ exports.updatePaymentStatus = async (req, res) => {
               productName: item.product_Id.name,
               quantity: item.quantity,
               image: item.product_Id.images[0],
-              price: item.product_Id.offer && item.product_Id.offer.discountPercentage
+              price: item.product_Id.offer && item.product_Id.offer.discountPercentage &&item.product_Id.offer.expirAt>Date.now()
                   ? item.product_Id.price - item.product_Id.price * (item.product_Id.offer.discountPercentage / 100)
                   : item.product_Id.price
           })),
@@ -295,7 +295,7 @@ exports.updatePaymentStatus = async (req, res) => {
       await order.save();
 
     
-      await Cart.updateOne({ user_Id: user }, { $set: { items: [] } });
+      await Cart.updateOne({ user_Id: user }, { $set: { items: [] } },{ $set: { total_price: '' } });
 
       if (!isPaymentVerified) {
           return res.status(200).json({ message: 'Payment failed, but order placed successfully', orderPlaced: true });
@@ -314,7 +314,8 @@ exports.cancelOrder = async (req, res) => {
     console.log("here")
       const { product_Id,order_Id } = req.body;
       console.log(order_Id)
-      
+      console.log(product_Id)
+      console.log(req.session.user)
 const order = await Order.findOne({ user_Id:req.session.user,_id:order_Id,"items.product_Id": product_Id });
 console.log(order)
       if (!order) {
@@ -344,14 +345,14 @@ console.log(order)
       console.log()
      
       item.orderStatus = 'canceled';
-      if(item.paymentStatus==true){
+      if(order.paymentStatus==true){
         let wallet=await Wallet.findOne({user_Id:order.user_Id})
         if(!wallet){
           const newWallet = new Wallet({
             userId: order.user_Id,
-            balance: item.price,  
+            balance: (item.price*item.quantity)-(item.price*item.quantity)*order.discount/100,  
             history: [{
-                amount: item.price,
+                amount: (item.price*item.quantity)-(item.price*item.quantity)*order.discount/100,
                 status: 'credit',
                 description: `Refund for canceled product ${item.productName}`
             }]
@@ -360,13 +361,13 @@ console.log(order)
         await newWallet.save();
     } else {
       console.log("here8")
-      wallet.balance += item.price; 
+      wallet.balance += (item.price*item.quantity)-((item.price*item.quantity)*order.discount/100); 
       wallet.history.push({
-            amount: item.price-item.price*(item.discount/100),
+            amount: (item.price*item.quantity)-((item.price*item.quantity)*order.discount/100),
             status: 'credit',
             description: `Refund for canceled product ${item.productName}`
         });
-        await userWallet.save();
+        await wallet.save();
     }
 }
 console.log("here9")
@@ -444,3 +445,84 @@ exports.applyCoupon = async (req, res) => {
 };
 
 
+exports.getRepaymentDetails = async (req, res) => {
+  try {
+    console.log("")
+      const { orderId } = req.body;
+      console.log(orderId)
+      const order = await Order.findOne({_id:orderId});
+      console.log(order)
+      if (!order) {
+          return res.status(404).json({ message: 'Order not found' });
+      }
+     
+
+      
+      if (order.paymentStatus) {
+          return res.status(400).json({ message: 'Payment already completed for this order' });
+      }
+
+      
+      const repayAmount = order.payableAmount; 
+
+     
+      
+
+      const razorpayOrder = await razorpay.orders.create({
+          amount: repayAmount * 100,
+          currency: "INR",            
+          receipt: `receipt_order_${orderId}`, 
+      });
+
+    
+      res.status(200).json({
+          key: process.env.RAZORPAY_KEY_ID,
+          amount: repayAmount,                
+          currency: "INR",                    
+          razorpayOrderId: razorpayOrder.id,  
+          orderId: order._id,                 
+      });
+  } catch (error) {
+      console.error('Error fetching repayment details:', error);
+      res.status(500).json({ message: 'Server error while fetching repayment details' });
+  }
+};
+exports.confirmRepayment = async (req, res) => {
+  try {
+      const { orderId, paymentId, razorpaySignature, razorpayOrderId } = req.body;
+
+     
+      const order = await Order.findById(orderId);
+      if (!order) {
+          return res.status(404).json({ message: 'Order not found' });
+      }
+
+     
+      const generatedSignature = crypto
+          .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+          .update(`${razorpayOrderId}|${paymentId}`)
+          .digest('hex');
+
+      
+      const isPaymentVerified = (generatedSignature === razorpaySignature && paymentId);
+
+      
+      if (isPaymentVerified) {
+          order.paymentStatus = true;
+          await order.save();
+
+          return res.status(200).json({
+              message: 'Payment verified and order updated successfully',
+              paymentVerified: true,
+          });
+      } else {
+          return res.status(400).json({
+              message: 'Payment verification failed',
+              paymentVerified: false,
+          });
+      }
+  } catch (error) {
+      console.error('Error confirming repayment:', error);
+      res.status(500).json({ message: 'Server error while confirming repayment' });
+  }
+};

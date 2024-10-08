@@ -83,7 +83,7 @@
                 <img src="/public/uploads/<%= product.images[0] %>" class="card-img-top" alt="Product Image">
                 <div class="card-body text-center">
                     <h5 class="product-title"><%=product.name %></h5>
-                    <% if(product.offer &&product.offer.discountPercentage ){%>
+                    <% if(product.offer &&product.offer.discountPercentage && product.offer.expirAt>Date.now()){%>
                     <div class="price">
                         <span>₹<%=product.price-(product.price*(product.offer.discountPercentage/100))%></span>
                         <span class="text-muted">₹<%=product.price%></span>

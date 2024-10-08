@@ -1,0 +1,278 @@
+<%- include('../partials/head.ejs') %>
+<%- include('../partials/header.ejs') %>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+  <div class="container-fluid w-100 bg-primary mt-5 ps-5 d-flex align-items-center" style="height: 10vh">
+ 
+    <li class="breadcrumb-item" style="list-style: none;"><a href="/">Home</a></li>
+    <li class="breadcrumb-item active" aria-current="page" style="list-style: none; max-width: 500px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
+       My Account
+    </li>
+
+</div>
+
+        <section class="h-100 gradient-custom">
+            <div class="container py-5 h-100">
+              <div class="row d-flex justify-content-center align-items-center h-100">
+                <div class="col-lg-10 col-xl-8">
+                  <div class="card" style="border-radius: 10px;">
+                    <div class="card-header  px-4 py-5">
+                      <div class="row">
+                        <div class="col-6"><h5 class="text-muted mb-0">Thanks for your Order, <span style="color: #29b2f1;"><%= order.user_Id.username %></span>!</h5>
+                        </div>
+                        <div class="col-6 d-flex justify-content-end">
+                     <% if(order.paymentStatus==true){  %>    
+                         <a href="/downloadInvoice/<%= order._id %>">
+                            <button type="button" class="btn btn-primary"><i class="fa fa-print"></i>
+                             Download Invoice</button>
+                            </a>
+                       <% } else if (order.paymentStatus==false && order.paymentMethod ==="RAZORPAY" ){%>
+                        <button type="button" onclick="repay(`<%=order._id  %>`)" class="btn btn-primary">Pay Now</button>
+                        <%}%>
+                        </div>
+                      </div>
+                      
+                      
+                    
+                    </div>
+                    <div class="card-body p-4">
+                      <div class="d-flex justify-content-between align-items-center mb-4">
+                        <p class="lead fw-normal mb-0" style="color: #a8729a;">Receipt</p>
+                        <p class="small text-muted mb-0">Receipt Voucher : 1KAU9-84UIL</p>
+                      </div>
+                      <% order.items.forEach((item)=>{ %>
+                      <div class="card shadow-0 border mb-4">
+                        <div class="card-body">
+                          <div class="row">
+                            <div class="col-md-2">
+                              <img src="/public/uploads/<%= item.image %>"
+                                class="img-fluid" alt="Phone">
+                            </div>
+                            <div class="col-md-4 text-center d-flex justify-content-center align-items-center">
+                              <p class="text-muted mb-0"><%= item.productName %></p>
+                            </div>
+                           
+                        
+                            <div class="col-md-2 text-center d-flex justify-content-center align-items-center">
+                              <p class="text-muted mb-0 small">Qty: <%= item.quantity  %></p>
+                            </div>
+                            <div class="col-md-2 text-center d-flex justify-content-center align-items-center">
+                              <p class="text-muted mb-0 small">₹ <%= item.price  %></p>
+                            </div>
+                          </div>
+                          <hr class="mb-4" style="background-color: #e0e0e0; opacity: 1;">
+                          <div class="row d-flex align-items-center">
+                            <div class="col-md-2">
+                              <p class="text-muted mb-0 small">Track Order</p>
+                            </div>
+                            <% if(item.orderStatus==="pending"){%>
+                            <div class="col-md-10">
+                              <div class="progress" style="height: 6px; border-radius: 16px;">
+                                <div class="progress-bar" role="progressbar"
+                                  style="width: 65%; border-radius: 16px; background-color: #a8729a;" aria-valuenow="65"
+                                  aria-valuemin="0" aria-valuemax="100"></div>
+                              </div>
+                              <div class="d-flex justify-content-around mb-1">
+                                <p class="text-muted mt-1 mb-0 small ms-xl-5">Out for delivary</p>
+                                <p class="text-muted mt-1 mb-0 small ms-xl-5">Delivered</p>
+                              </div>
+                            </div>
+                            <% }  %>
+                            <% if(item.orderStatus==="delivered"){%>
+                                <div class="col-md-10">
+                                  <div class="progress" style="height: 6px; border-radius: 16px;">
+                                    <div class="progress-bar" role="progressbar"
+                                      style="width: 100%; border-radius: 16px; background-color: #5bfa17;" aria-valuenow="100"
+                                      aria-valuemin="0" aria-valuemax="100"></div>
+                                  </div>
+                                  <div class="d-flex justify-content-around mb-1">
+                                   
+                                    <p class="text-muted mt-1 mb-0 small ms-xl-5">Delivered</p>
+                                  </div>
+                                </div>
+                                <% }  %>
+                                <% if(item.orderStatus==="canceled"){%>
+                                    <div class="col-md-10">
+                                      <div class="progress" style="height: 6px; border-radius: 16px;">
+                                        <div class="progress-bar" role="progressbar"
+                                          style="width: 100%; border-radius: 16px; background-color: #f03c20;" aria-valuenow="100"
+                                          aria-valuemin="0" aria-valuemax="100"></div>
+                                      </div>
+                                      <div class="d-flex justify-content-around mb-1">
+                                     
+                                        <p class="text-muted mt-1 mb-0 small ms-xl-5">Cancelled</p>
+                                      </div>
+                                    </div>
+                                    <% }  %>
+                            <% if(item.orderStatus==="pending") {%>
+                            <div class="justify-contents-center">
+                                <button class="btn btn-danger" onclick="cancel(`<%=item.product_Id%>`,`<%=order._id%>`)">cancel</button>
+                            </div>
+                            <% } %>
+                          </div>
+                        </div>
+                      </div>
+                      <%  }) %>
+                        
+                   
+                     
+          
+                      <div class="d-flex justify-content-between pt-2">
+                     
+                        <p class="fw-bold mb-0">Order Details</p>
+                        <p class="text-muted mb-0"><span class="fw-bold me-4">Total</span> ₹<%= order.totalAmount %></p>
+                      </div>
+          
+                      <div class="d-flex justify-content-between pt-2">
+                        <p class="text-muted mb-0">Payment Method : <%= order.paymentMethod %></p>
+                        <p class="text-muted mb-0"><span class="fw-bold me-4">Discount</span>₹<%= order.totalAmount*order.discount/100 %></p>
+                      </div>
+          
+                      <div class="d-flex justify-content-between">
+                        <p class="text-muted mb-0">Status : <%= order.paymentStatus==true? "Paid":"Pending" %></p>
+                        
+                      </div>
+          
+                      <div class="d-flex justify-content-between mb-5">
+                        <p class="text-muted mb-0">Invoice Date : 22 Dec,2019</p>
+                        <p class="text-muted mb-0"><span class="fw-bold me-4">Delivery Charges</span> Free</p>
+                      </div>
+                    </div>
+                    <div class="card-footer border-0 px-4 py-5"
+                      style="background-color: #ba9524; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px;">
+                      <h5 class="d-flex align-items-center justify-content-end text-white text-uppercase mb-0">Total
+                        paid: <span class="h2 mb-0 ms-2">₹ <%= order.payableAmount %></span></h5>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+     
+      <script>
+      async function repay(orderId) {
+    try {
+      console.log(orderId)
+        
+        let response = await fetch("/orderDetails/getRepaymentDetails", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ orderId })
+        });
+
+        
+        let data = await response.json();
+
+       
+        if (response.ok) {
+            let options = {
+                key: data.key,           
+                amount: data.amount * 100, 
+                currency: data.currency, 
+                name: "Calio",          
+                description: "Repayment Transaction",
+                order_id: data.razorpayOrderId, 
+                handler: async function (response) {
+                   
+                    const paymentId = response.razorpay_payment_id || null;
+                    const razorpaySignature = response.razorpay_signature || null;
+                    const razorpayOrderId = response.razorpay_order_id;
+
+                  
+                    const updateResponse = await fetch("/orderDetails/repayment", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            orderId: data.orderId,
+                            paymentId: paymentId,
+                            razorpaySignature: razorpaySignature,
+                            razorpayOrderId: razorpayOrderId
+                        })
+                    });
+
+                    if (updateResponse.ok) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Repayment Success!',
+                            text: 'Your repayment was successful!',
+                        }).then(() => {
+                            window.location.href = '/profile';
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Repayment Failed',
+                            text: 'Please try again later.',
+                        });
+                    }
+                },
+                theme: {
+                    color: "#C29958"
+                }
+            };
+
+            let rzp = new Razorpay(options);
+            rzp.open();  
+        } else {
+            Swal.fire({
+                icon: "error",
+                title: "Repayment Failed",
+                text: `${data.message}`
+            });
+        }
+    } catch (error) {
+        console.error("Error fetching repayment details:", error);
+    }
+}
+        function cancel(product_Id,order_Id) {
+       
+       Swal.fire({
+           title: 'Are you sure?',
+           text: "Do you want to cancel this product?",
+           icon: 'warning',
+           showCancelButton: true,
+           confirmButtonColor: '#d33',
+           cancelButtonColor: '#3085d6',
+           confirmButtonText: 'Yes, cancel it!'
+       }).then(async (result) => {
+           if (result.isConfirmed) {
+               try {
+                  
+                   let response = await fetch(`/orders/cancel`, {
+                       method: 'POST',
+                       headers: {
+                           'Content-Type': 'application/json'
+                       },
+                       body: JSON.stringify({ product_Id ,order_Id})
+                   });
+   
+                   if (response.ok) {
+                      
+                       Swal.fire(
+                           'Cancelled!',
+                           'Your order has been canceled.',
+                           'success'
+                       );
+                       
+                       setTimeout(() => {
+                           window.location.reload();
+                       }, 1500);
+                   } else {
+                       throw new Error('Failed to cancel the order.');
+                   }
+               } catch (error) {
+                   console.error('Error:', error);
+                  
+                   Swal.fire(
+                       'Error!',
+                       'Something went wrong. Please try again later.',
+                       'error'
+                   );
+               }
+           }
+       });
+   }
+   
+      </script>
+        <%- include('../partials/footer.ejs') %>
