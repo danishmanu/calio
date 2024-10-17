@@ -30,7 +30,7 @@ exports.addCoupon=async(req,res)=>{
     try {
         console.log(req.body);
         
-        const { coupon_code,discount,startDate,endDate,minAmount}=req.body
+        const { coupon_code,discount,startDate,endDate,minAmount,maxAmount}=req.body
         console.log(req.body)
         existCoupon=await Coupon.findOne({coupon_code})
         console.log( existCoupon);
@@ -43,6 +43,7 @@ exports.addCoupon=async(req,res)=>{
             discount,
             startDate,
             minAmount,
+            maxAmount,
             endDate
         });
 await newCoupon.save();

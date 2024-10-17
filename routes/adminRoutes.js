@@ -31,6 +31,8 @@ router.post("/products/addProduct",adminController.adminAuth,upload.fields([{nam
 router.get("/orders",adminController.adminAuth,adminController.getOrders)
 router.post("/orders/cancel",adminController.cancelOrder);
 router.post('/orders/deliver', adminController.deliverOrder);
+router.post('/orders/approveReturn', adminController.approveReturn);
+router.post('/orders/rejectReturn', adminController.rejectReturn);
 
 router.get("/categories",adminController.adminAuth,adminController.getCategory)
 router.post("/categories",adminController.adminAuth,adminController.addCategory)
@@ -48,9 +50,10 @@ router.get("/coupon",adminController.adminAuth,couponController.getCoupon)
 router.post("/coupon",adminController.adminAuth,couponController.addCoupon)
 router.delete("/coupon/:couponId",adminController.adminAuth,couponController.deleteCoupon)
 router.get("/generate-pdf",adminController.adminAuth,adminController.getSalesreport)
+router.get("/getExcelSales",adminController.adminAuth,adminController.getExcelreport)
 
 router.get("/offer",adminController.adminAuth,offerController.getOffer)
 router.post("/offer/addProductOffer",adminController.adminAuth,offerController.addProductOffer)
 router.post("/offer/addCategoryOffer",adminController.adminAuth,offerController.addCategoryOffer)
-
+router.delete('/offer/deleteProductOffer/:productId',adminController.adminAuth, offerController.deleteProductOffer);
 module.exports=router

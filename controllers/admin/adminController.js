@@ -5,7 +5,8 @@ const Brands = require('../../models/Brand');
 const Order = require('../../models/Order');
 const Wallet = require('../../models/Wallet');
 const bcrypt=require("bcrypt")
-const moment = require('moment'); 
+const moment = require('moment');
+const ExcelJS = require('exceljs');
 const htmlPdf = require('html-pdf');
 function getDateRange(sortType) {
     let startDate = new Date();
@@ -35,7 +36,11 @@ function getDateRange(sortType) {
 }
 
 exports.adminAuth=((req,res,next)=>{
+    console.log(1);
+    
     if(req.session.admin){
+        console.log(2);
+        
        return next()
     }
     else{
@@ -416,6 +421,53 @@ exports.getusers=async(req,res)=>{
     
     res.render("admin/users",{users})
 }
+exports.getExcelreport=async (req,res)=>{
+    try {
+    const sortType=req.query.sort || "all";
+    console.log(req.query.sort)
+    const {startDate,endDate}=getDateRange(sortType) || {};
+    let orderQuery={};
+    if(startDate && endDate){
+        orderQuery={
+            createdAt:{$gte:startDate,$lte:endDate}
+        }
+    }
+    let orders=await Order.find(orderQuery)
+    .sort({createdAt:-1}).populate("user_Id").populate("items.product_Id");
+
+    let totalAmount = orders.reduce((acc, order) => acc + Number(order.totalAmount), 0);
+    let payableAmount = orders.reduce((acc, order) => acc + Number(order.payableAmount), 0);
+    let totalDiscount = totalAmount - payableAmount;
+    const workbook =new ExcelJS.Workbook();
+    const worksheet =workbook.addWorksheet('Sales Report')
+worksheet.columns=[
+    {header:'Order ID',key:'orderId',width:20},
+    {header:'User ID',key:'userId',width:20},
+    {header:'Total Amount',key:'totalAmount',width:15},
+    {header:'payable Amount',key:'payableAmount',width:15},
+    {header:'Date',key:'date',width:20}
+]
+orders.forEach(order=>{
+    worksheet.addRow({
+        orderId:order._id.toString(),
+        userId:order.user_Id.username,
+        totalAmount: `₹${order.totalAmount}`,
+        payableAmount: `₹${order.payableAmount}`,
+        date: new Date(order.createdAt).toLocaleDateString()
+    })
+})
+worksheet.addRow({});
+worksheet.addRow({ orderId: 'Total Sales', totalAmount: `₹${totalAmount.toFixed(2)}` });
+worksheet.addRow({ orderId: 'Payable Amount', totalAmount: `₹${payableAmount.toFixed(2)}` });
+worksheet.addRow({ orderId: 'Total Discount', totalAmount: `₹${totalDiscount.toFixed(2)}` });
+res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+res.setHeader('Content-Disposition', 'attachment; filename=sales_report.xlsx');
+await workbook.xlsx.write(res);
+res.end();
+}catch(error){
+    console.error(error);
+    res.status(500).send("Error generating report.");
+}}
 exports.getSalesreport = async (req, res) => {
     try {
         
@@ -514,7 +566,7 @@ exports.getSalesreport = async (req, res) => {
                 
                 <h4>Total Sales: ₹${totalAmount}</h4>
                 <h4>Payable Amount: ₹${payableAmount}</h4>
-                <h4>Total Discount: ₹${totalDiscount}</h4>
+                <h4>Total Discount: ₹${totalDiscount.toFixed(2)}</h4>
             </div>
         </body>
         </html>
@@ -573,41 +625,42 @@ exports.getProducts=async(req,res)=>{
    }
 }
 exports.getOrders = async (req, res) => {
-  try {
-    const page = parseInt(req.query.page) || 1; 
-    const limit = 4; 
-    const skip = (page - 1) * limit;
-
-    const totalOrders = await Order.countDocuments();
-    let orders = await Order.find()
-        .sort({ createdAt: -1 })  
-        .skip(skip)  
-        .limit(limit); 
-
-    
-    orders = orders.map(order => {
-        return {
-            ...order._doc,  
-            formattedDate: new Date(order.createdAt).toLocaleDateString('en-GB', {
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric'
-            })
-        };
-    });
-
+    try {
+      const page = parseInt(req.query.page) || 1; 
+      const limit = 4; 
+      const skip = (page - 1) * limit;
+  
+      const totalOrders = await Order.countDocuments();  
+      const totalPages = Math.ceil(totalOrders / limit); 
+  
    
-    res.render('admin/orders', {
-        orders,
-        currentPage: page,
-        totalPages: Math.ceil(totalOrders / limit),
-    });
+      let orders = await Order.find()
+          .sort({ createdAt: -1 })  
+          .skip(skip)  
+          .limit(limit);  
+  
     
+      orders = orders.map(order => ({
+          ...order._doc, 
+          formattedDate: new Date(order.createdAt).toLocaleDateString('en-GB', {
+              day: '2-digit',
+              month: 'short',
+              year: 'numeric'
+          })
+      }));
+  
+      
+      res.render('admin/orders', {
+          orders,
+          currentPage: page,
+          totalPages,  
+      });
+      
+    } catch (err) {
+      console.log(err);
+      res.status(500).send('Server Error');
     }
-   catch(err){
-    console.log(err)
-   }
-}
+  };
 exports.deliverOrder = async (req, res) => {
     try {
         console.log("hekjeiu");
@@ -811,8 +864,18 @@ exports.listCategory=async(req,res)=>{
 }
 exports.getBrand=async(req,res)=>{
     try{
-        let brands=await Brands.find({});
-        res.render("admin/brands",{brands})
+        const page = parseInt(req.query.page) || 1; 
+    const limit = 4; 
+    const skip = (page - 1) * limit;
+
+    const totalBrands = await Order.countDocuments();
+    let brands=await Brands.find({})
+        .sort({ createdAt: -1 })  
+        .skip(skip)  
+        .limit(limit); 
+        
+        
+        res.render("admin/brands",{brands,totalPages: Math.ceil(totalBrands / limit),  currentPage: page})
     }
    catch(err){
     console.log(err)
@@ -885,10 +948,10 @@ exports.editProduct=async (req,res) => {
     const {name,category_Id,brand_Id,description,stock,price}=req.body
   const product=await Product.findOne({_id:id})
     const images = [
-     req.files['image1'] ? req.files['image1'][0].filename : null,
-     req.files['image2'] ? req.files['image2'][0].filename : null,
-     req.files['image3'] ? req.files['image3'][0].filename : null,
-     req.files['image4'] ? req.files['image4'][0].filename : null
+     req.files['image1'] ? req.files['image1'][0].filename : product.images[0],
+     req.files['image2'] ? req.files['image2'][0].filename : product.images[1],
+     req.files['image3'] ? req.files['image3'][0].filename : product.images[2],
+     req.files['image4'] ? req.files['image4'][0].filename : product.images[3]
     ]
   await Product.updateOne({_id:id},{$set:{
         name,
@@ -921,3 +984,91 @@ exports.logout = (req, res) => {
         }
     })
   }
+  exports.approveReturn = async (req, res) => {
+    try {
+        
+        let { order_Id, product_Id,user_Id } = req.body;
+        console.log("djfkfdj",order_Id, product_Id,)
+        const order = await Order.findOne({ user_Id: user_Id, _id: order_Id});
+
+        if (!order) {
+            console.log("no order")
+            return res.status(404).json({ message: 'Order or product not found' });
+           
+        }
+
+        const item = order.items.find(item => item.product_Id.toString() === product_Id);
+        if (!item) {
+            console.log("no item")
+            return res.status(404).json({ message: 'Product not found in the order' });
+        }
+
+        console.log("hai")
+        if (order.paymentStatus === true) {
+            let wallet = await Wallet.findOne({ user_Id: order.user_Id });
+            const refundAmount = (item.price * item.quantity) - ((item.price * item.quantity) * order.discount / 100);
+
+            if (!wallet) {
+             
+                const newWallet = new Wallet({
+                    userId: order.user_Id,
+                    balance: refundAmount,
+                    history: [{
+                        amount: refundAmount,
+                        status: 'credit',
+                        description: `Refund for return product ${item.productName}`
+                    }]
+                });
+                await newWallet.save();
+            } else {
+             
+                wallet.balance += refundAmount;
+                wallet.history.push({
+                    amount: refundAmount,
+                    status: 'credit',
+                    description: `Refund for return product ${item.productName}`
+                });
+                await wallet.save();
+            }
+        }
+
+        console.log("done")
+        item.orderStatus = "returned";
+        item.returnStatus="Approved"
+        await order.save();
+
+       
+        return res.status(200).json({ message: 'Return approved and refund processed successfully.' });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'An error occurred while processing the return.' });
+    }
+};
+
+exports.rejectReturn=async (req, res) => {
+    const { product_Id, order_Id } = req.body;
+
+    try {
+       
+        let order = await Order.findById(order_Id);
+        if (!order) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+
+      
+        const item = order.items.find(item => item.product_Id.toString() === product_Id);
+        if (!item) {
+            console.log("no item")
+            return res.status(404).json({ message: 'Product not found in the order' });
+        }
+
+        item.returnStatus="rejected"
+        await order.save()
+        return res.status(200).json({ message: 'Return rejected successfully' });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'An error occurred while rejecting the return' });
+    }
+}

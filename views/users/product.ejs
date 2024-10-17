@@ -1,6 +1,28 @@
 <%- include('../partials/head.ejs') %>
 <%- include('../partials/header.ejs') %>
+<style>
+.main-image-container {
+  position: relative;
+  overflow: hidden;
+  cursor: crosshair;
+  width: 100%;
+  
+  height: auto;
+}
 
+.main-image {
+  width: 100%;
+  height: auto;
+  height: auto;
+  object-fit: cover;
+  max-height: 400px;
+  transition: transform 0.2s ease;
+}
+
+.main-image-container:hover .main-image {
+  transform: scale(1.7);
+}
+</style>
 <div class="container-fluid w-100 bg-primary mt-5 ps-5 d-flex align-items-center" style="height: 10vh">
  
     <li class="breadcrumb-item" style="list-style: none;"><a href="#">Home</a></li>
@@ -18,8 +40,13 @@
             <img  src="/public/uploads/<%= product.images[2] %>" alt="" class="w-100 border border-1 mt-2" onclick="changeMainImage(this)" >
             <img  src="/public/uploads/<%= product.images[3] %>" alt="" class="w-100 border border-1 mt-2" onclick="changeMainImage(this)">
         </div>
-        <div class="col-10">
-            <img src="/public/uploads/<%= product.images[0] %>" alt="" id="mainImage" class="w-100">
+        <div class="main-image-container mb-4">
+          <img
+            src="/public/uploads/<%= product.images[0] %>"
+            class="main-image"
+            id="main-image1"
+            alt=""
+          />
         </div>
         
     </div>
@@ -103,8 +130,27 @@
     
    
 </div>
-<script>
 
+<script>
+  const mainImageContainer = document.querySelector(".main-image-container");
+  const mainImage = document.getElementById("main-image1");
+
+  mainImageContainer.addEventListener("mousemove", function (e) {
+    const containerRect = mainImageContainer.getBoundingClientRect();
+
+    const mouseX = e.clientX - containerRect.left;
+    const mouseY = e.clientY - containerRect.top;
+
+    const percentX = (mouseX / containerRect.width) * 100;
+    const percentY = (mouseY / containerRect.height) * 100;
+
+    mainImage.style.transformOrigin = `${percentX}% ${percentY}%`;
+    mainImage.style.transform = "scale(2.0)"; // Adjust scale as needed
+  });
+
+  mainImageContainer.addEventListener("mouseleave", function () {
+    mainImage.style.transform = "scale(1)";
+  });
     function plus() {
     let quantity = parseInt(document.getElementById('quantity').value);
    
@@ -139,7 +185,7 @@ async function addToCart() {
     const data = await response.json();
 
     if (data.success === false && data.user === false) {
-      // User not logged in
+     
       Swal.fire({
         icon: 'warning',
         title: 'You must log in first!',
@@ -153,7 +199,7 @@ async function addToCart() {
         }
       });
     } else if (data.success === false) {
-      // Other business logic errors
+     
       Swal.fire({
         icon: 'error',
         title: 'Could not add to cart',
@@ -161,7 +207,7 @@ async function addToCart() {
         showConfirmButton: true,
       });
     } else if (data.success === true) {
-      // Successful addition to the cart
+      
       document.getElementById('cart-count').innerText = data.cartItemCount; 
       Swal.fire({
         icon: 'success',
@@ -171,7 +217,7 @@ async function addToCart() {
         timer: 1500,
       });
     } else {
-      // Catch unexpected issues
+      
       console.error('Something went wrong');
       Swal.fire({
         icon: 'error',
@@ -181,7 +227,7 @@ async function addToCart() {
       });
     }
   } catch (err) {
-    // Handle network or other errors
+   
     console.error('Error:', err);
     Swal.fire({
       icon: 'error',
@@ -195,9 +241,9 @@ async function addToCart() {
 
 
 
-    function changeMainImage(thumb) {
-        const mainImage = document.getElementById('mainImage');
-        mainImage.src = thumb.src;
-    }
+function changeMainImage(thumb) {
+    const mainImage = document.getElementById('main-image1');
+    mainImage.src = thumb.src; 
+}
 </script>
 <%- include('../partials/footer.ejs') %>

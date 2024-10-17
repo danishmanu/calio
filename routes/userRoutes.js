@@ -17,12 +17,19 @@ router.post("/login",userController.login)
 router.get("/signup",userController.getSignup)
 router.get("/otp_verification",userController.getOtp)
 router.post("/otp_verification",userController.checkOtp)
+router.post("/resetOtpVerify",userController.resetOtpVerify)
+router.post("/resetPass",userController.resetPass)
+
+router.put("/resetPassWithOld",cartController.Auth,userController.resetPassWithOld)
 router.get("/auth/google",passport.authenticate("google",{scope:['profile','email'],prompt:"select_account"}))
 router.get("/auth/google/callback",passport.authenticate("google",{failureRedirect:'/login'}),(req,res)=>{
     
     req.session.user=req.user._id
     res.redirect("/")
 })
+
+router.get("/login/forget_password/emailVerication",userController.getEmailVerify)
+router.post("/login/forget_password/emailVerication",userController.emailVerify)
 router.get("/home",userController.Auth,userController.main)
 router.get("/shop",shopController.getShop)
 router.get("/product/:id",userController.getProduct)

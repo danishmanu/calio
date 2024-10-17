@@ -127,7 +127,7 @@ exports.checkout = async (req, res) => {
           discount = coupon.discount;
       }
 
-      // Handling COD payment
+     
       if (paymentMethod === "COD") {
           const totalAmount = cart.items.reduce((acc, item) => {
               const price = item.product_Id.offer?.discountPercentage &&item.product_Id.offer.expirAt>Date.now()
@@ -138,8 +138,8 @@ exports.checkout = async (req, res) => {
 
           const payableAmount = totalAmount - (totalAmount * discount / 100);
 
-          if (payableAmount >= 10000) {
-              return res.status(401).json({ message: 'Cash on delivery is only applicable to orders below 10000', cod: false });
+          if (payableAmount >= 1000) {
+              return res.status(401).json({ message: 'Cash on delivery is only applicable to orders below 1000', cod: false });
           }
 
           const order = new Order({
@@ -188,7 +188,7 @@ exports.checkout = async (req, res) => {
           return res.status(200).json({ message: 'Order placed successfully', cod: true });
       }
 
-      // Handling Razorpay payment
+      
       if (paymentMethod === "RAZORPAY") {
           const totalAmount = cart.items.reduce((acc, item) => {
               const price = item.product_Id.offer?.discountPercentage &&item.product_Id.offer.expirAt>Date.now()
@@ -200,7 +200,7 @@ exports.checkout = async (req, res) => {
           const payableAmount = totalAmount - (totalAmount * discount / 100);
 
           const razorpayOrder = await razorpay.orders.create({
-              amount: Math.round(payableAmount * 100), // Razorpay requires amount in paise
+              amount: Math.round(payableAmount * 100), 
               receipt: `receipt_${cart.user_Id}`,
               currency: "INR"
           });
@@ -262,7 +262,7 @@ exports.updatePaymentStatus = async (req, res) => {
       }
 
       const totalAmount = cart.items.reduce((acc, item) => acc + item.product_Id.price * item.quantity, 0);
-      const payableAmount = totalAmount - discount;
+      const payableAmount = totalAmount - (totalAmount * discount / 100);
 
       
       const order = new Order({
@@ -406,7 +406,8 @@ exports.applyCoupon = async (req, res) => {
   const { couponCode } = req.body;
   const userId = req.session.user; 
   const curDate = new Date();
-
+  let cart=await Cart.findOne({user_Id:userId})
+    console.log(cart)
   try {
     const coupon = await Coupon.findOne({ coupon_code: couponCode, isDelete: false });
 
@@ -428,7 +429,12 @@ exports.applyCoupon = async (req, res) => {
     if (userAlreadyUsedCoupon) {
       return res.status(400).json({ coupon: false, message: "You have already used this coupon." });
     }
-
+    if (coupon.minAmount > cart.total_price) {
+        return res.status(401).json({ coupon: false, message: `Coupon applicable only for orders above ${coupon.minAmount}` });
+      }
+    if (coupon.maxAmount < cart.total_price) {
+        return res.status(401).json({ coupon: false, message: `Coupon applicable only for orders below ${coupon.maxAmount}` });
+      }
     
     coupon.users.push({ user_Id: userId, isBought: false });
     await coupon.save();
@@ -462,7 +468,17 @@ exports.getRepaymentDetails = async (req, res) => {
           return res.status(400).json({ message: 'Payment already completed for this order' });
       }
 
-      
+      for (const item of order.items) {
+        const product = await Product.findById(item.product_Id);
+        if (product.stock < item.quantity) {
+            return res.status(400).json({ message: 'Not enough stock for product' });
+        }
+        await Product.findByIdAndUpdate(
+            item.product_Id,  
+            { $inc: { stock: -item.quantity } }, 
+            { new: true }
+        );
+    }
       const repayAmount = order.payableAmount; 
 
      

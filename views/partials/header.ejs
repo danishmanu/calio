@@ -24,7 +24,19 @@
                 </ul>
                 <div class="navbar-icons d-flex  me-5">
                     <div class="search-bar">
-                        <input type="text" placeholder="What are you looking for?">
+                        <div class="row">
+                            <form id="search-form" class="search-bar" action="/shop" method="GET">
+                                <div class="form-group" style="display: flex; align-items: center;">
+                                    <input type="text" name="query" placeholder="What are you looking for?" 
+                                           value="<%= typeof searchQuery !== 'undefined' ? searchQuery : '' %>"
+                                           style="flex: 1; padding: 10px; margin-right: 10px;">
+                                    <button type="submit" class="btn" style="padding: 0;">
+                                        <i  class="fa-solid fa-magnifying-glass"></i>
+
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                     
                     <a href="/wishlist" class="position-relative">
@@ -45,9 +57,7 @@
                     <% if(user){ %>
 
                         <a href="/profile"><i class="bi bi-person"></i></a>
-                        <form action="/logout" method="post">
-                            <button class="btn btn-danger ps-3 align-items-center pb-1">Logout</button>
-                        </form>
+                       
                        
                         <% }else{ %>
                            

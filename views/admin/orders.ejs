@@ -86,6 +86,7 @@
                             <td>₹ <%=order.payableAmount %></td>
                             <td><%= order.paymentStatus===true ? "Paid":"Pending" %></td>
                             <td id="status">
+
                                 <% if (item.orderStatus === "pending") { %>
                                     <span class="status-badge badge-shipping " id="status">Pending</span>
                                     <td>
@@ -94,10 +95,18 @@
                                     </td>
                                 <% } else if(item.orderStatus ==='delivered') { %>
                                     <span class="status-badge badge-delivered" id="status">Delivered</span>
+                                    <% if(item.returnStatus=="requested" && item.returnStatus!=="rejected"){ %>
+                                    <td>
+                                        <button class="btn btn-info" style="background-color: blue; color: white;" data-bs-toggle="modal" data-bs-target="#returnModal" onclick="openReturnModal('<%= item.product_Id %>', '<%= order.user_Id %>', '<%= order._id %>', '<%= item.returnReason %>')">Return Requested</button>
+                                    </td>
+                                        <% } %>
                                
                                 <% } else if(item.orderStatus ==='canceled') { %>
                                     <span class="status-badge badge-canceled" id="status" >Cancelled</span>
-                                <% } %>
+                                <%   } else if(item.orderStatus ==='returned') { %>
+                                    <span class="status-badge badge-canceled" id="status" >Returned</span>
+                                <% }  %>
+
                               
                             </td>
                          
@@ -113,35 +122,114 @@
         
         </div>
         </div>  
-        <nav aria-label="Page navigation">
-            <ul class="pagination">
-              <!-- Previous Page Button -->
-              <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
-                <a class="page-link" href="?page=<%= currentPage - 1 %>" aria-label="Previous">
-                  <span aria-hidden="true">&laquo;</span>
-                </a>
-              </li>
-          
-             
-              <% for (let i = 1; i <= totalPages; i++) { %>
-                <li class="page-item <%= i === currentPage ? 'active' : '' %>">
-                  <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+        <div class="w-100 d-flex justify-content-center mt-3">
+            <nav aria-label="Page navigation">
+              <ul class="pagination">
+                <!-- Previous button -->
+                <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
+                  <a class="page-link" href="?page=<%= currentPage - 1 %>" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                  </a>
                 </li>
-              <% } %>
           
+                <!-- Page number buttons -->
+                <% for (let i = 1; i <= totalPages; i++) { %> 
+                  <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+                    <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+                  </li>
+                <% } %>
           
-              <li class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
-                <a class="page-link" href="?page=<%= currentPage + 1 %>" aria-label="Next">
-                  <span aria-hidden="true">&raquo;</span>
-                </a>
-              </li>
-            </ul>
-          </nav>
+                <!-- Next button -->
+                <li class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
+                  <a class="page-link" href="?page=<%= currentPage + 1 %>" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                  </a>
+                </li>
+              </ul>
+            </nav>
+          </div>
+          
     </div>
 
   </div>
-  
+  <div class="modal fade" id="returnModal" tabindex="-1" aria-labelledby="returnModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="returnModalLabel">Return Request</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p><strong>Reason for return:</strong></p>
+          <p id="returnReason"></p>
+          <input type="hidden" id="product_Id">
+          <input type="hidden" id="user_Id">
+          <input type="hidden" id="order_Id">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-danger" onclick="rejectReturn()">Reject</button>
+          <button type="button" class="btn btn-success" onclick="approveReturn()">Approve</button>
+        </div>
+      </div>
+    </div>
+  </div>
    <script>
+    function openReturnModal(product_Id, user_Id, order_Id, returnReason) {
+    document.getElementById('product_Id').value = product_Id;
+    document.getElementById('user_Id').value = user_Id;
+    document.getElementById('order_Id').value = order_Id;
+    document.getElementById('returnReason').innerText = returnReason;
+}
+
+async function rejectReturn() {
+    const product_Id = document.getElementById('product_Id').value;
+    const user_Id = document.getElementById('user_Id').value;
+    const order_Id = document.getElementById('order_Id').value;
+
+    try {
+        let response = await fetch(`/admin/orders/rejectReturn`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ product_Id, order_Id })
+        });
+
+        if (response.ok) {
+            Swal.fire('Rejected', 'Return has been rejected.', 'success');
+            setTimeout(() => window.location.reload(), 1500);
+        } else {
+            throw new Error('Failed to reject the return.');
+        }
+    } catch (error) {
+        Swal.fire('Error', 'Something went wrong. Please try again later.', 'error');
+    }
+}
+
+async function approveReturn() {
+    const product_Id = document.getElementById('product_Id').value;
+    const user_Id = document.getElementById('user_Id').value;
+    const order_Id = document.getElementById('order_Id').value;
+
+    try {
+        let response = await fetch(`/admin/orders/approveReturn`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ product_Id, order_Id,user_Id })
+        });
+
+        if (response.ok) {
+            Swal.fire('Approved', 'Return has been approved.', 'success');
+            setTimeout(() => window.location.reload(), 1500);
+        } else {
+            throw new Error('Failed to approve the return.');
+        }
+    } catch (error) {
+        Swal.fire('Error', 'Something went wrong. Please try again later.', 'error');
+    }
+}
     function delivery(product_Id, user_Id, order_Id) {
    
     Swal.fire({

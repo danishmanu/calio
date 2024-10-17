@@ -105,7 +105,7 @@
            <div class="d-flex align-items-center">
              <div>
                <p class="mb-0 text-secondary">Discount</p>
-               <h4 class="my-1 text-danger">₹ <%= totalDiscount %></h4>
+               <h4 class="my-1 text-danger">₹ <%= totalDiscount.toFixed() %></h4>
                <!-- <p class="mb-0 font-13">+5.4% from last week</p> -->
              </div>
              <div class="widgets-icons-2 rounded-circle bg-gradient-bloody text-white ms-auto"><i class="fa fa-dollar"></i>
@@ -232,7 +232,8 @@
                     <% }) %>
                   </tbody>
                 </table>
-                <button id="printButton" class="btn btn-primary text-white me-0 mt-3"><i class="icon-download"></i> Download Sales Report</button>
+                <button id="printButton" class="btn btn-primary text-white me-0 mt-3"><i class="icon-download"></i> Download Sales Report(PDF)</button>
+                <button id="printExcelButton" class="btn btn-primary text-white me-0 mt-3"><i class="icon-download"></i> Download Sales Report(Excel)</button>
               </div>
             </div>
           </div>
@@ -342,6 +343,7 @@
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     const printButton = document.getElementById('printButton');
+    const printExcelButton = document.getElementById('printExcelButton');
     const sortBy = document.getElementById("sortBy");
 
     
@@ -369,7 +371,11 @@
         window.location.href = url;
     });
 
-   
+    printExcelButton.addEventListener('click', () => {
+        const selectedSort = sortBy.value; 
+        let pdfurl = '/admin/getExcelSales?sort=' + selectedSort; 
+        window.location.href = pdfurl; 
+    });
     printButton.addEventListener('click', () => {
         const selectedSort = sortBy.value; 
         let pdfurl = '/admin/generate-pdf?sort=' + selectedSort; 

@@ -34,25 +34,28 @@ exports.getProfile=async (req,res)=>{
 }
 exports.returnProduct = async (req, res) => {
     try {
+        
+        console.log("Request Body:", req.body);
+
         const { product_Id, order_Id, reason } = req.body;
 
-        console.log(req.body,product_Id,order_Id,reason)
+        
         const order = await Order.findById(order_Id);
         if (!order) {
             return res.status(404).json({ message: 'Order not found' });
         }
 
-       
+      
         const product = order.items.find(item => item.product_Id.toString() === product_Id);
         if (!product) {
             return res.status(404).json({ message: 'Product not found in this order' });
         }
 
-        
-                                 
-        product.returnStatus = "requested";
-        product.returnReason=reason
        
+        product.returnStatus = "requested";
+        product.returnReason = reason;
+
+        
         await order.save();
 
         return res.status(200).json({ message: 'Product return request submitted successfully' });

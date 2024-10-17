@@ -161,17 +161,48 @@ console.log(userdata.reference)
  
 
 })
-exports.getOtp=(req,res)=>{
-  inv_otp=req.session.inv_otp
-  req.session.inv_otp=null
-  email=req.session.userdata.email
-  if(!req.session.user){
-    res.render("users/otp_verification",{inv_otp,email})
+exports.getOtp = (req, res) => {
+  console.log("Fetching OTP...");
+  const reset = req.query.reset
+  console.log(typeof(reset))
+  const email = req.session.userdata ? req.session.userdata.email : null;
+
+  
+  if (!email) {
+    return res.redirect('/');
   }
-  else{
-    res.redirect('/')
+
+ 
+  const inv_otp = req.session.inv_otp || null;
+
+  req.session.inv_otp = null;
+
+ 
+  if (!req.session.user) {
+    return res.render("users/otp_verification", { inv_otp, email,reset });
+  } else {
+    return res.redirect('/');
   }
-   
+};
+
+exports.resetOtpVerify=async(req,res)=>{
+  try {
+    const otp = await Otp_collection.findOne({
+      otp: req.body.otp,
+      email: req.session.userdata.email
+    });
+    if (otp && new Date().getTime() <= otp.expiresAt) {
+      res.render('users/resetPass')
+    } else {
+      
+      req.session.inv_otp = "Sorry, invalid OTP";
+      return res.redirect("/otp_verification");
+    }
+  } catch (error) {
+    console.error("Error during OTP verification:", error);
+    res.status(500).send("Internal Server Error");
+  }
+ 
 }
 exports.checkOtp = async (req, res) => {
   try {
@@ -180,9 +211,9 @@ exports.checkOtp = async (req, res) => {
       email: req.session.userdata.email
     });
 
-    // Check if OTP is valid and not expired
+    
     if (otp && new Date().getTime() <= otp.expiresAt) {
-      // Hash the user's password before creating their account
+     
       req.session.userdata.password = await bcrypt.hash(req.session.userdata.password, 10);
       await User.create(req.session.userdata);
 
@@ -221,7 +252,7 @@ exports.checkOtp = async (req, res) => {
         }
       }
 
-      // Find the newly created user and set their session
+     
       const user = await User.findOne({ email: req.session.userdata.email });
       req.session.user = user._id;
 
@@ -254,6 +285,112 @@ exports.getProduct=async(req,res)=>{
   user=req.session.user
   res.render("users/product",{product,relatedProducts,user})
 
+}
+
+exports.resetPass=async (req,res)=>{
+  try {
+    let {password}=req.body
+    
+    let email=req.session.userdata.email
+    let user= await User.findOne({email,isBlock:false})
+    
+    if(!user){
+      return res.status(404).json({ message: 'User not found' });
+    }
+   
+     user.password=await bcrypt.hash(password,10)
+     user.save()
+     return res.status(200).json({ message: 'Password Changed successfully' });
+    
+  
+  } catch (err) {
+    console.error('Error returning product:', err);
+  return res.status(500).json({ message: 'Server error while processing return' });
+  }
+  }
+exports.resetPassWithOld=async (req,res)=>{
+try {
+  let {oldPass,newPass}=req.body
+  
+  let userId= req.session.user
+  let user= await User.findOne({_id:userId,isBlock:false})
+  
+  if(!user){
+    return res.status(404).json({ message: 'User not found' });
+  }
+  const oldMatch = await bcrypt.compare(oldPass, user.password);
+  if(oldMatch){
+    if(oldPass==newPass){
+      return res.status(404).json({message:"both password must be different"})
+    }
+   user.password=await bcrypt.hash(newPass,10)
+   user.save()
+   return res.status(200).json({ message: 'Password Changed successfully' });
+  }
+  else{
+    return res.status(404).json({ message: 'invalid Old password' });
+  }
+
+} catch (err) {
+  console.error('Error returning product:', err);
+return res.status(500).json({ message: 'Server error while processing return' });
+}
+}
+exports.getEmailVerify=async(req,res)=>{
+  try {
+    console.log("jfjj")
+    res.render("users/verifyEmail")
+  } catch (error) {
+    console.error('Error returning product:', err);
+    return res.status(500).json({ message: 'Server error while processing return' });
+  }
+}
+exports.emailVerify = async (req, res) => {
+  try {
+    console.log("Verifying email...");
+    let email = req.body.email;
+    console.log(email);
+    
+    let user = await User.findOne({ email, isBlock: false });
+
+    if (!user) {
+      return res.status(404).json({ message: 'Invalid email' });
+    }
+
+    const created_at = new Date().getTime();
+    const expires_at = created_at + 1000 * 60;
+    
+    const otp = otp_generation();
+    console.log(otp);
+
+    const otpData = {
+      email: email,
+      otp: otp,
+      expiresAt: expires_at
+    };
+    
+    await Otp_collection.create(otpData);
+    
+    const emailData = {
+      to: email,
+      subject: "Password reset OTP for fragrance store",
+      text: `Your OTP is: ${otp} and it expires after 1 minute.`
+    };
+
+    await sendEmail(emailData);
+
+  
+    if (!req.session.userdata) {
+      req.session.userdata = {};
+    }
+    req.session.userdata.email = email;
+   
+    res.status(200).json({message:"valid email"});
+
+  } catch (error) {
+    console.error('Error verifying email:', error);
+    return res.status(500).json({ message: 'Server error while processing email verification' });
+  }
 }
 
 exports.logout = (req, res) => {

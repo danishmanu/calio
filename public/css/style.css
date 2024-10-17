@@ -105,7 +105,9 @@ input::placeholder {
 .otp_inp{
     width: 40%;
 }
-
+.email_inp{
+  width: 60%;
+}
 .t_head{
   color: rgb(110, 104, 104);
  

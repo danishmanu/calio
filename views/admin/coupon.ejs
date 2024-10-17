@@ -36,7 +36,11 @@
                   <input type="number" class="form-control" id="minAmount" name="minAmount" value="">
                   <p id="minAmountError" class="text-danger text-decoration-none"></p>
               </div>
-              
+              <div class="mb-3">
+                <label for="" class="form-label">Maximum Purchase amount</label>
+                <input type="number" class="form-control" id="maxAmount" name="maxAmount" value="">
+                <p id="maxAmountError" class="text-danger text-decoration-none"></p>
+            </div>
              
                 <div class="mb-3">
                     <label for="email" class="form-label">Discount(In %)</label>
@@ -169,8 +173,10 @@
         document.getElementById("discountError").textContent="";
           document.getElementById("endError").textContent="";
           document.getElementById("minAmountError").textContent="",
+          document.getElementById("maxAmountError").textContent="",
         code=document.getElementById("coupon_code").value.trim()
         minAmount=document.getElementById("minAmount").value.trim()
+        maxAmount=document.getElementById("maxAmount").value.trim()
         startDate=new Date(document.getElementById("startDate").value)
         endDate=new Date(document.getElementById("endDate").value)
         discount=document.getElementById("discount").value.trim()
@@ -191,6 +197,14 @@
             document.getElementById("minAmountError").innerText="This be a non negative value"
             return false
         }
+        if(maxAmount<0){
+            document.getElementById("maxAmountError").innerText="This be a non negative value"
+            return false
+        }
+        if(maxAmount<=minAmount){
+            document.getElementById("maxAmountError").innerText="This be greater than min Amount"
+            return false
+        }
         if(endDate<=startDate){
             document.getElementById("endError").innerText="Ending date should be greater than starting date"
             return false
@@ -199,6 +213,7 @@
         coupon_code: code,
         discount: discount,
         minAmount:minAmount,
+        maxAmount:maxAmount,
         startDate: startDate.toISOString(),
         endDate: endDate.toISOString(),
     };

@@ -6,21 +6,18 @@
         <div class="product-form-container">
             <h2 class="form-title">Product Information</h2>
             
-            <form action="/admin/products/edit/<%= product._id %>?_method=PUT" method="post" enctype="multipart/form-data">
+            <form action="/admin/products/edit/<%= product._id %>?_method=PUT" method="post" enctype="multipart/form-data" onsubmit="return validProduct()">
                 <div class="row mb-3">
-                    
                     <div class="col-12">
                         <label for="product_name" class="form-label">Product Name</label>
-                        <input type="text"  class="form-control" value="<%=product.name%>" id="product_name" name="name" placeholder="Enter Product Name">
+                        <input type="text" class="form-control" value="<%= product.name %>" id="product_name" name="name" placeholder="Enter Product Name">
+                        <span id="product_name-error" class="text-danger"></span> <!-- Error message for Product Name -->
                     </div>
                 </div>
-    
+
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <label for="category" class="form-label">Category</label>
-                        
-
-                       
                         <select class="form-select p-3 w-100" name="category_Id" id="category_id">
                             <option value="<%= product.category_Id._id %>" selected><%= product.category_Id.cat_name %></option>
                             <% category.forEach((cat) => { %>
@@ -32,81 +29,122 @@
                     </div>
                     <div class="col-md-6">
                         <label for="brand" class="form-label">Brand</label>
-                        <select class="form-select p-3 w-100 "style="color: #666666; border: 1px solid #e4e6f6;" name="brand_id" id="brand_id">
-                            <option selected><%=product.brand_Id.brand_name %></option>
-                            <% brands.forEach((brand)=>{ %>
-                                <% if(brand.brand_name!==product.brand_Id.brand_name){ %>
-                            <option value="<%=brand._id%>"><%=brand.brand_name%></option>
-                                    <% } %>
-                            <% })  %>
+                        <select class="form-select p-3 w-100" style="color: #666666; border: 1px solid #e4e6f6;" name="brand_id" id="brand_id">
+                            <option selected><%= product.brand_Id.brand_name %></option>
+                            <% brands.forEach((brand) => { %>
+                                <% if (brand.brand_name !== product.brand_Id.brand_name) { %>
+                                    <option value="<%= brand._id %>"><%= brand.brand_name %></option>
+                                <% } %>
+                            <% }) %>
                         </select>
                     </div>
                 </div>
-    
+
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <label for="price" class="form-label">Price</label>
-                        <input type="text" class="form-control" id="price" value="<%=product.price%>" placeholder="Enter Price" name="price">
+                        <input type="text" class="form-control" id="price" value="<%= product.price %>" placeholder="Enter Price" name="price">
+                        <span id="price-error" class="text-danger"></span> <!-- Error message for Price -->
                     </div>
                     <div class="col-md-6">
                         <label for="stock" class="form-label">Stock</label>
-                        <input type="text" class="form-control" id="stock" value="<%=product.stock%>" name="stock" placeholder="Enter Stock">
+                        <input type="text" class="form-control" id="stock" value="<%= product.stock %>" name="stock" placeholder="Enter Stock">
+                        <span id="stock-error" class="text-danger"></span> <!-- Error message for Stock -->
                     </div>
                 </div>
+
                 <div class="col-12">
                     <label for="description" class="form-label">Description</label>
-                    <textarea name="description" class="form-control" id="description"  rows="6" placeholder="Enter Description"><%=product.description%></textarea>
+                    <textarea name="description" class="form-control" id="description" rows="6" placeholder="Enter Description"><%= product.description %></textarea>
+                    <span id="description-error" class="text-danger"></span> <!-- Error message for Description -->
                 </div>
+
                 <div class="row">
                     <div class="col-md-12">
                         <label>Upload Images</label>
                         <div class="form-group row">
                             <div class="col-sm-3">
                                 <div class="image-placeholder">
-                                    <img src="/public/uploads/<%=product.images[0] %>" alt="placeholder" class="img-fluid" id="image1-preview" />
-                                    <input type="file" class="form-control mt-2" value="<%=product.images[0] %>" name="image1" id="image1" onchange="previewImage(this, 'image1-preview')" />
+                                    <img src="/public/uploads/<%= product.images[0] %>" alt="placeholder" class="img-fluid" id="image1-preview" />
+                                    <input type="file" class="form-control mt-2" value="<%= product.images[0] %>" name="image1" id="image1" onchange="previewImage(this, 'image1-preview')" />
                                 </div>
                             </div>
                             <div class="col-sm-3">
                                 <div class="image-placeholder">
-                                    <img src="/public/uploads/<%=product.images[1] %>" alt="placeholder" class="img-fluid" id="image2-preview" />
-                                    <input type="file" class="form-control mt-2" name="image2" value="<%=product.images[1] %>" id="image2" onchange="previewImage(this, 'image2-preview')" />
+                                    <img src="/public/uploads/<%= product.images[1] %>" alt="placeholder" class="img-fluid" id="image2-preview" />
+                                    <input type="file" class="form-control mt-2" name="image2" value="<%= product.images[1] %>" id="image2" onchange="previewImage(this, 'image2-preview')" />
                                 </div>
                             </div>
                             <div class="col-sm-3">
                                 <div class="image-placeholder">
-                                    <img src="/public/uploads/<%=product.images[2] %>" alt="placeholder" class="img-fluid" id="image3-preview" >
-                                    <input type="file" class="form-control mt-2" name="image3" value="<%=product.images[2] %>" id="image3" onchange="previewImage(this, 'image3-preview')" />
+                                    <img src="/public/uploads/<%= product.images[2] %>" alt="placeholder" class="img-fluid" id="image3-preview" >
+                                    <input type="file" class="form-control mt-2" name="image3" value="<%= product.images[2] %>" id="image3" onchange="previewImage(this, 'image3-preview')" />
                                 </div>
                             </div>
                             <div class="col-sm-3">
                                 <div class="image-placeholder">
-                                    <img src="/public/uploads/<%=product.images[3] %>" alt="placeholder" class="img-fluid" id="image4-preview" />
-                                    <input type="file" class="form-control mt-2" value="<%=product.images[3] %>" name="image4" id="image4" onchange="previewImage(this, 'image4-preview')" />
+                                    <img src="/public/uploads/<%= product.images[3] %>" alt="placeholder" class="img-fluid" id="image4-preview" />
+                                    <input type="file" class="form-control mt-2" value="<%= product.images[3] %>" name="image4" id="image4" onchange="previewImage(this, 'image4-preview')" />
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-    
+
                 <div class="text-center">
-                    <button type="submit" class="btn btn-primary">Add Product</button>
+                    <button type="submit" class="btn btn-primary">Edit changes</button>
                 </div>
             </form>
         </div>
-
     </div>
-    <!-- content-wrapper ends -->
+</div>
 
-    <!-- partial:../../partials/_footer.html -->
-   
-    <!-- partial -->
-  </div>
-  <script>
-    function previewImage(input,previewId){
-        const preview=document.getElementById(previewId);
-        preview.onload=function(){
-            URL.revokeObjectURL(preview.src)
+<script>
+    function validProduct() {
+        const product_name = document.getElementById('product_name').value;
+        const priceInput = document.getElementById('price').value;
+        const price = parseFloat(priceInput.replace(/,/g, ''));
+        const stock = document.getElementById('stock').value;
+        const description = document.getElementById('description').value;
+
+        document.getElementById('product_name-error').textContent = '';
+        document.getElementById('description-error').textContent = '';
+        document.getElementById('price-error').textContent = '';
+        document.getElementById('stock-error').textContent = '';
+
+        if (!product_name || product_name.trim().length === 0) {
+            document.getElementById('product_name-error').textContent = 'Product Name field should not be empty!';
+            return false;
+        } else if (!priceInput || priceInput.trim().length === 0) {
+            document.getElementById('price-error').textContent = 'Price field should not be empty!';
+            return false;
+        } else if (isNaN(price) || price <= 0) {
+            document.getElementById('price-error').textContent = 'Price should be a positive number!';
+            return false;
+        } else if (!stock || stock.trim().length === 0) {
+            document.getElementById('stock-error').textContent = 'Stock field should not be empty!';
+            return false;
+        } else if (isNaN(Number(stock)) || Number(stock) < 0) {
+            document.getElementById('stock-error').textContent = 'Stock should be greater than or equals to zero!';
+            return false;
+        } else if (!description || description.trim().length === 0) {
+            document.getElementById('description-error').textContent = 'Description field should not be empty!';
+            return false;
+        }
+
+        return true;
+    }
+
+    function previewImage(input, previewId) {
+        const preview = document.getElementById(previewId);
+        const file = input.files[0];
+
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+            }
+            reader.readAsDataURL(file);
         }
     }
-  </script>
+</script>

@@ -38,7 +38,7 @@
                             <button type="submit" class="btn btn-primary px-5">Login</button>
                         </div>
                         <div class="col-sm-6 mt-1">
-                          <a href="/login/forget_password" class="f-p text-danger text-decoration-none">Forget Password?</a>
+                          <a href="/login/forget_password/emailVerication" class="f-p text-danger text-decoration-none">Forget Password?</a>
                         </div>
                         
                        </div>
@@ -62,6 +62,19 @@
     </div>
 
     <script>
+       document.addEventListener("DOMContentLoaded",()=>{
+            const resetPassSaved=localStorage.getItem('resetPass');
+          
+         if(resetPassSaved==="true"){
+             Swal.fire({
+                 icon: 'success',
+                 title: 'Success',
+                 text: 'Your password is changed!',
+             });
+             localStorage.removeItem('resetPass')
+         }
+        
+        })
       function validLogin() {
         let log=document.getElementById('log').value;
         

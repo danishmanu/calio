@@ -12,12 +12,12 @@ exports.Auth=(async(req,res,next)=>{
   
   })
   exports.getAddAddress=async (req,res)=> {
-   console.log(req.query);
-   
-    res.render("users/addAddress",{user:req.session.user,address:null,profile:req.query.profile})
-   
+    console.log(req.query);
     
-  }
+     res.render("users/addAddress",{user:req.session.user,address:null,profile:req.query.profile})
+    
+     
+   }
   exports.addAddress=async (req,res)=> {
    try{
     console.log("hello guys")
@@ -30,15 +30,21 @@ exports.Auth=(async(req,res,next)=>{
          user_Id
      })
      if(existAddress){
-             await Address.updateOne({user_Id},{$push:{address:{
-                 name,
-             country,
-             state ,
-             city,
-             pincode,
-             phone,
-             address_line
-             }}})
+        if(existAddress.address.length<3){
+          await Address.updateOne({user_Id},{$push:{address:{
+            name,
+        country,
+        state ,
+        city,
+        pincode,
+        phone,
+        address_line
+        }}})
+        }
+        else{
+          return res.status(404).json({message:"maximum address reached"})
+        }
+          
  
      }else{
          address={

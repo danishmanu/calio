@@ -234,12 +234,12 @@
                             </div>
                         </div>
                     <% } %>
-                    <!-- Applicable Coupons Section -->
+                    <!-- Applicable Coupons Section
                     <input type="hidden" id="couponsData" value="<%= JSON.stringify(coupons) %>">
         <div class="applicable-coupons mt-4">
             <h5>Applicable Coupons</h5>
             <div id="couponsList"></div>
-        </div>
+        </div> -->
                 </div>
             </div>
             <button class="place-order-btn" onclick="checkout()" type="button">Place Order</button>
@@ -574,6 +574,7 @@ async function removeCoupon() {
                             addressId: address
                         })
                     });
+                    window.location.href="/profile"
                 });
             }
         } else {

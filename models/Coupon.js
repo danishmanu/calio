@@ -13,6 +13,8 @@ const couponSchema=new mongoose.Schema({
     }
     ,minAmount:{
         type:Number
+    },maxAmount:{
+        type:Number
     },
    
     endDate:{

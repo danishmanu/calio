@@ -105,4 +105,21 @@ console.log("here")
       console.error('something went wrong',error)
   }
 }
-
+exports.deleteProductOffer = async (req, res) => {
+   
+    const { productId } = req.params;
+    console.log(productId)
+    console.log('worked');
+    console.log('worked');
+    
+    try {
+       
+        await Product.updateOne({_id:productId}, {
+            $unset: { offer: "" },
+        });
+        res.status(200).json({ success: true });
+    } catch (error) {
+        console.error('Error deleting product offer:', error);
+        res.status(500).json({ success: false, message: 'Failed to delete product offer.' });
+    }
+};

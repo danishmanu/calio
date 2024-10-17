@@ -230,9 +230,21 @@
 
                             
                             <a href="#" class="a"  onclick="copyReferralLink(event)">Copy Referral Link?</a>
-                    
-                           
-                            <p id="copy-message" class="copy-message " style="display: none;">Referral link copied to clipboard!</p>
+                            <div class="row mt-5">
+                                <div class="form-group col-md-5">
+                                    <label for="exampleInputPassword1">Old password</label>
+                                    <input type="password" class="form-control" id="oldPass" placeholder="Password">
+                                    <p id="oldPassword-error" class="text-danger text-decoration-none"></p>
+                                  </div>
+                                <div class="form-group col-md-5">
+                                    <label for="exampleInputPassword1">New password</label>
+                                    <input type="password" class="form-control" id="newPass" placeholder="Password">
+                                    <p id="newPassword-error" class="text-danger text-decoration-none"></p>
+                                  </div>
+                                  <button onclick="return resetPassword()" class="btn btn-primary col-md-2"> Reset Password</button>
+                            </div>
+                      
+
                         </div>
                     </div>
                     <div id="walletDetails" class="card" style="display: none;">
@@ -247,7 +259,7 @@
       <div class="col-12">
         <div class="wallet-card">
           <h4>My Wallet</h4>
-          <p class="balance"><%=wallet.balance%> ₹</p>
+          <p class="balance"><%=wallet.balance.toFixed(2)%> ₹</p>
           <p class="available">Available Balance</p>
      
 <button class="btn btn-primary mb-4" data-bs-toggle="modal" data-bs-target="#addFundsModal">Add Funds</button>
@@ -312,9 +324,11 @@
                         
                                 <!-- Add New Address Button -->
                                 <div class="col-md-6 d-flex align-items-center">
-                                    <div class="add-new-address" style="padding-left: 100px; padding-right: 100px">
-                                        <a href="/profile/addAddress?profile=true" class="primary">+ Add New Address</a>
-                                    </div>
+                                    
+                                        <div class="add-new-address" style="padding-left: 100px; padding-right: 100px">
+                                            <a href="/profile/addAddress?profile=true" class="primary">+ Add New Address</a>
+                                        </div>
+                                    
                                 </div>
                             
                             </div>
@@ -383,7 +397,88 @@
         </div>
       </div>
     <script>
+        
+        document.getElementById("addAddress").addEventListener("click", function(event) {
+    event.preventDefault(); 
+    getAddAddress();
+  });
+  async function getAddAddress() {
+    try {
+        let response=await fetch("/profile/addAddress?profile=true",{
+            method:"get",
+            headers:{"Content-Type":"application/json"}
 
+        })
+        let htmlContent = await response.text(); 
+        if(!response.ok){
+            Swal.fire({
+                icon:"error",
+                title:data.message
+            })
+        }
+      
+    } catch (error) {
+        Swal.fire({
+            icon: "error",
+            title: "An error occurred. Please try again."
+        });
+        console.error("Error:", error);
+    }
+  }
+   async function resetPassword() {
+    document.getElementById('newPassword-error').textContent = "";
+    document.getElementById('oldPassword-error').textContent = "";
+
+   
+    let oldPass = document.getElementById("oldPass").value.trim();
+    let newPass = document.getElementById("newPass").value.trim();
+
+   
+    if (!oldPass || oldPass.length <= 0) {
+        document.getElementById('oldPassword-error').textContent = "Enter valid password";
+        return false;
+    }
+
+   
+    const passwordRegex = /^(?=.*[!@#$%^&*]).{6,}$/;
+    if (!newPass || !passwordRegex.test(newPass)) {
+        document.getElementById('newPassword-error').textContent = 'Password must be at least 6 characters and contain a special character.';
+        return false;
+    }
+
+    try {
+       
+        let response = await fetch("/resetPassWithOld", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },  
+            body: JSON.stringify({ oldPass, newPass })
+        });
+
+      
+        let data = await response.json();
+
+        if (response.ok) {
+           
+            Swal.fire({
+                icon: "success",
+                title: "Password changed successfully"
+            });
+        } else {
+          
+            Swal.fire({
+                icon: "error",
+                title: data.message
+            });
+        }
+    } catch (error) {
+        
+        Swal.fire({
+            icon: "error",
+            title: "An error occurred. Please try again."
+        });
+        console.error("Error:", error);
+    }
+}
  function copyReferralLink(event) {
             event.preventDefault()
             let copyText = document.getElementById("referral-link");

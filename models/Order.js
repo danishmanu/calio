@@ -49,7 +49,7 @@ const orderSchema=mongoose.Schema({
             type:String
          }
          ,  returnStatus: {
-            type: Object,
+            type: String,
            
             default: null,
           }

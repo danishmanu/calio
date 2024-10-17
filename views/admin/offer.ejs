@@ -109,10 +109,16 @@
                                                 hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
                                             }) %></td>
                                             <td class="<%= product.offer.status ? 'text-success' : 'text-danger' %>"><%= product.offer.status ? 'active' : 'expired' %></td>
-                                            <td class="text-end">
-                                                <button class="border-0" onclick="deleteProductOffer('/admin/deleteProductOffer/<%= product.productId %>','<%= product.productId %>')"><i class="fa-solid fa-trash text-danger fs-4"></i></button>
-                                                <button class="border-0"><i class="fas fa-edit text-primary fs-4"></i></button>
-                                            </td>
+                                        
+                                        <td class="text-end">
+                                            <button class="border-0" onclick="deleteProductOffer('<%= product._id %>', '<%= product.name %>')">
+                                                <i class="fa-solid fa-trash text-danger fs-4"></i>
+                                            </button>
+                                            <!-- <button class="border-0" onclick="openEditProductOfferModal('<%= product.productId %>')">
+                                                <i class="fas fa-edit text-primary fs-4"></i>
+                                            </button> -->
+                                        </td>
+
                                         </tr>
                                     <%} }) %>
                                 <% } %>
@@ -127,7 +133,7 @@
                         <button class="mb-3 btn btn-primary border-0" data-bs-toggle="modal" data-bs-target="#addCategoryOfferModal">
                             <a href="#" class="text-decoration-none text-white ">+ Add Offer</a>   
                         </button>
-      <!-- category offer Modal -->
+    
       <div class="modal fade" id="addCategoryOfferModal" tabindex="-1" aria-labelledby="addCategoryOfferModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -195,7 +201,7 @@
                                             <td class="<%= cat.offer.status ? 'text-success' : 'text-danger' %>"><%= cat.offer.status  ? 'active' : 'expired' %></td>
                                             <td class="text-end">
                                                 <button class="border-0" onclick="deleteCategoryOffer('<%= cat._id %>')"><i class="fa-solid fa-trash text-danger fs-4"></i></button>
-                                                <button class="border-0"><i class="fas fa-edit text-primary fs-4"></i></button>
+                                                <!-- <button class="border-0"><i class="fas fa-edit text-primary fs-4"></i></button> -->
                                             </td> 
                                         </tr>
                                     <%} }) %>
@@ -218,10 +224,43 @@
     </div>
 </div>
 
-<!-- Add Modals here -->
 
-<!-- Partial footer -->
  <script>
+    async function deleteProductOffer(productId, productName) {
+    console.log('Product ID:', productId);
+    
+    if (confirm(`Are you sure you want to delete the offer for "${productName}"?`)) {
+        try {
+            console.log('Sending request to delete product offer...');
+            const response = await fetch(`/admin/offer/deleteProductOffer/${productId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+           
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            console.log('Response:', result);
+
+            if (result.success) {
+              
+                alert('Product offer deleted successfully.');
+                window.location.reload()
+            } else {
+                alert(result.message || 'Failed to delete product offer.');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred while deleting the product offer. Please try again.');
+        }
+    }
+}
+
       const productIdError = document.getElementById('productId-notvalid');
         const discountPercentageError = document.getElementById('productDiscountPercentage-notvalid');
         const expiryDateError = document.getElementById('ProductOffExpiry-notvalid');
@@ -314,19 +353,19 @@ categoryDiscountPercentageError.classList.add('d-none');
 categoryExpiryDateError.classList.add('d-none');
 
 async function addCategoryOff() {
-    // Reset validation messages
+   
     categoryIdError.classList.add('d-none');
     categoryDiscountPercentageError.classList.add('d-none');
     categoryExpiryDateError.classList.add('d-none');
 
-    // Get form data
+ 
     const categoryId = document.querySelector('[name="categoryId"]').value;
     const discountPercentage = document.querySelector('[name="categoryDiscountPercentage"]').value;
     const expiryDate = document.querySelector('[name="categoryOffExpiry"]').value;
 
     let isValid = true;
 
-    // Validate category
+    
     if (!categoryId) {
         categoryIdError.innerText = 'Please select a category.';
         categoryIdError.classList.remove('d-none');
