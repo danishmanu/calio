@@ -169,7 +169,7 @@
                     
                 </div>
                
-                <p>₹<%= item.product_Id.offer&&item.product_Id.offer.discountPercentage &&item.product_Id.offer.expireAt>Date.now() ? item.product_Id.price-item.product_Id.price*(item.product_Id.offer.discountPercentage/100):item.product_Id.price  %></p>
+                <p>₹<%= item.product_Id.offer.discountPercentage && new Date() < item.product_Id.offer.expirAt ? (item.product_Id.price - (item.product_Id.price * (item.product_Id.offer.discountPercentage / 100))).toFixed(2):item.product_Id.price.toFixed(2)  %></p>
               </div>
              <% }) %>
             </div>
@@ -177,7 +177,7 @@
             <div class="totals">
               <div class="d-flex justify-content-between">
                 <p>Subtotal</p>
-                <p id="">₹ <span id="cart_total"><%=cart.total_price%></span></p>
+                <p id="">₹ <span id="cart_total"><%=cart.total_price.toFixed(2)%></span></p>
               </div>
               <div class="d-flex justify-content-between">
                 <p>Delivery</p>
@@ -186,12 +186,12 @@
               <div class="d-flex justify-content-between">
                 <p>Coupon Discount</p>
               
-                <p id="discount"  >₹ <%=appliedCoupon? (cart.total_price*appliedCoupon.discount/100):0  %></p>
+                <p id="discount"  >₹ <%=appliedCoupon? (cart.total_price*appliedCoupon.discount/100).toFixed(2):0  %></p>
               </div>
               <hr>
               <div class="d-flex justify-content-between total-price">
                 <p>Total</p>
-                <p class="total" >₹ <span id="total"><%=appliedCoupon? cart.total_price-(cart.total_price*appliedCoupon.discount/100):cart.total_price%></span></p>
+                <p class="total" >₹ <span id="total"><%=appliedCoupon? cart.total_price-(cart.total_price*appliedCoupon.discount/100).toFixed(2):cart.total_price.toFixed(2)%></span></p>
               </div>
             </div>
         
@@ -227,7 +227,7 @@
                         <div id="appliedCouponSection" class="border-dashed p-3 mb-4">
                             <div class="d-flex justify-content-between">
                                 <div>
-                                    <strong>You Save: ₹<span id="appliedCouponDiscount"><%= cart.total_price * (appliedCoupon.discount / 100) %> </span></strong><br>
+                                    <strong>You Save: ₹<span id="appliedCouponDiscount"><%= cart.total_price * (appliedCoupon.discount / 100).toFixed(2) %> </span></strong><br>
                                     <span>Coupon applied: <span id="appliedCouponCode"><%= appliedCoupon.coupon_code %></span></span>
                                 </div>
                                 <button class="btn btn-outline-danger btn-sm" id="removeCouponBtn" onclick="removeCoupon()">Remove</button>
@@ -335,9 +335,9 @@ document.getElementById('couponsList').addEventListener('change', function(event
     let data = await response.json();
 
     if (data.coupon === true) {
-        const discountAmount = parseFloat(cart_total) * (data.discountAmount / 100);
-        document.getElementById("total").innerText = ` ${parseFloat(cart_total) - discountAmount}`;
-        document.getElementById("discount").innerText = `₹ ${discountAmount}`;
+        const discountAmount = parseFloat(cart_total) * (data.discountAmount / 100).toFixed(2);
+        document.getElementById("total").innerText = ` ${parseFloat(cart_total) - discountAmount.toFixed(2)}`;
+        document.getElementById("discount").innerText = `₹ ${discountAmount.toFixed()}`;
 
         let appliedCouponSection = document.getElementById('appliedCouponSection');
         if (!appliedCouponSection) {

@@ -59,7 +59,7 @@
                                 <div class="col-sm-3">
                                     <div class="image-placeholder">
                                         <img src="/public/images/upload_image.jpg" alt="placeholder" class="img-fluid" id="imagePreview<%= i %>" />
-                                        <input type="file" class="form-control mt-2" name="image<%= i %>" id="image<%= i %>" onchange="previewAndCropImage(event, 'imagePreview<%= i %>', 'cropper<%= i %>', 'file-error<%= i %>')" accept="image/*" required />
+                                        <input type="file" class="form-control mt-2" name="image<%= i %>" id="image<%= i %>" onchange="previewAndCropImage(event, 'imagePreview<%= i %>', 'cropper<%= i %>', 'file-error<%= i %>')" accept="image/*" <%= i<2? "required":null %>  />
                                     </div>
                                     <p id="file-error<%= i %>" class="text-danger"></p>
                                 </div>

@@ -190,6 +190,7 @@ exports.checkout = async (req, res) => {
 
       
       if (paymentMethod === "RAZORPAY") {
+       
           const totalAmount = cart.items.reduce((acc, item) => {
               const price = item.product_Id.offer?.discountPercentage &&item.product_Id.offer.expirAt>Date.now()
                   ? item.product_Id.price - item.product_Id.price * (item.product_Id.offer.discountPercentage / 100)
@@ -260,8 +261,13 @@ exports.updatePaymentStatus = async (req, res) => {
       if (coupon) {
           discount = coupon.discount;
       }
-
-      const totalAmount = cart.items.reduce((acc, item) => acc + item.product_Id.price * item.quantity, 0);
+      const totalAmount = cart.items.reduce((acc, item) => {
+        const price = item.product_Id.offer?.discountPercentage &&item.product_Id.offer.expirAt>Date.now()
+            ? item.product_Id.price - item.product_Id.price * (item.product_Id.offer.discountPercentage / 100)
+            : item.product_Id.price;
+        return acc + price * item.quantity;
+    }, 0);
+      
       const payableAmount = totalAmount - (totalAmount * discount / 100);
 
       
@@ -294,13 +300,26 @@ exports.updatePaymentStatus = async (req, res) => {
 
       await order.save();
 
-    
+     
+    if (isPaymentVerified) {
+      for (const item of cart.items) {
+        const product = await Product.findById(item.product_Id);
+        if (product.stock < item.quantity) {
+            return res.status(400).json({ message: 'Not enough stock for product' });
+        }
+        await Product.findByIdAndUpdate(
+            item.product_Id,  
+            { $inc: { stock: -item.quantity } }, 
+            { new: true }
+        );
+    }
+    }
       await Cart.updateOne({ user_Id: user }, { $set: { items: [] } },{ $set: { total_price: '' } });
 
       if (!isPaymentVerified) {
           return res.status(200).json({ message: 'Payment failed, but order placed successfully', orderPlaced: true });
       }
-
+      
       return res.status(200).json({ message: 'Payment verified and order placed successfully', orderPlaced: true });
 
   } catch (error) {
@@ -470,16 +489,16 @@ exports.getRepaymentDetails = async (req, res) => {
 
       for (const item of order.items) {
         const product = await Product.findById(item.product_Id);
+        if(!product ||product.isDelete==true){
+          return res.status(400).json({ message: 'product not found' });
+        }
         if (product.stock < item.quantity) {
             return res.status(400).json({ message: 'Not enough stock for product' });
         }
-        await Product.findByIdAndUpdate(
-            item.product_Id,  
-            { $inc: { stock: -item.quantity } }, 
-            { new: true }
-        );
+      
     }
-      const repayAmount = order.payableAmount; 
+    console.log(typeof(order.payableAmount))
+      const repayAmount =Math.round(Number(order.payableAmount)); 
 
      
       
@@ -524,6 +543,16 @@ exports.confirmRepayment = async (req, res) => {
 
       
       if (isPaymentVerified) {
+        for (const item of order.items) {
+          const product = await Product.findById(item.product_Id);
+         
+          await Product.findByIdAndUpdate(
+            item.product_Id,  
+            { $inc: { stock: -item.quantity } }, 
+            { new: true }
+        );
+        
+      }
           order.paymentStatus = true;
           await order.save();
 

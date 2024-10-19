@@ -57,12 +57,35 @@
             <option value="week" <%= sort === 'week' ? 'selected' : '' %>>Week</option>
             <option value="month" <%= sort === 'month' ? 'selected' : '' %>>Month</option>
             <option value="year" <%= sort === 'year' ? 'selected' : '' %>>Year</option>
+            <option value="customDate" <%= sort === 'customDate' ? 'selected' : '' %>>customDate</option>
           </select>
         </div>
       </div>
     </div>
 
     <div class="row">
+      <div class=" d-none" id="customDateDiv">
+        <h6 class="text-dark mt-3">Sort By Custom Date</h6> 
+        <div class="container">
+         <div class="row ">
+         <div class="mb-3 mr-4">
+           <label for="name" class="form-label">Start date</label>
+           <input type="date" id="startDate" class="form-control" onclick="" id="startDate" name="startDate" value="" required>
+           <p id="startError" class="text-danger text-decoration-none"></p>
+       </div>
+       <div class="mb-3 ">
+           <label for="name" class="form-label">End date</label>
+           <input type="date" id="endDate"  class="form-control" id="endDate" name="endDate" value="" required>
+          
+       </div>
+       <div class="d-flex align-items-center">
+         <button id="applyCustomDate" class="btn btn-primary rounded rounded-3 py-4 mt-2 ml-3 align-items-center ">Apply</button>
+       </div>
+     
+
+     </div>
+        </div>
+       </div>
       <div class="col-sm-12 mt-3">
         <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" />
 
@@ -190,7 +213,7 @@
           <div class=" col-12  grid-margin stretch-card">
             <div class="card">
               <div class="card-body">
-                <h4 class="card-title">Area chart</h4>
+                <h4 class="card-title">Sales chart</h4>
                 <canvas id="areaChart"></canvas>
               </div>
             </div>
@@ -232,6 +255,7 @@
                     <% }) %>
                   </tbody>
                 </table>
+               
                 <button id="printButton" class="btn btn-primary text-white me-0 mt-3"><i class="icon-download"></i> Download Sales Report(PDF)</button>
                 <button id="printExcelButton" class="btn btn-primary text-white me-0 mt-3"><i class="icon-download"></i> Download Sales Report(Excel)</button>
               </div>
@@ -342,45 +366,109 @@
 </script>
 <script>
   document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('startError').innerText=""
     const printButton = document.getElementById('printButton');
     const printExcelButton = document.getElementById('printExcelButton');
     const sortBy = document.getElementById("sortBy");
+    const applyCustomDate = document.getElementById("applyCustomDate");
+    
+    applyCustomDate.addEventListener('click', () => {
+    const startDateValue = document.getElementById('startDate').value;
+    const endDateValue = document.getElementById('endDate').value;
 
     
-    function getQueryParams() {
-        const urlParams = new URLSearchParams(window.location.search);
-        let params = {};
-
-        if (urlParams.has('sort')) {
-            params.sort = urlParams.get('sort');
-        }
-        if (urlParams.has('startDate') && urlParams.has('endDate')) {
-            params.startDate = urlParams.get('startDate');
-            params.endDate = urlParams.get('endDate');
-        }
-
-        return params;
+    if (!startDateValue || !endDateValue) {
+        document.getElementById('startError').innerText = "Both start and end date should not be empty";
+        return false;
     }
 
+    const startDate = new Date(startDateValue);
+    const endDate = new Date(endDateValue);
+
+    console.log(startDate)
+    console.log(endDate)
+    if (endDate < startDate) {
+        document.getElementById('startError').innerText = "Start date should be less than end date";
+        return false;
+    }
+     let url = '/admin/dashboard?startDate='+startDate+'&endDate='+endDate;
+       
+       window.location.href = url;
+
+    
+    document.getElementById('startError').innerText = "";
+});
   
     sortBy.addEventListener('change', () => {
         const selectedSort = sortBy.value;
-        
-        let url = '/admin/dashboard?sort=' + selectedSort;
+        if(selectedSort=="customDate"){
+          var now = new Date();
+  var year = now.getFullYear();
+  var month = String(now.getMonth() + 1).padStart(2, '0'); 
+var day = String(now.getDate()).padStart(2, '0');
+
+
+var formattedDate = `${year}-${month}-${day}`;
+
+
+document.getElementById("startDate").max = formattedDate;
+document.getElementById("endDate").max = formattedDate;
        
-        window.location.href = url;
+          $("#customDateDiv").removeClass('d-none').addClass('d-block');
+
+        }
+        else{
+          let url = '/admin/dashboard?sort=' + selectedSort;
+       
+       window.location.href = url;
+        }
+       
     });
+  
+   
 
     printExcelButton.addEventListener('click', () => {
-        const selectedSort = sortBy.value; 
-        let pdfurl = '/admin/getExcelSales?sort=' + selectedSort; 
-        window.location.href = pdfurl; 
+      const selectedSort = sortBy.value; 
+    const url = new URL(window.location.href); 
+
+    const startDate = url.searchParams.get("startDate");
+    const endDate = url.searchParams.get("endDate");
+    
+    let pdfurl = '/admin/getExcelSales?'; 
+
+    
+    if (startDate && endDate) {
+        pdfurl += 'startDate=' + startDate + '&endDate=' + endDate + '&';
+    }
+
+  
+    pdfurl += 'sort=' + selectedSort;
+
+    
+    window.location.href = pdfurl; 
+       
     });
     printButton.addEventListener('click', () => {
-        const selectedSort = sortBy.value; 
-        let pdfurl = '/admin/generate-pdf?sort=' + selectedSort; 
-        window.location.href = pdfurl; 
-    });
+    const selectedSort = sortBy.value; 
+    const url = new URL(window.location.href); 
+
+    const startDate = url.searchParams.get("startDate");
+    const endDate = url.searchParams.get("endDate");
+    
+    let pdfurl = '/admin/generate-pdf?'; 
+
+    
+    if (startDate && endDate) {
+        pdfurl += 'startDate=' + startDate + '&endDate=' + endDate + '&';
+    }
+
+  
+    pdfurl += 'sort=' + selectedSort;
+
+    
+    window.location.href = pdfurl; 
+});
+
 });
 </script>
 

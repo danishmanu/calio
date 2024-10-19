@@ -46,10 +46,10 @@
             </div>
          </div>
          </div>
-        <div class="container w-100 row mt-5 ">
+        <div class="container w-100 row mt-5 d-flex justify-content-center">
             <% products.forEach((product)=>{ %>
              
-            <div class="col-sm-6  col-md-4 col-lg-3 ms-2 border border-1">
+            <div class="col-sm-6  col-md-4 col-lg-3 ms-2 border border-1 mb-4">
 
                 <div class="card">
                     <a href="/product/<%= product._id %>">
@@ -171,21 +171,13 @@
 
                      </div>
             <div class="row">
-                <div class=" col-12 col-md-6 col-lg-3">
-                    <img class="brand_img" src="/public/images/42_large.avif" alt="">
+              <% popularBrands.forEach((brand)=>{ %>
+                <div class=" col-12 col-md-6 col-lg-3 mt-3 mb-3">
+                  <a href="/shop?brand=<%=brand.brand_name  %>">  <img class="brand_img" src="/public/uploads/<%=brand.brandImage  %>" alt="">
+                  </a>
                 </div>
-                <div class="col-12 col-md-6 col-lg-3">
-                    <img class="brand_img" src="/public/images/14_large.avif" alt="">
-                </div>
-                <div class="col-12 col-md-6 col-lg-3">
-                    <img class="brand_img" src="/public/images/1_large.avif" alt="">
-                </div>
-                <div class="col-12 col-md-6 col-lg-3">
-                    <img class="brand_img" src="/public/images/36_large.avif" alt="">
-                </div>
-                <div class="col-12 col-md-6 col-lg-3">
-                    <img class="brand_img" src="/public/images/42_large.avif" alt="">
-                </div>
+             <%  })  %>
+               
             </div>
       
     </div>

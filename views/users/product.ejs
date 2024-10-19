@@ -35,10 +35,10 @@
   <div class="row container d-flex justify-content-center justify-content-md-start">
     <div class="col-md-6 d-flex justify-content-center justify-content-md-start">
         <div class="col-2 ms-5 d-flex flex-column ">
-            <img  src="/public/uploads/<%= product.images[0] %>" alt="" class="w-100 border border-1 mt-2" onclick="changeMainImage(this)">
-            <img  src="/public/uploads/<%= product.images[1] %>" alt="" class="w-100 border border-1 mt-2" onclick="changeMainImage(this)">
-            <img  src="/public/uploads/<%= product.images[2] %>" alt="" class="w-100 border border-1 mt-2" onclick="changeMainImage(this)" >
-            <img  src="/public/uploads/<%= product.images[3] %>" alt="" class="w-100 border border-1 mt-2" onclick="changeMainImage(this)">
+          <% for(let i=0;i<product.images.length;i++){ %>
+            <img  src="/public/uploads/<%= product.images[i] %>" alt="" class="w-100 border border-1 mt-2" onclick="changeMainImage(this)">
+           
+            <% } %>
         </div>
         <div class="main-image-container mb-4">
           <img

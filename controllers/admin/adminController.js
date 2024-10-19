@@ -95,9 +95,18 @@ exports.main=(req,res)=>{
     res.redirect("/admin/dashboard")
 }
 exports.getDash = async (req, res) => {
-    const sortType = req.query.sort || 'all'; 
    
-    const { startDate, endDate } = getDateRange(sortType) || {};
+    let startDate=req.query.startDate;
+    let endDate=req.query.endDate;
+    console.log(startDate,endDate)
+    const sortType = req.query.sort || 'all'; 
+    if(!startDate  && !endDate){
+      console.log("jfjkfd")
+        const dateRange = getDateRange(sortType);
+        startDate = dateRange.startDate || '';
+        endDate = dateRange.endDate || '';
+    }
+    
 
     let orderQuery = {};
   
@@ -423,9 +432,19 @@ exports.getusers=async(req,res)=>{
 }
 exports.getExcelreport=async (req,res)=>{
     try {
-    const sortType=req.query.sort || "all";
-    console.log(req.query.sort)
-    const {startDate,endDate}=getDateRange(sortType) || {};
+        let startDate = req.query.startDate ? new Date(req.query.startDate) : null;
+        let endDate = req.query.endDate ? new Date(req.query.endDate) : null;
+
+        console.log(startDate, endDate);
+
+        const sortType = req.query.sort || 'all'; 
+
+        if (!startDate && !endDate) {
+ 
+            const dateRange = getDateRange(sortType);
+            startDate = dateRange.startDate || '';
+            endDate = dateRange.endDate || '';
+        }
     let orderQuery={};
     if(startDate && endDate){
         orderQuery={
@@ -470,29 +489,32 @@ res.end();
 }}
 exports.getSalesreport = async (req, res) => {
     try {
-        
+        let startDate = req.query.startDate ? new Date(req.query.startDate) : null;
+        let endDate = req.query.endDate ? new Date(req.query.endDate) : null;
+
+        console.log(startDate, endDate);
+
         const sortType = req.query.sort || 'all'; 
-        console.log(req.query.sort,"djkfdjkjkdf")
-        const { startDate, endDate } = getDateRange(sortType) || {};
+
+        if (!startDate && !endDate) {
+ 
+            const dateRange = getDateRange(sortType);
+            startDate = dateRange.startDate || '';
+            endDate = dateRange.endDate || '';
+        }
 
         let orderQuery = {};
 
-        
         if (startDate && endDate) {
             orderQuery = {
                 createdAt: { $gte: startDate, $lte: endDate }
             };
         }
 
-        
-
-       
         let orders = await Order.find(orderQuery)
             .sort({ createdAt: -1 })
             .populate("user_Id")
             .populate("items.product_Id");
-
-       
 
         let totalAmount = orders.reduce((acc, order) => acc + Number(order.totalAmount), 0);
         let payableAmount = orders.reduce((acc, order) => acc + Number(order.payableAmount), 0);
@@ -509,28 +531,28 @@ exports.getSalesreport = async (req, res) => {
             <style>
                 body {
                     display: flex;
-                    justify-content: center; /* Center content horizontally */
-                    align-items: center; /* Center content vertically */
-                    height: 100vh; /* Full height of viewport */
-                    margin: 0; /* Remove default margin */
+                    justify-content: center;
+                    align-items: center;
+                    height: 100vh;
+                    margin: 0;
                 }
                 .container {
-                    width: 90%; /* Set a percentage width for responsiveness */
-                    max-width: 800px; /* Maximum width to control the size */
-                    margin: 0 auto; /* Center container */
+                    width: 90%;
+                    max-width: 800px;
+                    margin: 0 auto;
                 }
                 .report-title {
                     text-align: center;
                     margin-bottom: 20px;
                 }
                 table {
-                    width: 100%; /* Full width of the container */
-                    border-collapse: collapse; /* Ensures table borders are collapsed */
+                    width: 100%;
+                    border-collapse: collapse;
                 }
                 th, td {
                     padding: 8px;
-                    text-align: center; /* Center align the text in table cells */
-                    border: 1px solid #ddd; /* Adds borders to table cells */
+                    text-align: center;
+                    border: 1px solid #ddd;
                 }
                 th {
                     background-color: #f2f2f2;
@@ -541,7 +563,6 @@ exports.getSalesreport = async (req, res) => {
             <div class="container">
                 <h1 class="report-title">Sales Report</h1>
                 <h5 class="report-title">Period: ${startDate.toISOString().split('T')[0]} to ${endDate.toISOString().split('T')[0]}</h5>
-                
                 <table class="table table-bordered">
                     <thead>
                         <tr>
@@ -563,14 +584,13 @@ exports.getSalesreport = async (req, res) => {
                             </tr>`).join('')}
                     </tbody>
                 </table>
-                
                 <h4>Total Sales: ₹${totalAmount}</h4>
                 <h4>Payable Amount: ₹${payableAmount}</h4>
                 <h4>Total Discount: ₹${totalDiscount.toFixed(2)}</h4>
             </div>
         </body>
         </html>
-    `;
+        `;
 
         htmlPdf.create(htmlContent).toBuffer((err, buffer) => {
             if (err) {
@@ -587,6 +607,29 @@ exports.getSalesreport = async (req, res) => {
     }
 };
 
+function getDateRange(sortType) {
+    let startDate = new Date();
+    let endDate = new Date();
+
+    switch (sortType) {
+        case "week":
+            startDate.setDate(startDate.getDate() - 7);
+            break;
+        case "month":
+            startDate.setMonth(startDate.getMonth() - 1);
+            break;
+        case "year":
+            startDate.setFullYear(startDate.getFullYear() - 1);
+            break;
+        case "all":
+            startDate = new Date(0); 
+            break;
+        default:
+            return null;
+    }
+
+    return { startDate, endDate };
+}
 
 exports.blockUser = async (req, res) => {
     
@@ -720,7 +763,7 @@ exports.cancelOrder = async (req, res) => {
         }
 
         item.orderStatus = 'canceled';
-if(item.paymentStatus==true){
+if(order.paymentStatus==true){
             let wallet=await Wallet.findOne({user_Id:order.user_Id})
             if(!wallet){
               const newWallet = new Wallet({
@@ -797,8 +840,9 @@ exports.addProduct=async(req,res)=>{
 }
 exports.addCategory=async(req,res)=>{
     try{
-        cat_name=req.body.cat_name
-    const exist=await Category.findOne({cat_name})
+        let cat_name = req.body.cat_name
+
+        const exist = await Category.findOne({ cat_name: { $regex: new RegExp(`^${cat_name}$`, 'i') } });
     if(exist){
         req.flash('error', 'Sorry category already exists!');
         res.redirect("/admin/categories")
@@ -888,7 +932,7 @@ exports.addBrand = async (req, res) => {
       const brandImage = req.file; 
   console.log(brandName,popularBrand,brandImage)
       
-      const exist = await Brands.findOne({ brand_name: brandName });
+      const exist = await Brands.findOne({ brand_name: { $regex: new RegExp(`^${brandName}$`, 'i') }  });
       if (exist) {
        
         return res.status(400).json({

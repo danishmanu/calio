@@ -46,7 +46,7 @@
 
                     <td>
                       <span class="discounted-price">₹<%= (product.product_Id.price - (product.product_Id.price * (product.product_Id.offer.discountPercentage / 100))).toFixed(2) %></span>
-                      <span class="original-price text-muted">₹<%= product.product_Id.price %></span>
+                      <span class="original-price text-muted">₹<%= product.product_Id.price.toFixed() %></span>
                     </td>
                   <% } else { %>
                     <td class="font-weight-bold text-danger">₹<%= product.product_Id.price %></td>
@@ -54,11 +54,11 @@
                   <td>
                     <div class="d-flex justify-content-between align-items-center">
                       <div class="d-flex">
-                        <button class="btn btn-outline-secondary btn-sm" id="minus_<%= product.product_Id._id %>" onclick="minus('<%= product.product_Id._id %>', '<%= product.product_Id.stock %>', '<%= product.product_Id.name %>', '<%= product.product_Id.offer.discountPercentage ? (product.product_Id.price - (product.product_Id.price * (product.product_Id.offer.discountPercentage / 100))).toFixed(2) : product.product_Id.price %>')">
+                        <button class="btn btn-outline-secondary btn-sm" id="minus_<%= product.product_Id._id %>" onclick="minus('<%= product.product_Id._id %>', '<%= product.product_Id.stock %>', '<%= product.product_Id.name %>', '<%= product.product_Id.offer.discountPercentage ? (product.product_Id.price - (product.product_Id.price * (product.product_Id.offer.discountPercentage / 100))).toFixed(2) : product.product_Id.price.toFixed(2) %>')">
                           <i class="bi bi-dash"></i>
                         </button>
                         <input type="number" name="quantity" class="quantity-input text-center mx-2" value="<%= product.quantity %>" id="quantity_<%= product.product_Id._id %>" readonly>
-                        <button class="btn btn-outline-secondary btn-sm" id="plus_<%= product.product_Id._id %>" onclick="plus('<%= product.product_Id._id %>', '<%= product.product_Id.stock %>', '<%= product.product_Id.name %>', '<%= product.product_Id.offer.discountPercentage ? (product.product_Id.price - (product.product_Id.price * (product.product_Id.offer.discountPercentage / 100))) : product.product_Id.price %>')">
+                        <button class="btn btn-outline-secondary btn-sm" id="plus_<%= product.product_Id._id %>" onclick="plus('<%= product.product_Id._id %>', '<%= product.product_Id.stock %>', '<%= product.product_Id.name %>', '<%= product.product_Id.offer.discountPercentage ? (product.product_Id.price - (product.product_Id.price * (product.product_Id.offer.discountPercentage / 100))).toFixed(2) : product.product_Id.price.toFixed(2) %>')">
                           <i class="bi bi-plus"></i>
                         </button>
                       </div>
@@ -93,7 +93,7 @@
           <table>
             <tr>
               <th>Price</th>
-              <td class="ps-3 total" id="total">: ₹<%= cart.total_price %></td>
+              <td class="ps-3 total" id="total">: ₹<%= cart.total_price.toFixed(2) %></td>
             </tr>
             <tr>
               <th>Delivery Charges</th>
@@ -101,7 +101,7 @@
             </tr>
             <tr>
               <th>Total</th>
-              <td class="ps-3" id="subtotal">: ₹<%= cart.total_price %></td>
+              <td class="ps-3" id="subtotal">: ₹<%= cart.total_price.toFixed(2) %></td>
             </tr>
           </table>
           <a href="/checkout">

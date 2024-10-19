@@ -2,6 +2,7 @@ const User = require("../models/User")
 const Otp_collection=require("../models/otp")
 const { db } = require("../models/User")
 const Product = require('../models/Product');
+const Brands = require('../models/Brand');
 const sendEmail=require("../services/sendEmail")
 const Wallet=require("../models/Wallet")
 const bcrypt=require("bcrypt")
@@ -25,10 +26,10 @@ exports.Auth=(async(req,res,next)=>{
 })
 exports.main=(async(req,res)=>{
     let products=await Product.find({isDelete:false})
-   
+    let popularBrands=await Brands.find({isDelete:false,isPopular:true})
     let user=req.session.user
-    
-        res.render("users/home",{products,user})
+   
+        res.render("users/home",{products,user,popularBrands})
     
     
 })

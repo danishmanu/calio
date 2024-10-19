@@ -49,7 +49,7 @@ router.post("/logout",adminController.adminAuth,adminController.logout)
 router.get("/coupon",adminController.adminAuth,couponController.getCoupon)
 router.post("/coupon",adminController.adminAuth,couponController.addCoupon)
 router.delete("/coupon/:couponId",adminController.adminAuth,couponController.deleteCoupon)
-router.get("/generate-pdf",adminController.adminAuth,adminController.getSalesreport)
+router.get("/generate-pdf/",adminController.adminAuth,adminController.getSalesreport)
 router.get("/getExcelSales",adminController.adminAuth,adminController.getExcelreport)
 
 router.get("/offer",adminController.adminAuth,offerController.getOffer)
