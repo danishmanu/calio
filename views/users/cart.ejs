@@ -20,7 +20,16 @@
     Cart
   </li>
 </div>
-
+<% if (message.success) { %>
+  <div class="alert alert-success">
+    <%= message.success %>
+  </div>
+<% } %>
+<% if (message.error) { %>
+  <div class="alert alert-danger">
+    <%= message.error %>
+  </div>
+<% } %>
 <section class="mb-5">
   <div class="container">
     <div class="row d-flex justify-content-center">
@@ -64,7 +73,7 @@
                       </div>
                     </div>
                   </td>
-                  <td id="price_<%= product.product_Id._id %>"><%=  product.price*product.quantity  %> ₹</td>
+                  <td id="price_<%= product.product_Id._id %>"><%=  (product.price*product.quantity).toFixed(2)  %> ₹</td>
                   <td>
                     <button class="btn" type="button" onclick="deleteCart('<%= product.product_Id._id %>')"><i class="fa-regular fa-trash-can" style="color: black;"></i></button>
                   </td>
@@ -87,10 +96,11 @@
       </div>
 
       <% if(cart && cart.items.length > 0){ %>
-        <div class="col-12 col-md-3 bg-light mt-5 pt-1">
+        
+        <div class="col-12 col-md-3 bg-light mt-5 pt-1 d-flex flex-column" style="height: 200px;">
           <h3>Cart Totals</h3>
           <hr>
-          <table>
+          <table class="flex-grow-1">
             <tr>
               <th>Price</th>
               <td class="ps-3 total" id="total">: ₹<%= cart.total_price.toFixed(2) %></td>
@@ -104,8 +114,8 @@
               <td class="ps-3" id="subtotal">: ₹<%= cart.total_price.toFixed(2) %></td>
             </tr>
           </table>
-          <a href="/checkout">
-            <button type="button" class="btn btn-primary w-100">PLACE ORDER</button>
+          <a href="/checkout" class="mt-auto">
+            <button type="button" class="btn btn-primary w-100">Proceed To Checkout</button>
           </a>
         </div>
       <% } %>
@@ -116,7 +126,7 @@
 
 <script>
     
-    
+   
 
     function deleteCart(id){
           Swal.fire({
@@ -211,8 +221,8 @@ if(quantity<=0){
       }
   });
   const total=data.total
-   document.getElementById("total").innerText=`:${total}₹`
-   document.getElementById("subtotal").innerText=`:${total}₹`
+   document.getElementById("total").innerText=`:${total.toFixed(2)}₹`
+   document.getElementById("subtotal").innerText=`:${total.toFixed(2)}₹`
   }
   
           else{

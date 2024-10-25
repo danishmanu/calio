@@ -26,16 +26,48 @@ try {
 }
 
 }
+exports.editCoupon=async (req, res) => {
+    const { id } = req.params;
+    const { coupon_code, discount, minAmount, maxApplicableAmount, startDate, endDate } = req.body;
+
+    try {
+        const existingCoupon = await Coupon.findOne({
+            coupon_code: { $regex: new RegExp(`^${coupon_code}$`, 'i') },
+            _id: { $ne: id }
+        });
+        if(existingCoupon){
+            return res.status(400).json({message:"coupon name already exist"})
+        }
+
+        const updatedCoupon = await Coupon.findByIdAndUpdate(
+            id,
+            { coupon_code, discount, minAmount, maxApplicableAmount, startDate, endDate },
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedCoupon) {
+            return res.status(404).json({ message: 'Coupon not found' });
+        }
+
+        res.status(200).json(updatedCoupon);
+    } catch (error) {
+        console.error('Error updating coupon:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+}
 exports.addCoupon=async(req,res)=>{
     try {
         console.log(req.body);
         
-        const { coupon_code,discount,startDate,endDate,minAmount,maxAmount}=req.body
-        console.log(req.body)
-        existCoupon=await Coupon.findOne({coupon_code})
-        console.log( existCoupon);
+        const { coupon_code,discount,startDate,endDate,minAmount,maxApplicableAmount}=req.body
+       
+       
+        const existingCoupon = await Coupon.findOne({
+            coupon_code: { $regex: new RegExp(`^${coupon_code}$`, 'i') },
+            _id: { $ne: id }
+        });
         
-        if(existCoupon){
+        if(existingCoupon){
             return res.status(401).json({ message: 'coupon already exist' });
         }
         const newCoupon = new Coupon({
@@ -43,7 +75,7 @@ exports.addCoupon=async(req,res)=>{
             discount,
             startDate,
             minAmount,
-            maxAmount,
+            maxApplicableAmount,
             endDate
         });
 await newCoupon.save();

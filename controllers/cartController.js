@@ -55,10 +55,10 @@ exports.addToCart = async (req, res) => {
         return res.status(401).json({ success: false, user: false, message: 'User not logged in' });
       }
       if(quantity<=0){
-        return res.status(401).json({ success: false,  message: 'Quantity must be greater than 0' });
+        return res.status(400).json({ success: false,  message: 'Quantity must be greater than 0' });
       }
       const product_Id = req.params.id;
-      const product = await Product.findById(product_Id);
+      const product = await Product.findOne({_id:product_Id,isDelete:false});
   
       if (!product) {
         return res.status(404).json({ success: false, message: 'Product not found' });
@@ -87,9 +87,13 @@ exports.addToCart = async (req, res) => {
           cart.items[itemIndex].price = price;
         } else {
         
-          if (quantity > 10 || quantity > product.stock) {
+          if (quantity > 10 ) {
             return res.status(409).json({ success: false, message: 'Maximum products reached' });
           }
+          if (quantity > product.stock) {
+            return res.status(409).json({ success: false, message: 'Out of Stock' });
+          }
+         
   
           
           cart.items.push({

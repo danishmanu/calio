@@ -97,7 +97,7 @@
 				<div class="d-flex align-items-center">
 					<div>
 						<p class="mb-0 text-secondary">Total Orders</p>
-						<h4 class="my-1 text-info">  <%= orders.length %></h4>
+						<h5 class="my-1 text-info">  <%= orders.length %></h5>
 				
 					</div>
 					<div class="widgets-icons-2 rounded-circle bg-gradient-scooter text-white ms-auto"><i class="fa fa-shopping-cart"></i>
@@ -113,8 +113,8 @@
 			   <div class="d-flex align-items-center">
 				   <div>
 					   <p class="mb-0 text-secondary">Total Sales</p>
-					   <h4 class="my-1 text-success"> ₹<%= totalAmount %></h4>
-					   <!-- <p class="mb-0 font-13">-4.5% from last week</p> -->
+					   <h5 class="my-1 text-success"> ₹<%= totalAmount.toFixed(2) %></h5>
+					  
 				   </div>
 				   <div class="widgets-icons-2 rounded-circle bg-gradient-ohhappiness text-white ms-auto"><i class="fa fa-bar-chart"></i>
 				   </div>
@@ -128,7 +128,7 @@
            <div class="d-flex align-items-center">
              <div>
                <p class="mb-0 text-secondary">Discount</p>
-               <h4 class="my-1 text-danger">₹ <%= totalDiscount.toFixed() %></h4>
+               <h5 class="my-1 text-danger">₹ <%= totalDiscount.toFixed(2) %></h5>
                <!-- <p class="mb-0 font-13">+5.4% from last week</p> -->
              </div>
              <div class="widgets-icons-2 rounded-circle bg-gradient-bloody text-white ms-auto"><i class="fa fa-dollar"></i>
@@ -143,7 +143,7 @@
 			   <div class="d-flex align-items-center">
 				   <div>
 					   <p class="mb-0 text-secondary">Total Users</p>
-					   <h4 class="my-1 text-warning">   <%= usersCount %></h4>
+					   <h5 class="my-1 text-warning">   <%= usersCount %></h5>
 					  
 				   </div>
 				   <div class="widgets-icons-2 rounded-circle bg-gradient-blooker text-white ms-auto"><i class="fa fa-users"></i>
@@ -213,7 +213,7 @@
           <div class=" col-12  grid-margin stretch-card">
             <div class="card">
               <div class="card-body">
-                <h4 class="card-title">Sales chart</h4>
+                <h5 class="card-title">Sales chart</h5>
                 <canvas id="areaChart"></canvas>
               </div>
             </div>
@@ -245,7 +245,7 @@
                             month: 'short', 
                             day: 'numeric',  
                         }); %></td>
-                          <td>₹<%= order.payableAmount %></td>
+                          <td>₹<%= Number(order.payableAmount).toFixed(2) %></td>
                           <td><%= order.paymentMethod %></td>
                          
                             <td><%= order.paymentStatus==true ?"paid":"pending" %></td>
@@ -255,6 +255,27 @@
                     <% }) %>
                   </tbody>
                 </table>
+                <div class="w-100 d-flex justify-content-center mt-3">
+                  <nav aria-label="Page navigation ">
+                      <ul class="pagination">
+                          <li class="page-item <%= page === 1 ? 'disabled' : '' %>">
+                              <a class="page-link" href="?page=<%= page - 1 %>" aria-label="Previous">
+                                  <span aria-hidden="true">&laquo;</span>
+                              </a>
+                          </li>
+                          <% for (let i = 1; i <= totalPages; i++) { %>
+                              <li class="page-item <%= i === page ? 'active' : '' %>">
+                                  <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+                              </li>
+                          <% } %>
+                          <li class="page-item <%= page === totalPages ? 'disabled' : '' %>">
+                              <a class="page-link" href="?page=<%= page + 1 %>" aria-label="Next">
+                                  <span aria-hidden="true">&raquo;</span>
+                              </a>
+                          </li>
+                      </ul>
+                  </nav>
+                </div>
                
                 <button id="printButton" class="btn btn-primary text-white me-0 mt-3"><i class="icon-download"></i> Download Sales Report(PDF)</button>
                 <button id="printExcelButton" class="btn btn-primary text-white me-0 mt-3"><i class="icon-download"></i> Download Sales Report(Excel)</button>

@@ -20,7 +20,7 @@ exports.Auth=(async(req,res,next)=>{
    }
   exports.addAddress=async (req,res)=> {
    try{
-    console.log("hello guys")
+   
     profile=req.query.profile 
     console.log(req.query,profile)
     const {name,country,state ,city,pincode,phone,address_line}=req.body

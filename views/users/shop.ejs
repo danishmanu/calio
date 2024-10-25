@@ -1,177 +1,295 @@
 <%- include('../partials/head.ejs') %>
 <%- include('../partials/header.ejs') %>
 
-  
+<style>
+  .select {
+    justify-content: flex-end; 
+    align-items: flex-end; 
+  }
+</style>
 
-  <div class="container-fluid w-100 bg-primary mt-5 ps-5 d-flex align-items-center" style="height: 10vh">
- 
-    <li class="breadcrumb-item" style="list-style: none;"><a href="/">Home</a></li>
-    <li class="breadcrumb-item active" aria-current="page" style="list-style: none; max-width: 500px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
-       My Account
-    </li>
-
+<div class="container-fluid w-100 bg-primary mt-5 ps-5 d-flex align-items-center" style="height: 10vh">
+  <li class="breadcrumb-item" style="list-style: none;"><a href="/">Home</a></li>
+  <li class="breadcrumb-item active" aria-current="page" style="list-style: none; max-width: 500px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
+    My Account
+  </li>
 </div>
 
 <div class="container">
   <div class="row">
-    
     <div class="col-lg-3">
-     
       <nav class="navbar navbar-light col-lg-9 mt-5">
         <a class="navbar-brand" href="#"><h3>Brand</h3></a>
-       
-      
-          <ul class="navbar-nav mr-auto">
-            <% brandData.forEach(brand => { %>
-              <li class="nav-item">
-                <div class="d-flex justify-content-between align-items-center">
-                  <a href="#" class="nav-link" onclick="brandFilter(event, '<%= brand.brand_name %>')" ><%= brand.brand_name%></a>
-                 
-                </div>
-              </li>
-            <% }); %>
-          </ul>
-
+        <ul class="navbar-nav mr-auto">
+          <% brandData.forEach(brand => { %>
+            <li class="nav-item">
+              <div class="d-flex justify-content-between align-items-center">
+                <a href="#" class="nav-link" onclick="brandFilter(event, '<%= brand.brand_name %>')"><%= brand.brand_name %></a>
+              </div>
+            </li>
+          <% }); %>
+        </ul>
       </nav>
 
-      <!-- Category Filter -->
       <nav class="navbar navbar-light col-lg-9 ">
         <a class="navbar-brand" href="#"><h3>Category</h3></a>
-       
-        
-          <ul class="navbar-nav mr-auto">
-            <% categoryData.forEach(category => { %>
-              <li class="nav-item">
-                <div class="d-flex justify-content-between align-items-center">
-                  <a href="#" class="nav-link" onclick="categoryFilter(event, '<%= category.cat_name %>')" ><%= category.cat_name%></a>
-                 
-                </div>
-              </li>
-            <% }); %>
-          </ul>
-          <a href="/shop">
-         <button class="btn btn-primary rounded rounded-3 mt-2 mb-5">Clear All Filter</button>
-
+        <ul class="navbar-nav mr-auto">
+          <% categoryData.forEach(category => { %>
+            <li class="nav-item">
+              <div class="d-flex justify-content-between align-items-center">
+                <a href="#" class="nav-link" onclick="categoryFilter(event, '<%= category.cat_name %>')"><%= category.cat_name %></a>
+              </div>
+            </li>
+          <% }); %>
+        </ul>
+        <a href="/shop">
+          <button class="btn btn-primary rounded rounded-3 mt-2 mb-5">Clear All Filter</button>
         </a>
       </nav>
-
-
-
     </div>
 
-    <!-- Product Cards Section -->
     <div class="col-lg-9 mt-5">
-      <div class="d-flex  align-items-end justify-content-end">
-        <p>Sort by:</p>
-        <select id="filter" name="filter" onchange="applyFilter()">
+      <div class="w-100 d-flex align-items-center justify-content-end mb-4">
+        <div class="select d-flex align-items-center">
+          <p class="me-2 mb-0">Sort by:</p> 
+          <select id="filter" class="form-select" name="filter" onchange="applyFilter()">
             <option value="">select</option>
             <option value="price-low-high">Low to High</option>
             <option value="price-high-low">High to Low</option>
             <option value="a-z">A-Z</option>
             <option value="z-a">Z-A</option>
-          
             <option value="new-arrivals">New Arrivals</option>
-        </select>
-</div>
+          </select>
+        </div>
+      </div>
+      
 
       <div class="row">
+        <% if(productData.length>0) {%>
         <% productData.forEach(product => { %>
-          <div class="col-lg-4 col-md-6 col-sm-12 mb-4">
+          <div class="col-lg-4 col-md-6 col-sm-12 mb-4 mt-2">
+            <div class="card">
 
-            <!-- <div classf="col-sm-6  col-md-4 col-lg-3 ms-2 border border-1"> -->
-
-              <div class="card">
-                <a href="/product/<%= product._id %>">
-                
+              <a href="/product/<%= product._id %>">
+                <div class="icons d-flex flex-column">
+                  <button type="button" class="btn mb-2" onclick="addToWishlist(event,`<%=product._id%>`)"><i class="bi bi-heart"></i></button>
+                  <button class="btn"><i class="bi bi-cart" onclick="addToCart(event,`<%=product._id%>`)"></i></button>
+              </div>
                 <img src="/public/uploads/<%= product.images[0] %>" class="card-img-top" alt="Product Image">
                 <div class="card-body text-center">
-                    <h5 class="product-title"><%=product.name %></h5>
-                    <% if(product.offer &&product.offer.discountPercentage && product.offer.expirAt>Date.now()){%>
+                  <h5 class="product-title"><%= product.name %></h5>
+                  <% if (product.offer && product.offer.discountPercentage && product.offer.expirAt > Date.now()) { %>
                     <div class="price">
-                        <span>₹<%=product.price-(product.price*(product.offer.discountPercentage/100))%></span>
-                        <span class="text-muted">₹<%=product.price%></span>
-                        <span class="text-success">(<%=product.offer.discountPercentage%>%Off)</span>
+                      <span>₹<%= product.price - (product.price * (product.offer.discountPercentage / 100)) %></span>
+                      <span class="text-muted">₹<%= product.price %></span>
+                      <span class="text-success">(<%= product.offer.discountPercentage %>% Off)</span>
                     </div>
-                    <% } else{ %>
+                  <% } else { %>
                     <div class="price">
-                      <span>₹<%=product.price%></span>
-                      
-                  </div>
+                      <span>₹<%= product.price %></span>
+                    </div>
                   <% } %>
-                    <div class="rating mt-2">
-                        <i class="bi bi-star-fill"></i>
-                        <i class="bi bi-star-fill"></i>
-                        <i class="bi bi-star-fill"></i>
-                        <i class="bi bi-star-fill"></i>
-                        <i class="bi bi-star-fill"></i>
-                        <span class="reviews">(65)</span>
-                    </div>
+                  <div class="rating mt-2">
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <span class="reviews">(65)</span>
+                  </div>
                 </div>
-           </a>
+              </a>
             </div>
-         
           </div>
         <% }); %>
       </div>
+
       <div class="w-100 d-flex justify-content-center mt-3">
         <nav aria-label="Page navigation">
-            <ul class="pagination">
-                <!-- Previous button -->
-                <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
-                    <a class="page-link"  href="/shop?page=<%= currentPage + 1 %>&filter=<%= filter?filter:'' %>&brand=<%= brand?brand:'' %>&category=<%= category? category:""  %>" aria-label="Previous">
-                        <span aria-hidden="true">&laquo;</span>
-                    </a>
-                </li>
-    
-                <!-- Page number buttons -->
-                <% for (let i = 1; i <= totalPages; i++) { %> 
-                    <li class="page-item <%= i === currentPage ? 'active' : '' %>">
-                        <a class="page-link"  href="/shop?page=<%= currentPage + 1 %>&filter=<%= filter?filter:'' %>&brand=<%= brand?brand:'' %>&category=<%= category? category:""  %>"><%= i %></a>
-                    </li>
-                <% } %>
-    
-                <!-- Next button -->
-                <li class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
-                    <a class="page-link" href="/shop?page=<%= currentPage + 1 %>&filter=<%= filter?filter:'' %>&brand=<%= brand?brand:'' %>&category=<%= category? category:""  %>" aria-label="Next">
-                        <span aria-hidden="true">&raquo;</span>
-                    </a>
-                </li>
-            </ul>
+          <ul class="pagination">
+            <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
+              <a class="page-link" href="/shop?page=<%= currentPage - 1 %>&filter=<%= filter ? filter : '' %>&brand=<%= brand ? brand : '' %>&category=<%= category ? category : '' %>" aria-label="Previous">
+                <span aria-hidden="true">&laquo;</span>
+              </a>
+            </li>
+
+            <% for (let i = 1; i <= totalPages; i++) { %>
+              <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+                <a class="page-link" href="/shop?page=<%= i %>&filter=<%= filter ? filter : '' %>&brand=<%= brand ? brand : '' %>&category=<%= category ? category : '' %>"><%= i %></a>
+              </li>
+            <% } %>
+
+            <li class="page-item <%= currentPage >= totalPages ? 'disabled' : '' %>">
+              <a class="page-link" href="/shop?page=<%= currentPage + 1 %>&filter=<%= filter ? filter : '' %>&brand=<%= brand ? brand : '' %>&category=<%= category ? category : '' %>" aria-label="Next">
+                <span aria-hidden="true">&raquo;</span>
+              </a>
+            </li>
+          </ul>
         </nav>
-    </div>
-    
+      </div>
+      <% } else{%>
+        <div class="w-100 d-flex justify-content-center mt-3">
+         <h3>No products Found</h3>
+        </div>
+        </div>
+        <%}  %>
     </div>
   </div>
 </div>
+
 <script>
-   function applyFilter() {
-        const filterValue=document.getElementById('filter').value;
-        const url = new URL(window.location.href);
-        url.searchParams.set('filter', filterValue);
-        window.location.href = url;
-    }
+   async function addToCart(event,productId) {
+  event.preventDefault()
+  const quantity = 1; 
 
+  try {
+    const response = await fetch(`/addToCart/${productId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ quantity: quantity }), 
+    });
+
+    const data = await response.json();
+
+    if (data.success === false && data.user === false) {
+     
+      Swal.fire({
+        icon: 'warning',
+        title: 'You must log in first!',
+        text: 'Please log in to add items to your cart.',
+        confirmButtonText: 'Login',
+        showCancelButton: true,
+        cancelButtonText: 'Cancel',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          window.location.href = '/login'; 
+        }
+      });
+    } else if (data.success === false) {
+     
+      Swal.fire({
+        icon: 'error',
+        title: 'Could not add to cart',
+        text: data.message, 
+        showConfirmButton: true,
+      });
+    } else if (data.success === true) {
+      
+      document.getElementById('cart-count').innerText = data.cartItemCount; 
+      Swal.fire({
+        icon: 'success',
+        title: 'Added to Cart!',
+        text: 'The item has been successfully added to your cart.',
+        showConfirmButton: false,
+        timer: 1500,
+      });
+    } else {
+      
+      console.error('Something went wrong');
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Something went wrong. Please try again later.',
+        showConfirmButton: true,
+      });
+    }
+  } catch (err) {
    
-    function categoryFilter(event, category){
-        event.preventDefault()
-        const url = new URL(window.location.href);
-        url.searchParams.set('category', category);
-        window.location.href = url;
-       
-    }
+    console.error('Error:', err);
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'An error occurred. Please try again later.',
+      showConfirmButton: true,
+    });
+  }
+}
 
-    function brandFilter(event, brand){
-        event.preventDefault()
-        const url = new URL(window.location.href);
-        url.searchParams.set('brand', brand);
-        window.location.href = url;
-        
-    }
+      async function addToWishlist(event,product_Id) {
+  try {
+    event.preventDefault()
+    let response = await fetch("/addToWishlist", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ product_Id })
+    });
+
+    let data = await response.json();
+
+    if (data.success) {
     
+      Swal.fire({
+        icon: 'success',
+        title: 'Added!',
+        text: 'Product added to wishlist successfully.',
+        showConfirmButton: false,
+        timer: 1500
+      });
+      console.log(data.count)
+      document.getElementById("wishlist-count").innerText = data.count; 
+    }
+    else if(data.exist){
+      Swal.fire({
+        icon: 'info',
+        title: 'Already in Wishlist!',
+        text: 'This product is already in your wishlist.',
+        showCancelButton: true,
+        confirmButtonText: 'Go to Wishlist',
+        cancelButtonText: 'Continue Shopping'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          
+          window.location.href = "/wishlist";
+        }
+      });
+    }
+     else {
+      
+      Swal.fire({
+        icon: 'error',
+        title: 'Failed!',
+        text: data.message,
+        confirmButtonText: 'ok'
+      }).then(()=>{
+        window.location.href="/login"
+      })
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    Swal.fire({
+      icon: 'error',
+      title: 'Error!',
+      text: 'An error occurred while adding the product to the wishlist.',
+      confirmButtonText: 'OK'
+    });
+  }
+      }
+  function applyFilter() {
+    const filterValue = document.getElementById('filter').value;
+    const url = new URL(window.location.href);
+    url.searchParams.set('filter', filterValue);
+    url.searchParams.set('page', 1); 
+    window.location.href = url;
+  }
+
+  function categoryFilter(event, category) {
+    event.preventDefault();
+    const url = new URL(window.location.href);
+    url.searchParams.set('category', category);
+    url.searchParams.set('page', 1);
+    window.location.href = url;
+  }
+
+  function brandFilter(event, brand) {
+    event.preventDefault();
+    const url = new URL(window.location.href);
+    url.searchParams.set('brand', brand);
+    url.searchParams.set('page', 1);
+    window.location.href = url;
+  }
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
-
 <%- include('../partials/footer.ejs') %>

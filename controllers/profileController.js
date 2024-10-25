@@ -8,7 +8,18 @@ const generatePdf = require("../services/generateInvoice")
 exports.getProfile=async (req,res)=>{
     const user=await User.findOne({_id:req.session.user})
     const addresses=await Address.findOne({user_Id:req.session.user})
-    const orders=await Order.find({user_Id:req.session.user}).sort({createdAt:-1})
+    const pageOrders = parseInt(req.query.pageOrders) || 1;
+    const limitOrders = 4; 
+    const totalOrders = await Order.countDocuments({ user_Id: user._id});
+    const totalPagesOrders = Math.ceil(totalOrders / limitOrders);
+
+
+const orders = await Order.find({ user_Id: user._id })
+    .sort({ createdAt: -1 })
+    .skip((pageOrders - 1) * limitOrders)
+    .limit(limitOrders);
+    
+   
     let wallet = await Wallet.findOne({ user_Id: req.session.user }).sort({"history.date":-1});
     if (!wallet) {
         wallet = new Wallet({
@@ -29,7 +40,7 @@ exports.getProfile=async (req,res)=>{
             year:"numeric"
         })
     });
-    res.render("users/profile",{user,addresses,orders,wallet})
+    res.render("users/profile",{ user, addresses, orders, wallet, totalPagesOrders, currentPage: pageOrders });
 
 }
 exports.returnProduct = async (req, res) => {
@@ -82,6 +93,8 @@ exports.editUserDetails=async (req,res)=>{
 exports.getOrderDetails=async (req,res) => {
     try {
         let user=req.session.user
+       
+
         let orderId=req.params.orderId
         console.log(orderId)
         console.log(user)
@@ -95,8 +108,9 @@ exports.getOrderDetails=async (req,res) => {
         }
         console.log("i will be here");
         res.render("users/orderDetail",{user,order})
-    } catch (error) {
-        
+    } catch (err) {
+        console.error('Error returning product:', err);
+        return res.status(500).json({ message: 'Server error while processing return' });
     }
 }
 

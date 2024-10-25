@@ -1,7 +1,19 @@
 <%- include('../partials/head.ejs') %>
 
 <body class="log_body">
+  
     <div class="otp_box ">
+           <% if (message.success) { %>
+    <div class="alert alert-success">
+      <%= message.success %>
+    </div>
+  <% } %>
+  <% if (message.error) { %>
+    <div class="alert alert-danger">
+      <%= message.error %>
+    </div>
+  <% } %>
+
         <h2 class="text-center mt-5 fw-bolder">OTP Verification</h2>
         <p class="ps-5">Please enter the six-digit code from the email<br> we sent to <%= email %></p>
         <div class="row">
@@ -21,7 +33,7 @@
     </div>
 
     <script>
-        
+        let email=`<%= email %>`
         let timeleft = 60;
         const timer = setInterval(() => {
             timeleft--;
@@ -29,7 +41,18 @@
 
             if (timeleft <= 0) {
                 clearInterval(timer);
-                document.getElementById('otp-timer').innerHTML = "Didn’t receive OTP? <a href='' class='text-danger text-decoration-none'>Resend OTP</a>";
+                
+           
+            const queryString = window.location.search;
+            const urlParams = new URLSearchParams(queryString);
+            const reset = urlParams.get('reset');
+            console.log(reset);
+                document.getElementById('otp-timer').innerHTML =`
+    Didn’t receive OTP? 
+    <form action="/resend-otp/${reset}" method="POST" style="display: inline;">
+        <button type="submit" class="btn btn-link text-danger text-decoration-none p-0">Resend OTP</button>
+    </form>
+`;
             }
         }, 1000);
     </script>

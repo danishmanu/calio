@@ -10,10 +10,7 @@
         border-radius: 5px; 
         font-size: 16px;
     }
-    .applicable-coupons {
-            max-height: 200px;
-            overflow-y: auto;
-        }
+    
 
        
     .quantity-input:focus {
@@ -186,12 +183,12 @@
               <div class="d-flex justify-content-between">
                 <p>Coupon Discount</p>
               
-                <p id="discount"  >₹ <%=appliedCoupon? (cart.total_price*appliedCoupon.discount/100).toFixed(2):0  %></p>
+                <p id="discount"  >₹ <%=appliedCoupon? Math.min((cart.total_price*appliedCoupon.discount/100).toFixed(2),appliedCoupon.maxApplicableAmount):0  %></p>
               </div>
               <hr>
               <div class="d-flex justify-content-between total-price">
                 <p>Total</p>
-                <p class="total" >₹ <span id="total"><%=appliedCoupon? cart.total_price-(cart.total_price*appliedCoupon.discount/100).toFixed(2):cart.total_price.toFixed(2)%></span></p>
+                <p class="total" >₹ <span id="total"><%=appliedCoupon? Math.min(cart.total_price-(cart.total_price*appliedCoupon.discount/100).toFixed(2),appliedCoupon.maxApplicableAmount):cart.total_price.toFixed(2)%></span></p>
               </div>
             </div>
         
@@ -207,7 +204,13 @@
               <div class="form-check">
                 <input class="form-check-input" type="radio" name="paymentMethod" value="RAZORPAY" id="upi" required>
                 <label class="form-check-label" for="upi">
-                  UPI
+                  Razorpay
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="paymentMethod" value="WALLET" id="wallet" required>
+                <label class="form-check-label" for="upi">
+                  Wallet
                 </label>
               </div>
             </div>
@@ -227,19 +230,15 @@
                         <div id="appliedCouponSection" class="border-dashed p-3 mb-4">
                             <div class="d-flex justify-content-between">
                                 <div>
-                                    <strong>You Save: ₹<span id="appliedCouponDiscount"><%= cart.total_price * (appliedCoupon.discount / 100).toFixed(2) %> </span></strong><br>
+                                    <strong>You Save: ₹<span id="appliedCouponDiscount"><%=Math.min( cart.total_price * (appliedCoupon.discount / 100).toFixed(2),appliedCoupon.maxApplicableAmount) %> </span></strong><br>
                                     <span>Coupon applied: <span id="appliedCouponCode"><%= appliedCoupon.coupon_code %></span></span>
+                                    <p>You can save <%=appliedCoupon.discount %> % upto <%=appliedCoupon.maxApplicableAmount %>  </p>
                                 </div>
                                 <button class="btn btn-outline-danger btn-sm" id="removeCouponBtn" onclick="removeCoupon()">Remove</button>
                             </div>
                         </div>
                     <% } %>
-                    <!-- Applicable Coupons Section
-                    <input type="hidden" id="couponsData" value="<%= JSON.stringify(coupons) %>">
-        <div class="applicable-coupons mt-4">
-            <h5>Applicable Coupons</h5>
-            <div id="couponsList"></div>
-        </div> -->
+                
                 </div>
             </div>
             <button class="place-order-btn" onclick="checkout()" type="button">Place Order</button>
@@ -259,61 +258,19 @@
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <script>
-      
-    const appliedCoupon=`<%=appliedCoupon ? appliedCoupon.coupon_code:false %>`
   
-    if(appliedCoupon){
-        disableCoupons()
-    }
-    else{
-        enableCoupons()
-    }
-    function disableCoupons() {
-        const radios = document.getElementsByName('couponRadio');
-        radios.forEach(radio => {
-            radio.disabled = true;
-        });
-    }
-function enableCoupons() {
-        const radios = document.getElementsByName('couponRadio');
-        radios.forEach(radio => {
-            radio.disabled = false;
-        });
-    }
+  
+    
         let cart_total=document.getElementById("cart_total").innerText.replace('₹', '').trim()
     let discount=document.getElementById("discount").innerText.replace('₹', '').trim()
     let delivery=document.getElementById("delivery").innerText
  
-  const couponsList = document.getElementById('couponsList');
-  const coupons = JSON.parse(document.getElementById('couponsData').value);
-  console.log(coupons);
 
-coupons.forEach(coupon => {
-    isDisabled=false
-    if(!appliedCoupon){
-        isDisabled=false
-    }
-    const couponElement = `
-    <div class="coupon-item border-bottom pb-2 mb-2">
-        <div class="form-check">
-            <input class="form-check-input" type="radio" name="couponRadio" id="${coupon.coupon_code}" value="${coupon.coupon_code}" disabled="${isDisabled}">
-            <label class="form-check-label" for="${coupon.coupon_code}">
-                <strong>Savings: ₹${cart_total*(coupon.discount.toFixed(2)/100)}</strong><br>
-                <span>${coupon.coupon_code}</span><br>
-               <a href="#" class="text-decoration-none text-primary">View T & C</a>
-            </label>
-        </div>
-    </div>
-    `;
-    couponsList.insertAdjacentHTML('beforeend', couponElement);
-});
+ 
 
 
-document.getElementById('couponsList').addEventListener('change', function(event) {
-    if (event.target.name === 'couponRadio') {
-        document.getElementById('couponCode').value = event.target.value;
-        }
-    });
+
+
    async function applyCoupon() {
     document.getElementById("couponMessage").innerText =" "
     let couponCode = document.getElementById("couponCode").value;
@@ -335,7 +292,7 @@ document.getElementById('couponsList').addEventListener('change', function(event
     let data = await response.json();
 
     if (data.coupon === true) {
-        const discountAmount = parseFloat(cart_total) * (data.discountAmount / 100).toFixed(2);
+        const discountAmount = data.discountAmount;
         document.getElementById("total").innerText = ` ${parseFloat(cart_total) - discountAmount.toFixed(2)}`;
         document.getElementById("discount").innerText = `₹ ${discountAmount.toFixed()}`;
 
@@ -347,6 +304,7 @@ document.getElementById('couponsList').addEventListener('change', function(event
                         <div>
                             <strong>You Save: ₹<span id="appliedCouponDiscount">${discountAmount.toFixed(2)}</span></strong><br>
                             <span>Coupon applied: <span id="appliedCouponCode">${data.coupon_code}</span></span>
+                             <p>You can save ${data.discount } % upto ${data.maxApplicableAmount } </p>
                         </div>
                         <button class="btn btn-outline-danger btn-sm" id="removeCouponBtn" onclick="removeCoupon()">Remove</button>
                     </div>
@@ -363,7 +321,7 @@ document.getElementById('couponsList').addEventListener('change', function(event
 
         
         document.getElementById("applyCoupon").classList.add("d-none");
-        disableCoupons()
+       
 
     } else {
         
@@ -387,17 +345,9 @@ async function removeCoupon() {
 
            
             if (data.success) {
-                document.getElementById("total").innerText = document.getElementById("cart_total").innerText;
-                document.getElementById("discount").innerText = `₹ 0`;
-
-                document.getElementById('applyCoupon').classList.remove('d-none');
-                document.getElementById("appliedCouponSection").classList.add("d-none");
-                document.getElementById("couponCode").value = "";
-                   const couponRadioButtons = document.querySelectorAll('input[name="couponRadio"]');
-                couponRadioButtons.forEach(couponRadio => {
-                    couponRadio.checked = false;
-                });
-                enableCoupons()
+               window.location.reload()
+                  
+               
                
             } else {
                 console.error("Failed to remove coupon: ", data.message);
@@ -453,7 +403,7 @@ async function removeCoupon() {
 
         const paymentMethod = paymentMethodElement.value;
         const address = addressElement.value;
-        const amount = document.getElementById("total").innerText.trim(); 
+       
       
        
         let data = {
@@ -477,9 +427,22 @@ async function removeCoupon() {
                     icon: 'success',
                     title: 'Order Placed!',
                     text: 'Your order has been successfully placed.',
-                });
-                window.location.href = "/";
-            } else if (data.razor === true) {
+                }).then(()=>{
+                    window.location.href = "/profile";
+                })
+                
+            }
+            else if(data.wallet === true) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Order Placed!',
+                    text: 'Your order has been successfully placed.',
+                }).then(()=>{
+                    localStorage.setItem('activeSection', 'orders');
+                    window.location.href = "/profile";
+                })
+            }
+             else if (data.razor === true) {
                 let options = {
                     key: data.key,
                     amount: data.amount,
@@ -515,6 +478,7 @@ async function removeCoupon() {
                     title: 'Payment Success!',
                     text: 'Your payment was successful!',
                 }).then(()=>{
+                    localStorage.setItem('activeSection', 'orders');
                     window.location.href='/profile'
                 })
                 
@@ -523,8 +487,12 @@ async function removeCoupon() {
                     icon: 'error',
                     title: 'Payment Failed',
                     text: 'Payment failed, but your order has been placed.',
+                }).then(()=>{
+                    localStorage.setItem('activeSection', 'orders');
+                    window.location.href = "/profile";
                 })
-                window.location.href = "/";
+
+                
             }
 
           

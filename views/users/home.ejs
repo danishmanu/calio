@@ -55,7 +55,7 @@
                     <a href="/product/<%= product._id %>">
                     <div class="icons d-flex flex-column">
                         <button type="button" class="btn mb-2" onclick="addToWishlist(event,`<%=product._id%>`)"><i class="bi bi-heart"></i></button>
-                        <button class="btn"><i class="bi bi-eye"></i></button>
+                        <button class="btn"><i class="bi bi-cart" onclick="addToCart(event,`<%=product._id%>`)"></i></button>
                     </div>
                     <img src="/public/uploads/<%= product.images[0] %>" class="card-img-top" alt="Product Image">
                     <div class="card-body text-center">
@@ -172,7 +172,7 @@
                      </div>
             <div class="row">
               <% popularBrands.forEach((brand)=>{ %>
-                <div class=" col-12 col-md-6 col-lg-3 mt-3 mb-3">
+                <div class=" col-12 col-md-6 col-lg-3 mt-3 mb-3 d-flex justify-content-center">
                   <a href="/shop?brand=<%=brand.brand_name  %>">  <img class="brand_img" src="/public/uploads/<%=brand.brandImage  %>" alt="">
                   </a>
                 </div>
@@ -216,7 +216,75 @@
 </div>
 
 <script>
- 
+ async function addToCart(event,productId) {
+  event.preventDefault()
+  const quantity = 1; 
+
+  try {
+    const response = await fetch(`/addToCart/${productId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ quantity: quantity }), 
+    });
+
+    const data = await response.json();
+
+    if (data.success === false && data.user === false) {
+     
+      Swal.fire({
+        icon: 'warning',
+        title: 'You must log in first!',
+        text: 'Please log in to add items to your cart.',
+        confirmButtonText: 'Login',
+        showCancelButton: true,
+        cancelButtonText: 'Cancel',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          window.location.href = '/login'; 
+        }
+      });
+    } else if (data.success === false) {
+     
+      Swal.fire({
+        icon: 'error',
+        title: 'Could not add to cart',
+        text: data.message, 
+        showConfirmButton: true,
+      });
+    } else if (data.success === true) {
+      
+      document.getElementById('cart-count').innerText = data.cartItemCount; 
+      Swal.fire({
+        icon: 'success',
+        title: 'Added to Cart!',
+        text: 'The item has been successfully added to your cart.',
+        showConfirmButton: false,
+        timer: 1500,
+      });
+    } else {
+      
+      console.error('Something went wrong');
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Something went wrong. Please try again later.',
+        showConfirmButton: true,
+      });
+    }
+  } catch (err) {
+   
+    console.error('Error:', err);
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'An error occurred. Please try again later.',
+      showConfirmButton: true,
+    });
+  }
+}
+
       async function addToWishlist(event,product_Id) {
   try {
     event.preventDefault()
@@ -260,9 +328,11 @@
       Swal.fire({
         icon: 'error',
         title: 'Failed!',
-        text: 'Could not add the product to wishlist.',
-        confirmButtonText: 'Try Again'
-      });
+        text: data.message,
+        confirmButtonText: 'ok'
+      }).then(()=>{
+        window.location.href="/login"
+      })
     }
   } catch (error) {
     console.error("Error:", error);

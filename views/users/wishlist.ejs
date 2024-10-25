@@ -90,7 +90,11 @@
          <i class="bi bi-trash delete-icon" onclick="confirmRemoveProduct(event,`<%=product._id%>`)"></i>
               <img src="/public/uploads/<%=product.images[0]%>" alt="Product Image" class="card-img-top">
               <div class="card-body text-center">
+                <div class="w-100">
                   <h5 class="card-title"><%= product.name %></h5>
+                </div>
+                 
+                  
                  <% if(product.offer && product.offer.discountPercentage){ %>
                   <div class="d-flex justify-content-center align-items-center">
                       <span class="price">₹ <%=product.price-(product.price*(product.offer.discountPercentage/100))  %></span>
@@ -204,12 +208,12 @@ function addToCart(event, product_Id) {
           cancelButtonText: 'Cancel',
         }).then((result) => {
           if (result.isConfirmed) {
-            window.location.href = '/login'; // Redirect to login on confirmation
+            window.location.href = '/login'; 
           }
         });
       } else if (res.ok) {
         const data = await res.json();
-        document.getElementById('cart-count').innerText = data.cartItemCount; // Update the cart badge
+        document.getElementById('cart-count').innerText = data.cartItemCount;
         Swal.fire({
           icon: 'success',
           title: 'Added to Cart!',
@@ -218,10 +222,15 @@ function addToCart(event, product_Id) {
           timer: 1500,
         });
 
-        // Remove the product from the wishlist after adding to cart
+      
         removeProduct(event, product_Id);
       } else {
-        console.log('Something went wrong');
+        const data = await res.json();
+        Swal.fire({
+          icon: 'error',
+          title: data.message,
+         
+        });
       }
     })
     .catch((err) => {

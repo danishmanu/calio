@@ -6,15 +6,13 @@ const Brands = require('../models/Brand');
 const Cart=require("../models/Cart")
 exports.getShop = async (req, res) => {
   try {
-    let { brand, category, filter, query, page = 1, limit = 2 } = req.query; 
+    let { brand, category, filter, query, page = 1, limit = 3 } = req.query; 
     let searchQuery = {};
 
-   
     if (query) {
       searchQuery.name = { $regex: query, $options: 'i' };
     }
 
-    
     if (brand) {
       const brandDoc = await Brands.findOne({ brand_name: brand }).select('_id');
       if (brandDoc) {
@@ -22,40 +20,56 @@ exports.getShop = async (req, res) => {
       }
     }
 
-    
     if (category) {
       const categoryDoc = await Category.findOne({ cat_name: category }).select('_id');
       if (categoryDoc) {
         searchQuery.category_Id = categoryDoc._id;
       }
     }
+    
+    searchQuery.isDelete = false;
 
-    // Fetch products based on combined searchQuery
+
     let productData = await Product.find(searchQuery)
       .populate('brand_Id')
-      .populate('category_Id')
-      .skip((page - 1) * limit)  
-      .limit(Number(limit));      
+      .populate('category_Id');
 
-  
-    const totalProducts = await Product.countDocuments(searchQuery);
+    
+      if (filter) {
+        if (filter === 'price-low-high') {
+          productData.sort((a, b) => {
+            const priceA = a.offer && a.offer.discountPercentage ? a.price - (a.price * (a.offer.discountPercentage / 100)) : a.price;
+            const priceB = b.offer && b.offer.discountPercentage ? b.price - (b.price * (b.offer.discountPercentage / 100)) : b.price;
+            return priceA - priceB;
+          });
+        } else if (filter === 'price-high-low') {
+          productData.sort((a, b) => {
+            const priceA = a.offer && a.offer.discountPercentage ? a.price - (a.price * (a.offer.discountPercentage / 100)) : a.price;
+            const priceB = b.offer && b.offer.discountPercentage ? b.price - (b.price * (b.offer.discountPercentage / 100)) : b.price;
+            return priceB - priceA;
+          });
+        } else if (filter === 'a-z') {
+          productData.sort((a, b) => a.name.localeCompare(b.name));
+        } else if (filter === 'z-a') {
+          productData.sort((a, b) => b.name.localeCompare(a.name));
+        } else if (filter === 'new-arrivals') {
+          productData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        }
+      }
+      
+
+   
+    const totalProducts = productData.length;
     const totalPages = Math.ceil(totalProducts / limit);
+    const paginatedProducts = productData.slice((page - 1) * limit, page * limit);
 
-    // Apply sorting if a filter is provided
-    if (filter) {
-      // Sorting logic remains the same
-      // ...
-    }
-
-    // Fetch categories and brands for the filters
+   
     const categoryData = await Category.find({ isDelete: false });
     const brandData = await Brands.find({ isDelete: false });
 
-    // Get user session info
     const user = req.session.user;
 
-    
-    res.render('users/shop', { productData,filter,brand,category, categoryData, brandData, user, totalPages, currentPage: Number(page) });
+    res.render('users/shop', { productData: paginatedProducts, filter, brand, category, categoryData, brandData, user, totalPages, currentPage: Number(page) });
   } catch (error) {
     console.error(error);
     res.status(500).send('Server Error');

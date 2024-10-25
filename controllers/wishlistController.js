@@ -22,10 +22,13 @@ exports.getWishlist = async (req, res) => {
     exports.addToWishlist = async (req, res) => {
     try {
       const { product_Id } = req.body;
-      console.log(product_Id)
+    
       const user_Id = req.session.user 
-  console.log(user_Id)
+ 
       
+  if (!user_Id) {
+    return res.status(401).json({ success: false, message: "login first" });
+  }
       let wishlist = await Wishlist.findOne({ user_Id });
   
       if (!wishlist) {

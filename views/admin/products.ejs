@@ -1,12 +1,21 @@
 <%- include('../partials/admin-header.ejs') %>
 <%- include('../partials/admin-sidebar.ejs') %>
 <div class="main-panel">
+  <div class="content-wrapper">
+    <% if (message.success) { %>
+        <div class="alert alert-success">
+          <%= message.success %>
+        </div>
+      <% } %>
+      <% if (message.error) { %>
+        <div class="alert alert-danger">
+          <%= message.error %>
+        </div>
+      <% } %>
     <div class="content-wrapper">
         <div class="row">
      <div class="col-9">
-        <form action="" >
-            <input type="search" class="search_bar w-100 border-0 py-2 px-5 "  placeholder="Search">
-          </form>
+       
         </div>
         <div class="col-3 ">
             <a href="/admin/products/addProduct"><button type="submit"  class="btn btn-primary px-5 rounded-0">Add Products</button></a>
@@ -48,9 +57,22 @@
                    
                      <form action="/admin/products/edit/<%=product._id%>" method="get" ><button type="submit" class="btn btn-warning  ms-2"><i class="bi bi-trash"></i> Edit</button></form> 
 
+                     <%if(product.isDelete==false) {%>
+                      
+                      <form action="/admin/products/delete/<%=product._id%>?_method=DELETE" method="post" ><button type="submit" class="btn btn-danger ms-2"><i class="bi bi-trash"></i> delete</button></form> 
+                 
                    
-                     <form action="/admin/products/delete/<%=product._id%>?_method=DELETE" method="post" ><button type="submit" class="btn btn-danger ms-2"><i class="bi bi-trash"></i> Delete</button></form> 
-                   </div>  
+                   
+                   <%} else {%>
+                      
+                    <form action="/admin/products/list/<%=product._id%>?_method=PATCH" method="post">
+                      <button type="submit" class="btn btn-success ms-2">
+                        <i class="fa-solid fa-user-check"></i> 
+                       list
+                      </button>
+                  </form>
+                  <% } %>
+                     </div>  
                    </td> 
                 
                   </tr>
@@ -61,6 +83,27 @@
                
              </tbody>
             </table>
+            <div class="w-100 d-flex justify-content-center mt-3">
+              <nav aria-label="Page navigation ">
+                  <ul class="pagination">
+                      <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
+                          <a class="page-link" href="?page=<%= currentPage - 1 %>" aria-label="Previous">
+                              <span aria-hidden="true">&laquo;</span>
+                          </a>
+                      </li>
+                      <% for (let i = 1; i <= totalPages; i++) { %>
+                          <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+                              <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+                          </li>
+                      <% } %>
+                      <li class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
+                          <a class="page-link" href="?page=<%= currentPage + 1 %>" aria-label="Next">
+                              <span aria-hidden="true">&raquo;</span>
+                          </a>
+                      </li>
+                  </ul>
+              </nav>
+            </div>
            </div>
     </div>
 

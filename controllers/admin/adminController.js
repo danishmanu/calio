@@ -8,6 +8,7 @@ const bcrypt=require("bcrypt")
 const moment = require('moment');
 const ExcelJS = require('exceljs');
 const htmlPdf = require('html-pdf');
+        
 function getDateRange(sortType) {
     let startDate = new Date();
     let endDate = new Date();
@@ -35,8 +36,9 @@ function getDateRange(sortType) {
     return { startDate, endDate };
 }
 
+
 exports.adminAuth=((req,res,next)=>{
-    console.log(1);
+    
     
     if(req.session.admin){
         console.log(2);
@@ -90,7 +92,7 @@ catch(err){
     console.log(err)
 }
 }
-
+//admin Dashboard
 exports.main=(req,res)=>{
     res.redirect("/admin/dashboard")
 }
@@ -98,10 +100,10 @@ exports.getDash = async (req, res) => {
    
     let startDate=req.query.startDate;
     let endDate=req.query.endDate;
-    console.log(startDate,endDate)
+    
     const sortType = req.query.sort || 'all'; 
     if(!startDate  && !endDate){
-      console.log("jfjkfd")
+    
         const dateRange = getDateRange(sortType);
         startDate = dateRange.startDate || '';
         endDate = dateRange.endDate || '';
@@ -115,22 +117,30 @@ exports.getDash = async (req, res) => {
             createdAt: { $gte: startDate, $lte: endDate }
         };
     }
-    
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10; 
+    const skip = (page - 1) * limit; 
    
-    let orders = await Order.find(orderQuery).sort({ createdAt: -1 }).populate("user_Id");
-    
-
-    let products = await Product.find();
+   let products = await Product.find();
     let productsCount = products.length;
 
     let users = await User.find({ isBlock: false });
     let usersCount = users.length;
 
-    let totalAmount = orders.reduce((acc, order) => acc + Number(order.totalAmount), 0);
-    let payableAmount = orders.reduce((acc, order) => acc + Number(order.payableAmount), 0);
+    const allOrders = await Order.find(orderQuery);
+    let totalAmount = allOrders.reduce((acc, order) => acc + Number(order.totalAmount), 0);
+    let payableAmount = allOrders.reduce((acc, order) => acc + Number(order.payableAmount), 0);
     let totalDiscount = totalAmount - payableAmount;
+    const orders = await Order.find(orderQuery)
+        .sort({ createdAt: -1 })
+        .populate("user_Id")
+        .skip(skip)
+        .limit(limit);
+    
+    const totalOrders = allOrders.length; 
+    const totalPages = Math.ceil(totalOrders / limit);
     const topSellingProducts = await Order.aggregate([
-        { $match: orderQuery },
+       
         { $unwind: "$items" },
         {
             $lookup: {
@@ -153,7 +163,7 @@ exports.getDash = async (req, res) => {
         { $limit: 5 } 
     ]);
     const topSellingBrands = await Order.aggregate([
-        { $match: orderQuery },
+      
         { $unwind: "$items" },
         {
             $lookup: {
@@ -187,7 +197,7 @@ exports.getDash = async (req, res) => {
 
   
     const topSellingCategories = await Order.aggregate([
-        { $match: orderQuery },
+       
         { $unwind: "$items" },
         {
             $lookup: {
@@ -413,6 +423,9 @@ exports.getDash = async (req, res) => {
 console.log(data)
     res.render("admin/dashboard", {
         orders,
+        page,
+        totalPages,
+        totalOrders,
         usersCount,
         totalAmount,
         productsCount,
@@ -425,11 +438,17 @@ console.log(data)
         sort:sortType
     });
 };
-exports.getusers=async(req,res)=>{
-    let users=await User.find({isAdmin:false});
-    
-    res.render("admin/users",{users})
-}
+exports.getusers = async (req, res) => {
+    const page = parseInt(req.query.page) || 1; 
+    const limit =  5; 
+    const skip = (page - 1) * limit; 
+
+    const users = await User.find({ isAdmin: false }).skip(skip).limit(limit);
+    const totalUsers = await User.countDocuments({ isAdmin: false }); 
+    const totalPages = Math.ceil(totalUsers / limit); 
+
+    res.render("admin/users", { users, currentPage: page, totalPages });
+};
 exports.getExcelreport=async (req,res)=>{
     try {
         let startDate = req.query.startDate ? new Date(req.query.startDate) : null;
@@ -468,7 +487,7 @@ worksheet.columns=[
 ]
 orders.forEach(order=>{
     worksheet.addRow({
-        orderId:order._id.toString(),
+        orderId:order.orderId ? order.orderId:order._id.toString(),
         userId:order.user_Id.username,
         totalAmount: `₹${order.totalAmount}`,
         payableAmount: `₹${order.payableAmount}`,
@@ -576,7 +595,7 @@ exports.getSalesreport = async (req, res) => {
                     <tbody>
                         ${orders.map(order => `
                             <tr>
-                                <td>${order._id}</td>
+                                <td>${order.orderId ? order.orderId: order._id}</td>
                                 <td>${order.user_Id.username}</td>
                                 <td>₹${order.totalAmount}</td>
                                 <td>₹${order.payableAmount}</td>
@@ -657,11 +676,44 @@ exports.unblockUser = async (req, res) => {
     }
 
 }
+exports.listProduct = async (req, res) => {
+    
+    try {
+        id = req.params.productId
+
+        
+       let product= await Product.findOne({_id: id}).populate('category_Id').populate("brand_Id")
+        if(product.category_Id.isDelete){
+            req.flash('error', 'Sorry Category is Already  Deleted!');
+            return res.redirect("/admin/products")
+        }
+        if(product.brand_Id.isDelete){
+            req.flash('error', 'Sorry Brand is Already Deleted!');
+            return res.redirect("/admin/products")
+        }
+        await Product.updateOne({ _id: id },{$set:{isDelete:false}})
+       
+        res.redirect("/admin/products")
+    }
+    catch (err) {
+        console.log(err)
+    }
+
+}
 exports.getProducts=async(req,res)=>{
     try{
-        let products=await Product.find({isDelete:false}).populate('category_Id', 'cat_name').populate('brand_Id', 'brand_name')
-       console.log(products)
-        res.render("admin/products",{products,})
+       
+           const page = parseInt(req.query.page) || 1;
+        const limit = 4;
+        const skip = (page - 1) * limit;
+
+        const totalProducts = await Brands.countDocuments();
+        let products = await Product.find().populate('category_Id', 'cat_name').populate('brand_Id', 'brand_name')
+        .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+        res.render("admin/products",{products, totalPages: Math.ceil(totalProducts / limit),
+            currentPage: page})
     }
    catch(err){
     console.log(err)
@@ -706,6 +758,7 @@ exports.getOrders = async (req, res) => {
   };
 exports.deliverOrder = async (req, res) => {
     try {
+        console.log("heyfool")
         console.log("hekjeiu");
         const { product_Id, user_Id, order_Id } = req.body;
         console.log(req.body)
@@ -763,14 +816,18 @@ exports.cancelOrder = async (req, res) => {
         }
 
         item.orderStatus = 'canceled';
+        const itemTotalPrice = item.price * item.quantity;
+        const itemProportion = itemTotalPrice / order.totalAmount;
+        const discountAmount = (order.discountAmount || 0) * itemProportion;
+        const refundAmount = itemTotalPrice - discountAmount;
 if(order.paymentStatus==true){
             let wallet=await Wallet.findOne({user_Id:order.user_Id})
             if(!wallet){
               const newWallet = new Wallet({
                 userId: order.user_Id,
-                balance: (item.price*item.quantity)-((item.price*item.quantity)*order.discount/100),  
+                balance: refundAmount,  
                 history: [{
-                    amount:(item.price*item.quantity)-((item.price*item.quantity)*order.discount/100),
+                    amount:refundAmount,
                     status: 'credit',
                     description: `Refund for canceled product ${item.productName} by Admin`
                 }]
@@ -778,9 +835,9 @@ if(order.paymentStatus==true){
             await newWallet.save();
         } else {
           
-            wallet.balance += (item.price*item.quantity)-((item.price*item.quantity)*order.discount/100); 
+            wallet.balance += refundAmount; 
             wallet.history.push({
-                amount: (item.price*item.quantity)-((item.price*item.quantity)*order.discount/100),
+                amount: refundAmount,
                 status: 'credit',
                 description: `Refund for canceled product ${item.productName} by Admin`
             });
@@ -788,7 +845,13 @@ if(order.paymentStatus==true){
         }
     }
     
-          
+    await Product.findByIdAndUpdate(
+        item.product_Id,
+        {
+            $inc: { stock: item.quantity } 
+        },
+        { new: true } 
+      );
         await order.save();
 
         return res.status(200).json({ message: 'Order canceled successfully' });
@@ -812,37 +875,46 @@ exports.getAddProduct=async(req,res)=>{
    }
 }
 
-exports.addProduct=async(req,res)=>{
-    try{
-       const {name,category_Id,brand_Id,description,stock,price}=req.body
-       console.log(price,typeof(price))
-       const images = [
-        req.files['image1'] ? req.files['image1'][0].filename : null,
-        req.files['image2'] ? req.files['image2'][0].filename : null,
-        req.files['image3'] ? req.files['image3'][0].filename : null,
-        req.files['image4'] ? req.files['image4'][0].filename : null
-      ];
-      let newProduct=new Product({
-        name,
-        category_Id,
-        brand_Id,
-        description,
-        price:parseFloat(price),
-        stock,
-        images:images.filter(image=> image !==null)
-       })
-       await newProduct.save()
-       res.redirect("/admin/products")
+exports.addProduct = async (req, res) => {
+    try {
+        const { name, category_Id, brand_Id, description, stock, price } = req.body;
+       
+        const existingProduct = await Product.findOne({ name: { $regex: new RegExp(`^${name.trim()}$`, 'i') } });
+        if (existingProduct) {
+            req.flash('error', 'Product with this name already exists!'); 
+            return res.redirect('/admin/products/addProduct'); 
+        }
+
+        const images = [
+            req.files['image1'] ? req.files['image1'][0].filename : null,
+            req.files['image2'] ? req.files['image2'][0].filename : null,
+            req.files['image3'] ? req.files['image3'][0].filename : null,
+            req.files['image4'] ? req.files['image4'][0].filename : null
+        ];
+
+        let newProduct = new Product({
+            name,
+            category_Id,
+            brand_Id,
+            description,
+            price: parseFloat(price),
+            stock,
+            images: images.filter(image => image !== null)
+        });
+
+        await newProduct.save();
+        req.flash('success', 'Product added successfully!'); 
+        res.redirect("/admin/products");
+    } catch (err) {
+        res.status(500).json({ message: "Failed to add product", error: err.message });
     }
-   catch(err){
-    res.status(500).json({message:"failed to Add product",error:err.message})
-   }
-}
+};
+
 exports.addCategory=async(req,res)=>{
     try{
         let cat_name = req.body.cat_name
 
-        const exist = await Category.findOne({ cat_name: { $regex: new RegExp(`^${cat_name}$`, 'i') } });
+        const exist = await Category.findOne({ cat_name: { $regex: new RegExp(`^${cat_name.trim()}$`, 'i') } });
     if(exist){
         req.flash('error', 'Sorry category already exists!');
         res.redirect("/admin/categories")
@@ -864,9 +936,27 @@ exports.addCategory=async(req,res)=>{
 }
 exports.getCategory=async(req,res)=>{
     try{
-        let categories=await Category.find({});
-        res.render("admin/category",{categories})
-    }
+        const page = parseInt(req.query.page) || 1; 
+        const limit = 4; 
+        const skip = (page - 1) * limit;
+
+        // Get total number of categories
+        const totalCategories = await Category.countDocuments();
+
+        // Fetch categories with pagination
+        const categories = await Category.find()
+            .sort({ createdAt: -1 })  
+            .skip(skip)  
+            .limit(limit);
+
+       
+        res.render("admin/category", {
+            categories,
+            totalPages: Math.ceil(totalCategories / limit),
+            currentPage: page,
+           
+        });
+     }
    catch(err){
     console.log(err)
    }
@@ -885,12 +975,31 @@ exports.deleteProduct = async (req, res) => {
     }
 
 }
+exports.editCategory=async (req,res)=>{
+    try {
+        console.log("ikdf")
+        let { categoryId, categoryName}=req.body
+        console.log( categoryId, categoryName)
+           const existingCategory = await Category.findOne({ cat_name: { $regex: new RegExp(`^${categoryName.trim()}$`, 'i') }, _id: { $ne: categoryId } });
+
+        if (existingCategory) {
+            return res.status(400).json({ message: "Category name already exists." });
+        }
+
+        await Category.updateOne({ _id: categoryId },{$set:{cat_name:categoryName}})
+     return res.status(200).json({message:"category name changed successfully"})
+    }
+    catch (err) {
+        console.log(err)
+        res.status(500).json({message:"failed to Change name",err})
+    }
+}
 exports.deleteCategory = async (req, res) => {
 
     try {
         id = req.params.id
         await Category.updateOne({ _id: id },{$set:{isDelete:true}})
-        await Product.updateMany({ category_Id: id },{$set:{isDelete:true}})
+        await Product.updateMany({ category_Id:id },{$set:{isDelete:true}})
        req.flash("success",'category deleted successfully!')
         res.redirect("/admin/categories")
     }
@@ -902,74 +1011,71 @@ exports.deleteCategory = async (req, res) => {
 exports.listCategory=async(req,res)=>{
     id=req.params.id
     await Category.updateOne({ _id: id },{$set:{isDelete:false}})
+    await Product.updateMany({ category_Id:id },{$set:{isDelete:false}})
     req.flash("success",'category listed successfully!')
     res.redirect("/admin/categories")
 
 }
-exports.getBrand=async(req,res)=>{
-    try{
-        const page = parseInt(req.query.page) || 1; 
-    const limit = 4; 
-    const skip = (page - 1) * limit;
+//Brand controller startes
+exports.getBrand = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = 4;
+        const skip = (page - 1) * limit;
 
-    const totalBrands = await Order.countDocuments();
-    let brands=await Brands.find({})
-        .sort({ createdAt: -1 })  
-        .skip(skip)  
-        .limit(limit); 
-        
-        
-        res.render("admin/brands",{brands,totalPages: Math.ceil(totalBrands / limit),  currentPage: page})
+        const totalBrands = await Brands.countDocuments();
+        let brands = await Brands.find()
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+
+        res.render("admin/brands", {
+            brands,
+            totalPages: Math.ceil(totalBrands / limit),
+            currentPage: page
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Internal Server Error");
     }
-   catch(err){
-    console.log(err)
-   }
-}
+};
+
 exports.addBrand = async (req, res) => {
     try {
-   
-      const { brandName, popularBrand } = req.body;
-      const brandImage = req.file; 
-  console.log(brandName,popularBrand,brandImage)
-      
-      const exist = await Brands.findOne({ brand_name: { $regex: new RegExp(`^${brandName}$`, 'i') }  });
-      if (exist) {
-       
-        return res.status(400).json({
-          success: false,
-          message: 'Brand name already exists.',
+        const { brandName, popularBrand } = req.body;
+        const brandImage = req.file;
+
+        const exist = await Brands.findOne({ brand_name: { $regex: new RegExp(`^${brandName.trim()}$`, 'i') } });
+        if (exist) {
+            req.flash('error', 'Brand name already exists.');
+            return res.redirect('/admin/brands'); 
+        }
+
+        const brand = new Brands({
+            brand_name: brandName,
+            brandImage: brandImage ? brandImage.filename : null,
+            isPopular: popularBrand ? true:false,
         });
-      }
-  
-      
-      const brand = new Brands({
-        brand_name: brandName,
-        brandImage: brandImage ? brandImage.filename : null, 
-        isPopular: popularBrand === 'true', 
-      });
-  
-     
-      await brand.save();
-  
-      
-     res.redirect("/admin/brands")
+
+        await brand.save();
+        req.flash('success', 'New Brand added successfully!');
+        res.redirect('/admin/brands');
     } catch (err) {
-      console.error(err);
-  
-      
-      return res.status(500).json({
-        success: false,
-        message: 'Server error. Please try again later.',
-      });
+        console.error(err);
+        req.flash('error_msg', 'Server error. Please try again later.');
+        res.redirect('/admin/brands');
     }
-  };
+};
+
   
 exports.deleteBrand = async (req, res) => {
 
     try {
         id = req.params.id
         await Brands.updateOne({ _id: id },{$set:{isDelete:true}})
-       
+        
+    await Product.updateMany({ brand_Id:id },{$set:{isDelete:true}})
+   
        req.flash("success",'brand unlisted successfully!')
         res.redirect("/admin/brands")
     }
@@ -978,6 +1084,7 @@ exports.deleteBrand = async (req, res) => {
     }
 
 }
+//product controller startes
 exports.getEditProduct=async (req,res) => {
     id = req.params.id
     let product=await Product.findOne({_id:id}).populate('category_Id', 'cat_name').populate('brand_Id', 'brand_name')
@@ -987,32 +1094,91 @@ exports.getEditProduct=async (req,res) => {
     res.render("admin/editProduct",{product,category,brands})
     
 }
-exports.editProduct=async (req,res) => {
-    id = req.params.id
-    const {name,category_Id,brand_Id,description,stock,price}=req.body
-  const product=await Product.findOne({_id:id})
-    const images = [
-     req.files['image1'] ? req.files['image1'][0].filename : product.images[0],
-     req.files['image2'] ? req.files['image2'][0].filename : product.images[1],
-     req.files['image3'] ? req.files['image3'][0].filename : product.images[2],
-     req.files['image4'] ? req.files['image4'][0].filename : product.images[3]
-    ]
-  await Product.updateOne({_id:id},{$set:{
-        name,
-        category_Id,
-        brand_Id,
-        description,
-        stock,
-        price,
-        images:images.filter(image=> image !==null)
+exports.editProduct = async (req, res) => {
+    const id = req.params.id;
+    const { name, category_Id, brand_Id, description, stock, price } = req.body;
 
-    }})
-   res.redirect('/admin/products')
-    
+   
+    const existingProduct = await Product.findOne({
+        name: { $regex: new RegExp(`^${name}$`, 'i') },
+        _id: { $ne: id }
+    });
+
+    if (existingProduct) {
+        req.flash('error', 'Product with this name already exists!'); 
+        return res.redirect(`/admin/products/edit/${id}`);
+    }
+
+    const product = await Product.findOne({ _id: id });
+    if (!product) {
+        req.flash('error', 'Product not found!'); 
+        return res.redirect('/admin/products');
+    }
+
+    const images = [
+        req.files['image1'] ? req.files['image1'][0].filename : product.images[0],
+        req.files['image2'] ? req.files['image2'][0].filename : product.images[1],
+        req.files['image3'] ? req.files['image3'][0].filename : product.images[2],
+        req.files['image4'] ? req.files['image4'][0].filename : product.images[3]
+    ];
+
+    await Product.updateOne({ _id: id }, {
+        $set: {
+            name,
+            category_Id,
+            brand_Id,
+            description,
+            stock,
+            price,
+            images: images.filter(image => image !== null)
+        }
+    });
+
+    res.redirect('/admin/products');
+};
+
+
+exports.editBrand=async (req, res) => {
+    try {
+        const id = req.params.id;
+        const { brandName, popularBrand } = req.body;
+        const brandImage = req.file;
+console.log(" iam here editbrand")
+        const existingBrand = await Brands.findOne({
+            brand_name: { $regex: new RegExp(`^${brandName.trim()}$`, 'i') },
+            _id: { $ne: id }
+        });
+
+        if (existingBrand) {
+          
+            return res.status(200).json({message: 'Brand name already exists.'});
+        }
+
+        const updateData = {
+            brand_name: brandName,
+            popularBrand: popularBrand === 'on'
+        };
+
+        if (brandImage) {
+            updateData.brandImage = brandImage.filename;
+        }
+
+        await Brands.updateOne({ _id: id }, updateData);
+        req.flash('success', 'Brand updated successfully!');
+        res.redirect('/admin/brands');
+
+    } catch (error) {
+        console.error(error);
+        req.flash('error', 'An error occurred while updating the brand.');
+        res.redirect('/admin/brands');
+    }
 }
 exports.listBrand=async(req,res)=>{
     id=req.params.id
     await Brands.updateOne({ _id: id },{$set:{isDelete:false}})
+  
+    await Product.updateMany({ brand_Id:id },{$set:{isDelete:false}})
+  
     req.flash("success",'brand listed successfully!')
     res.redirect("/admin/brands")
 
@@ -1046,12 +1212,20 @@ exports.logout = (req, res) => {
             console.log("no item")
             return res.status(404).json({ message: 'Product not found in the order' });
         }
+        if (item.orderStatus=="returned") {
+            console.log("no item")
+            return res.status(404).json({ message: 'Product already returned' });
+        }
+
 
         console.log("hai")
+       
         if (order.paymentStatus === true) {
             let wallet = await Wallet.findOne({ user_Id: order.user_Id });
-            const refundAmount = (item.price * item.quantity) - ((item.price * item.quantity) * order.discount / 100);
-
+            const itemTotalPrice = item.price * item.quantity;
+            const itemProportion = itemTotalPrice / order.totalAmount;
+            const discountAmount = (order.discountAmount || 0) * itemProportion;
+            const refundAmount = itemTotalPrice - discountAmount;
             if (!wallet) {
              
                 const newWallet = new Wallet({
@@ -1060,7 +1234,7 @@ exports.logout = (req, res) => {
                     history: [{
                         amount: refundAmount,
                         status: 'credit',
-                        description: `Refund for return product ${item.productName}`
+                        description: `Refund for return product ${item.productName} in order:${order.orderId? order.orderId:""}`
                     }]
                 });
                 await newWallet.save();
@@ -1070,7 +1244,7 @@ exports.logout = (req, res) => {
                 wallet.history.push({
                     amount: refundAmount,
                     status: 'credit',
-                    description: `Refund for return product ${item.productName}`
+                    description: `Refund for return product ${item.productName} in order:${order.orderId? order.orderId:""}`
                 });
                 await wallet.save();
             }
@@ -1114,5 +1288,26 @@ exports.rejectReturn=async (req, res) => {
     } catch (error) {
         console.error(error);
         return res.status(500).json({ message: 'An error occurred while rejecting the return' });
+    }
+}
+
+exports.getOrderDetails=async (req,res) => {
+    try {
+       
+        let orderId=req.params.orderId
+        
+        let order=await Order.findOne({_id:orderId}).populate("user_Id")
+     
+        if(!order){
+            
+            return res.redirect("/admin")
+            
+            
+        }
+      
+        res.render("admin/orderDetail",{order})
+    } catch (err) {
+        console.error('Error returning product:', err);
+        return res.status(500).json({ message: 'Server error while processing return' });
     }
 }

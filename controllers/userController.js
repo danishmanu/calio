@@ -3,6 +3,7 @@ const Otp_collection=require("../models/otp")
 const { db } = require("../models/User")
 const Product = require('../models/Product');
 const Brands = require('../models/Brand');
+const Order=require('../models/Order')
 const sendEmail=require("../services/sendEmail")
 const Wallet=require("../models/Wallet")
 const bcrypt=require("bcrypt")
@@ -42,6 +43,50 @@ exports.getLogin=(req,res)=>{
   }
   
 }
+exports.resendOtp = async (req, res) => {
+  try {
+   let reset=req.params.reset || false
+   console.log(reset)
+    if (!req.session.userdata || !req.session.userdata.email) {
+      req.flash('error', 'No session found. Please try again.');
+      return res.redirect('/login');
+    }
+
+    const email = req.session.userdata.email;
+    const otp = otp_generation();
+    const created_at = new Date().getTime();
+    const expires_at = created_at+1000*60
+
+    
+    const otpData = {
+      email: email,
+      otp: otp,
+      expiresAt: expires_at
+    };
+    await Otp_collection.updateOne({ email: email }, otpData, { upsert: true });
+    
+    console.log(otp,"resended otp")
+    const emailData = {
+      to: email,
+      subject: "Resend OTP for verification",
+      text: `Your new OTP is: ${otp} and it expires after 1 minutes.`
+    };
+    await sendEmail(emailData);
+    
+    if(reset!="null"){
+      req.flash('success', 'OTP resent successfully. Please check your email.');
+      return res.redirect('/otp_verification?reset=true');
+    }
+    req.flash('success', 'OTP resent successfully. Please check your email.');
+    res.redirect('/otp_verification');
+
+  } catch (error) {
+    console.error('Error resending OTP:', error);
+    req.flash('error', 'An error occurred while resending OTP. Please try again.');
+    res.redirect('/otp_verification');
+  }
+};
+
 exports.login=(async(req,res)=>{
   try{
  
@@ -83,7 +128,8 @@ exports.forgetPass=async()=>{
   try{
       res.render("users/forgetPass")
   }catch(error){
-
+    console.error("Error rendering forget password page:",error)
+    
   }
 }
 exports.getSignup=(req,res)=>{
@@ -114,7 +160,7 @@ exports.signup=(async(req,res)=>{
  } 
 console.log(userdata.reference)
     
- let existUser=await User.findOne({$or:{username:userdata.username,email:userdata.email}})
+ let existUser=await User.findOne({$or:[{username:userdata.username,email:userdata.email}]})
  if(existUser){
     req.session.exist="sorry user already exists"
     res.redirect("/signup")
@@ -124,7 +170,7 @@ console.log(userdata.reference)
  
     conform_password=req.body.conform_password
     if(userdata.password !== conform_password){
-        res.status(400)
+       
         req.session.pas_match="sorry password not match"
     res.redirect("/signup")
     }
@@ -163,9 +209,9 @@ console.log(userdata.reference)
 
 })
 exports.getOtp = (req, res) => {
-  console.log("Fetching OTP...");
+  
   const reset = req.query.reset
-  console.log(typeof(reset))
+  
   const email = req.session.userdata ? req.session.userdata.email : null;
 
   
@@ -238,7 +284,7 @@ exports.checkOtp = async (req, res) => {
 
           await wallet.save();  
         } else {
-          console.log("i am coorectly her")
+          
           const newWallet = new Wallet({
             user_Id: reffered_user._id,
             balance: 50,
@@ -281,7 +327,7 @@ exports.getProduct=async(req,res)=>{
   if(!product){
     res.render("users/product",{user})
   }
-  const relatedProducts = await Product.find({ category_Id: product.category_Id,_id: { $ne: product._id } });
+  const relatedProducts = await Product.find({ category_Id: product.category_Id,isDelete:false, _id: { $ne: product._id } });
   
   user=req.session.user
   res.render("users/product",{product,relatedProducts,user})

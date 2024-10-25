@@ -4,9 +4,7 @@
     <div class="content-wrapper">
         <div class="row">
      <div class="col-9">
-        <form action="" >
-            <input type="search" class="search_bar w-100 border-0 py-2 px-5 "  placeholder="Search">
-          </form>
+       
         </div>
         <div class="col-3 ">
          <button type="button"  class="btn btn-primary px-5 rounded-0" data-toggle="modal" data-target="#add_coupon">Add Coupon</button>
@@ -37,7 +35,7 @@
                   <p id="minAmountError" class="text-danger text-decoration-none"></p>
               </div>
               <div class="mb-3">
-                <label for="" class="form-label">Maximum Purchase amount</label>
+                <label for="" class="form-label">Maximum applicable amount</label>
                 <input type="number" class="form-control" id="maxAmount" name="maxAmount" value="">
                 <p id="maxAmountError" class="text-danger text-decoration-none"></p>
             </div>
@@ -49,7 +47,7 @@
                 </div>
                 <div class="mb-3">
                     <label for="name" class="form-label">Start date</label>
-                    <input type="datetime-local" class="form-control" onclick="disablePrevios()" id="startDate" name="startDate" value="" required>
+                    <input type="datetime-local" class="form-control" onclick="disablePreviosDate()" id="startDate" name="startDate" value="" required>
                   
                 </div>
                 <div class="mb-3">
@@ -69,7 +67,7 @@
   </div>
     </div>
           <div class="container-fluid w-60 p-0 p-md-3 ">
-            <h4>List Products</h4>
+            <h4>List Coupons</h4>
             <table class="table table-wrapper ">
            <thead class="bg-dark ">
                <tr class="t_head">
@@ -101,7 +99,9 @@
                      
                     <td class=" text-center d-flex justify-content-center ">
                      <div class="d-flex flex-row ">
-                      
+                      <button type="button" class="btn" onclick="editCoupon('<%= coupon._id %>', '<%= coupon.coupon_code %>', '<%= coupon.discount %>',' <%= coupon.minAmount %>',' <%= coupon.maxApplicableAmount %>', '<%= coupon.startDate.toISOString() %>', '<%= coupon.endDate.toISOString() %>')">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
                       <button href=""  class="btn" type="button"  onclick="deleteCoupon('<%=coupon._id%>')"><i class="fa-regular fa-trash-can" style="color: black;"></i></button></div>  
                    </td> 
                 
@@ -115,8 +115,60 @@
     </div>
 
   </div>
+  <!-- Edit Coupon Modal -->
+<div class="modal fade" id="edit_coupon" tabindex="-1" role="dialog" aria-labelledby="editModalCenterTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h5 class="modal-title" id="editModalLongTitle">Edit Coupon</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="errorRemove()">
+                  <span aria-hidden="true">&times;</span>
+              </button>
+          </div>
+          <div class="modal-body">
+              <form id="editCouponForm">
+                  <input type="hidden" id="editCouponId">
+                  <div class="mb-3">
+                      <label for="editCouponCode" class="form-label">Coupon Code</label>
+                      <input type="text" class="form-control" id="editCouponCode" name="coupon_code" value="">
+                      <p id="editCouponCodeError" class="text-danger text-decoration-none"></p>
+                  </div>
+                  <div class="mb-3">
+                      <label for="editMinAmount" class="form-label">Minimum Purchase Amount</label>
+                      <input type="number" class="form-control" id="editMinAmount" name="minAmount" value="">
+                      <p id="editMinAmountError" class="text-danger text-decoration-none"></p>
+                  </div>
+                  <div class="mb-3">
+                      <label for="editMaxAmount" class="form-label">Maximum Applicable Amount</label>
+                      <input type="number" class="form-control" id="editMaxAmount" name="maxAmount" value="">
+                      <p id="editMaxAmountError" class="text-danger text-decoration-none"></p>
+                  </div>
+                  <div class="mb-3">
+                      <label for="editDiscount" class="form-label">Discount (In %)</label>
+                      <input type="number" class="form-control" id="editDiscount" name="discount" value="">
+                      <p id="editDiscountError" class="text-danger text-decoration-none"></p>
+                  </div>
+                  <div class="mb-3">
+                      <label for="editStartDate" class="form-label">Start Date</label>
+                      <input type="datetime-local" class="form-control" id="editStartDate" name="startDate" value="" required>
+                  </div>
+                  <div class="mb-3">
+                      <label for="editEndDate" class="form-label">End Date</label>
+                      <input type="datetime-local" class="form-control" id="editEndDate" name="endDate" value="" required>
+                      <p id="editEndError" class="text-danger text-decoration-none"></p>
+                  </div>
+              </form>
+          </div>
+          <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="errorRemove()">Close</button>
+              <button type="button" onclick="return validateEdit()" class="btn btn-primary">Save changes</button>
+          </div>
+      </div>
+  </div>
+</div>
+
   <script>
-    function disablePrevios(){
+    function disablePreviosDate(){
         var now = new Date().toISOString().slice(0, 16).replace("T", " ");
         document.getElementsByName("startDate")[0].min = now;
 
@@ -125,7 +177,9 @@
             document.getElementsByName("endDate")[0].min=startDateValue
         })
        
+
     }
+    
    async function deleteCoupon(couponId){
     console.log(couponId)
     Swal.fire({
@@ -176,7 +230,7 @@
           document.getElementById("maxAmountError").textContent="",
         code=document.getElementById("coupon_code").value.trim()
         minAmount=document.getElementById("minAmount").value.trim()
-        maxAmount=document.getElementById("maxAmount").value.trim()
+        maxApplicableAmount=document.getElementById("maxAmount").value.trim()
         startDate=new Date(document.getElementById("startDate").value)
         endDate=new Date(document.getElementById("endDate").value)
         discount=document.getElementById("discount").value.trim()
@@ -197,14 +251,11 @@
             document.getElementById("minAmountError").innerText="This be a non negative value"
             return false
         }
-        if(maxAmount<0){
+        if(maxApplicableAmount<0){
             document.getElementById("maxAmountError").innerText="This be a non negative value"
             return false
         }
-        if(maxAmount<=minAmount){
-            document.getElementById("maxAmountError").innerText="This be greater than min Amount"
-            return false
-        }
+       
         if(endDate<=startDate){
             document.getElementById("endError").innerText="Ending date should be greater than starting date"
             return false
@@ -213,7 +264,7 @@
         coupon_code: code,
         discount: discount,
         minAmount:minAmount,
-        maxAmount:maxAmount,
+        maxApplicableAmount:maxApplicableAmount,
         startDate: startDate.toISOString(),
         endDate: endDate.toISOString(),
     };
@@ -262,6 +313,107 @@ function errorRemove(){
         document.getElementById("discountError").textContent="";
           document.getElementById("endError").textContent=""
 }
+function editCoupon(id, code, discount, minAmount, maxAmount, startDate, endDate) {
+  console.log(id, code, discount, minAmount, maxAmount, startDate, endDate)
+  document.getElementById("editCouponId").value = id;
+    document.getElementById("editCouponCode").value = code;
+    document.getElementById("editDiscount").value = Number(discount);
+    document.getElementById("editMinAmount").value = Number(minAmount);
+    document.getElementById("editMaxAmount").value = Number(maxAmount);
+
+   
+    const formattedStartDate = startDate.substring(0, 16);
+    const formattedEndDate = endDate.substring(0, 16);
+    document.getElementById("editStartDate").value = formattedStartDate;
+    document.getElementById("editEndDate").value = formattedEndDate;
+    $('#edit_coupon').modal('show');
+}
+
+async function validateEdit() {
+  
+    document.getElementById("editCouponCodeError").textContent = "";
+    document.getElementById("editDiscountError").textContent = "";
+    document.getElementById("editEndError").textContent = "";
+    document.getElementById("editMinAmountError").textContent = "";
+    document.getElementById("editMaxAmountError").textContent = "";
+
+    
+    const id = document.getElementById("editCouponId").value;
+    const code = document.getElementById("editCouponCode").value.trim();
+    const minAmount = document.getElementById("editMinAmount").value.trim();
+    const maxAmount = document.getElementById("editMaxAmount").value.trim();
+    const startDate = new Date(document.getElementById("editStartDate").value);
+    const endDate = new Date(document.getElementById("editEndDate").value);
+    const discount = document.getElementById("editDiscount").value.trim();
+
+   
+    if (code.length <= 0) {
+        document.getElementById("editCouponCodeError").innerText = "This field should not be empty";
+        return false;
+    }
+    if (discount.length == 0 || discount <= 0 || discount > 100) {
+        document.getElementById("editDiscountError").innerText = "This must be a value between 0-100";
+        return false;
+    }
+    if (minAmount < 0 || maxAmount <= 0) {
+        document.getElementById("editMinAmountError").innerText = "This must be a non-negative value";
+        return false;
+    }
+    if (endDate <= startDate) {
+        document.getElementById("editEndError").innerText = "Ending date should be greater than starting date";
+        return false;
+    }
+
+   
+    let couponData = {
+        id,
+        coupon_code: code,
+        discount,
+        minAmount,
+        maxApplicableAmount: maxAmount,
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+    };
+
+    
+    try {
+        const response = await fetch(`/admin/coupon/${id}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(couponData),
+        });
+        let data=await response.json()
+        if (response.ok) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Coupon updated successfully',
+                showConfirmButton: false,
+                timer: 1500
+            }).then(() => {
+                window.location.reload();
+            });
+        } else {
+          
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: `Error: ${data.message}`,
+            });
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: 'An error occurred while updating the coupon.',
+        });
+    }
+
+    return true;
+}
+
 
 
   </script>

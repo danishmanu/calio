@@ -39,7 +39,7 @@ app.use("/",cartMiddleware,wishlistMiddleware,userRoutes)
 app.use("/admin",adminRoutes)
 
 
-app.use((req, res, next) => {
+app.use((req, res) => {
   res.status(404).render("404", { message: "Page Not Found" });
 });
 

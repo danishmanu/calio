@@ -33,16 +33,7 @@
 </style>
 <div class="main-panel">
     <div class="content-wrapper">
-        <div class="row">
-     <div class="col-9">
-        <form action="" >
-            <input type="search" class="search_bar w-100 border-0 py-2 px-5 "  placeholder="Search">
-          </form>
-        </div>
-        <div class="col-3 ">
-            <a href="/admin/products/addProduct"><button type="submit"  class="btn btn-primary px-5 rounded-0">Add Products</button></a>
-        </div>
-    </div>
+      
     <div class="row">
         <div class="container">
            
@@ -54,13 +45,12 @@
                     <thead class="table-light">
                         <tr>
                             <th>Order ID</th>
-                            <th>Product</th>
-                            <th>Qty</th>
+                           
                             <th>Date</th>
                             <th>Total Amount</th>
                             <th>Payment Status</th>
                             <th>Status</th>
-                            <th>Action</th>
+                           
                         </tr>
                     </thead>
                     <tbody>
@@ -68,45 +58,13 @@
                             <% order.items.forEach(item => {%>
                         <tr>
                             <td><%= order._id.toString().slice(-6) %></td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <img src="/public/uploads/<%=item.image  %>" alt="Product" class="product-img me-3">
-                                    <div>
-                                        
-                                        <div><%=item.productName  %></div>
-                                       
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                
-                                <%=item.quantity  %>
-                            </td>
+                            
                             <td id="date"><%=order.formattedDate %></td>
-                            <td>₹ <%=order.payableAmount %></td>
+                            <td>₹ <%=Number(order.payableAmount).toFixed(2) %></td>
                             <td><%= order.paymentStatus===true ? "Paid":"Pending" %></td>
                             <td id="status">
-
-                                <% if (item.orderStatus === "pending") { %>
-                                    <span class="status-badge badge-shipping " id="status">Pending</span>
-                                    <td>
-                                        <button class="btn btn-danger" type="button" onclick="cancel(`<%=item.product_Id%>`,'<%=order.user_Id%>','<%=order._id%>')">cancel</button>
-                                        <button class="btn btn-success mt-1" type="button" onclick="delivery(`<%=item.product_Id%>`,'<%=order.user_Id%>','<%=order._id%>')">delivery</button>
-                                    </td>
-                                <% } else if(item.orderStatus ==='delivered') { %>
-                                    <span class="status-badge badge-delivered" id="status">Delivered</span>
-                                    <% if(item.returnStatus=="requested" && item.returnStatus!=="rejected"){ %>
-                                    <td>
-                                        <button class="btn btn-info" style="background-color: blue; color: white;" data-bs-toggle="modal" data-bs-target="#returnModal" onclick="openReturnModal('<%= item.product_Id %>', '<%= order.user_Id %>', '<%= order._id %>', '<%= item.returnReason %>')">Return Requested</button>
-                                    </td>
-                                        <% } %>
+                                <a href="/admin/orders/orderDetails/<%=order._id %>"><button class="btn btn-primary">view Details</button></a>
                                
-                                <% } else if(item.orderStatus ==='canceled') { %>
-                                    <span class="status-badge badge-canceled" id="status" >Cancelled</span>
-                                <%   } else if(item.orderStatus ==='returned') { %>
-                                    <span class="status-badge badge-canceled" id="status" >Returned</span>
-                                <% }  %>
-
                               
                             </td>
                          
@@ -125,14 +83,14 @@
         <div class="w-100 d-flex justify-content-center mt-3">
             <nav aria-label="Page navigation">
               <ul class="pagination">
-                <!-- Previous button -->
+               
                 <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
                   <a class="page-link" href="?page=<%= currentPage - 1 %>" aria-label="Previous">
                     <span aria-hidden="true">&laquo;</span>
                   </a>
                 </li>
           
-                <!-- Page number buttons -->
+              
                 <% for (let i = 1; i <= totalPages; i++) { %> 
                   <li class="page-item <%= i === currentPage ? 'active' : '' %>">
                     <a class="page-link" href="?page=<%= i %>"><%= i %></a>

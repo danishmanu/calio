@@ -2,196 +2,179 @@
 <%- include('../partials/admin-sidebar.ejs') %>
 <div class="main-panel">
     <div class="content-wrapper">
-        <% if (message.success) { %>
-            <div class="alert alert-success">
-              <%= message.success %>
-            </div>
-          <% } %>
-          <% if (message.error) { %>
-            <div class="alert alert-danger">
-              <%= message.error %>
-            </div>
-          <% } %>
-        <div class="row">
-           
+      <% if (message.success) { %>
+        <div class="alert alert-success">
+          <%= message.success %>
+        </div>
+      <% } %>
+      <% if (message.error) { %>
+        <div class="alert alert-danger">
+          <%= message.error %>
+        </div>
+      <% } %>
+        <div class="row w-100">
+          <div class="col-9">
             <h3 class="text-dark mx-2">+Add New Brand</h3>
-            <div class="col-9">
-              <form action="" >
-                  <input type="search" class="search_bar w-100 border-0 py-2 px-5 "  placeholder="Search">
+          </div>
+          <div class="col-3">
+            <button type="button" class="btn btn-primary d-flex justify-content-end" data-toggle="modal" data-target="#addBrand">
+              Add New Brand
+            </button>
+          </div>
+        </div>
+
+        <!-- Add New Brand Modal -->
+        <div class="modal fade" id="addBrand" tabindex="-1" role="dialog" aria-labelledby="addBrandTitle" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="addBrandTitle">Add New Brand</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <form id="addBrandForm" action="/admin/brands" method="post" enctype="multipart/form-data" onsubmit="return validBrand()">
+                  <div class="form-group">
+                    <label for="brandName">Brand Name</label>
+                    <input type="text" class="form-control" id="brandName" name="brandName" placeholder="Enter brand name" >
+                    <p class="text-danger" id="brandNameerror"></p>
+                  </div>
+                  <div class="form-group">
+                    <label for="brandImage">Brand Image</label>
+                    <input type="file" class="form-control-file" id="brandImage" name="brandImage" >
+                  </div>
+                  <div class="form-group form-check ms-5">
+                    <input type="checkbox" class="form-check-input ms-5" id="popularBrand" name="popularBrand" style="margin-left: 10px;">
+                    <label class="form-check-label" for="popularBrand">Popular Brand</label>
+                  </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary" id="saveBrandBtn">Save Brand</button>
                 </form>
               </div>
-     <!-- <div class="col-9">
-        <form action="/admin/brands" method="post" onsubmit="return validBrand()" >
-            <input type="text" class=" w-100 py-2 px-4 " name="brand_name" id="brand_name"  placeholder="Enter Brand Name">
-            <p id="error" class="text-danger"></p>
-        </div> -->
-        <div class="col-3 ">
-          <!-- Button trigger modal -->
-<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addBrand">
-  Add New Brand
-</button>
-
-<!-- Modal -->
-<div class="modal fade" id="addBrand" tabindex="-1" role="dialog" aria-labelledby="addBrandTitle" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="addBrandTitle">Add New Brand</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <form id="addBrandForm" action="/admin/brands" method="post" enctype="multipart/form-data" onsubmit="return validBrand()" >
-        
-          <div class="form-group">
-            <label for="brandName">Brand Name</label>
-            <input type="text" class="form-control" id="brandName" name="brandName" placeholder="Enter brand name" required>
-            <p class="text-danger" id="brandNameerror"></p>
+            </div>
           </div>
-
-        
-          <div class="form-group">
-            <label for="brandImage">Brand Image</label>
-            <input type="file" class="form-control-file" id="brandImage" name="brandImage" required>
-          </div>
-
-          <!-- Popular Brand Checkbox -->
-          <div class="form-group form-check ms-5">
-            <input type="checkbox" class="form-check-input ms-5" id="popularBrand" name="popularBrand" style="margin-left: 10px;">
-            <label class="form-check-label" for="popularBrand">Popular Brand</label>
-          </div>
-       
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <button type="submit" class="btn btn-primary" id="saveBrandBtn">Save Brand</button>
-      </form>
-      </div>
-    </div>
-  </div>
-</div>
-
-          
         </div>
-   
-    </div>
-          <div class="container-fluid w-60 p-0 pt-md-3 ">
-            
-            <table class="table table-wrapper ">
-           <thead class="bg-dark ">
+
+        <div class="container-fluid w-60 p-0 pt-md-3 mt-2">
+          <table class="table table-wrapper">
+           <thead class="bg-dark">
                <tr class="t_head">
-              
-                 
                    <th>Brand Id</th>
-                   <th>Brand image</th>
+                   <th>Brand Image</th>
                    <th>Brand Name</th>
-               
-                  
                    <th class="me-0 pe-0 text-center">Action</th>
                </tr>
              </thead>
              <tbody>
-              
-                
-             <% brands.forEach((brand,index) => {  %>
-                
-          
-                 
-               <tr class="">
-                
-                   <td>#<%= index+1 %></td>
-                   <td><%= brand.brand_name%></td>
-                   <td><img src="/public/uploads/<%= brand.brandImage%>" alt=""></td>
-                 
-                     
-                    <td class=" text-center d-flex justify-content-center ">
-                     <div class="d-flex flex-row ">
-                      <%if(brand.isDelete==false) {%>
-                      
+               <% brands.forEach((brand, index) => { %>
+               <tr>
+                   <td>#<%= index + 1 %></td>
+                   <td><img src="/public/uploads/<%= brand.brandImage %>" alt="" style="width: 50px; height: auto;"></td>
+                   <td><%= brand.brand_name %></td>
+                   <td class="text-center d-flex justify-content-center">
+                     <div class="d-flex flex-row">
+                      <% if (brand.isDelete == false) { %>
                         <form action="/admin/brands/<%= brand._id %>?_method=DELETE" method="post">
-                          <button type="submit" class="btn btn-warning ms-2"><i class="fa-regular fa-eye-slash"></i></i>Unlist</button>
-                      </form>
-                     
-                     
-                     <%} else {%>
-                        
-                      <form action="/admin/brands/<%= brand._id %>?_method=PATCH" method="post">
-                        <button type="submit" class="btn btn-success ms-2">
-                          <i class="fa-solid fa-eye"></i>
-                          list
-                        </button>
-                    </form>
-                    <% } %>
-                        
-                  
-                   
-                      </div>  
-                   </td> 
-                
-                  </tr>
-                 
-                  <%  }); %>
-                 
-                
-               
+                          <button type="submit" class="btn btn-warning ms-2"><i class="fa-regular fa-eye-slash"></i> Unlist</button>
+                        </form>
+                      <% } else { %>
+                        <form action="/admin/brands/<%= brand._id %>?_method=PATCH" method="post">
+                          <button type="submit" class="btn btn-success ms-2"><i class="fa-solid fa-eye"></i> List</button>
+                        </form>
+                      <% } %>
+                      <button type="button" class="btn btn-info ms-2" data-toggle="modal" data-target="#editBrand<%= brand._id %>">Edit</button>
+                    </div>
+                   </td>
+                 </tr>
+
+                 <div class="modal fade" id="editBrand<%= brand._id %>" tabindex="-1" role="dialog" aria-labelledby="editBrandTitle<%= brand._id %>" aria-hidden="true">
+                   <div class="modal-dialog modal-dialog-centered" role="document">
+                     <div class="modal-content">
+                       <div class="modal-header">
+                         <h5 class="modal-title" id="editBrandTitle<%= brand._id %>">Edit Brand</h5>
+                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                           <span aria-hidden="true">&times;</span>
+                         </button>
+                       </div>
+                       <div class="modal-body">
+                         <form action="/admin/brands/<%= brand._id %>?_method=PUT" method="post" enctype="multipart/form-data" onsubmit="return validBrand()">
+                           <div class="form-group">
+                             <label for="editBrandName<%= brand._id %>">Brand Name</label>
+                             <input type="text" class="form-control" id="editBrandName<%= brand._id %>" name="brandName" value="<%= brand.brand_name %>" required>
+                             <p class="text-danger" id="brandNameerror<%= brand._id %>"></p>
+                           </div>
+                           <div class="form-group">
+                             <label for="editBrandImage<%= brand._id %>">Brand Image</label>
+                             <input type="file" class="form-control-file" id="editBrandImage<%= brand._id %>" name="brandImage" value="<%= brand.brandImage %>">
+                            
+                           </div>
+                           <div class="form-group form-check ms-5">
+                             <input type="checkbox" class="form-check-input ms-5" id="editPopularBrand<%= brand._id %>" name="popularBrand" <%= brand.isPopular==true ? 'checked' : '' %> style="margin-left: 10px;">
+                             <label class="form-check-label" for="editPopularBrand<%= brand._id %>">Popular Brand</label>
+                           </div>
+                       </div>
+                       <div class="modal-footer">
+                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                         <button type="submit" class="btn btn-primary">Update Brand</button>
+                         </form>
+                       </div>
+                     </div>
+                   </div>
+                 </div>
+
+               <% }); %>
              </tbody>
             </table>
+
             <div class="w-100 d-flex justify-content-center mt-3">
               <nav aria-label="Page navigation ">
-                <ul class="pagination">
-                
-                  <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
-                    <a class="page-link" href="?page=<%= currentPage - 1 %>" aria-label="Previous">
-                      <span aria-hidden="true">&laquo;</span>
-                    </a>
-                  </li>
-              
-                 
-                  <% for (let i = 1; i < totalPages; i++) { %>
-                    <li class="page-item <%= i === currentPage ? 'active' : '' %>">
-                      <a class="page-link" href="?page=<%= i %>"><%= i %></a>
-                    </li>
-                  <% } %>
-              
-              
-                  <li class="page-item <%= currentPage === totalPages-1 ? 'disabled' : '' %>">
-                    <a class="page-link" href="?page=<%= currentPage + 1 %>" aria-label="Next">
-                      <span aria-hidden="true">&raquo;</span>
-                    </a>
-                  </li>
-                </ul>
+                  <ul class="pagination">
+                      <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
+                          <a class="page-link" href="?page=<%= currentPage - 1 %>" aria-label="Previous">
+                              <span aria-hidden="true">&laquo;</span>
+                          </a>
+                      </li>
+                      <% for (let i = 1; i <= totalPages; i++) { %>
+                          <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+                              <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+                          </li>
+                      <% } %>
+                      <li class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
+                          <a class="page-link" href="?page=<%= currentPage + 1 %>" aria-label="Next">
+                              <span aria-hidden="true">&raquo;</span>
+                          </a>
+                      </li>
+                  </ul>
               </nav>
             </div>
-           
            </div>
     </div>
-  
   </div>
-  
+
   <script>
   function validBrand() {
-  
-  let brand_name = document.getElementById('brandName').value.trim();
-  let brand_image = document.getElementById('brandImage').files[0];
-  let popular_brand = document.getElementById('popularBrand').checked;
+    let brand_name = document.getElementById('brandName').value.trim();
+    let brand_image = document.getElementById('brandImage').files[0];
+    let popular_brand = document.getElementById('popularBrand').checked;
 
-  console.log(brand_name)
-  
-  document.getElementById('brandNameerror').textContent = '';
+    console.log(brand_name)
 
+    document.getElementById('brandNameerror').textContent = '';
 
-  if (!brand_name || brand_name.length == 0) {
-    document.getElementById('brandNameerror').textContent = 'Brand field should not be empty';
-    return false;
+    if (!brand_name || brand_name.length == 0) {
+      document.getElementById('brandNameerror').textContent = 'Brand field should not be empty';
+      return false;
+    }
+
+    if (!brand_image) {
+      alert('Please upload a brand image');
+      return false;
+    }
+    return true;
   }
- 
-  if (!brand_image) {
-    alert('Please upload a brand image');
-    return false;
-  }
-  return true;
-}
-    
   </script>
+  
   <%- include('../partials/admin-footer.ejs') %>

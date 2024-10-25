@@ -1,5 +1,66 @@
 <%- include('../partials/head.ejs') %>
+<style>
 
+body {
+    background-color: #f8f9fa;
+    font-family: Arial, sans-serif;
+}
+
+/* OTP Box Styles */
+.otp_box {
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    max-width: 400px;
+    margin: 50px auto;
+}
+
+/* Heading Styles */
+h2 {
+    color: #343a40;
+    margin-bottom: 20px;
+}
+
+/* Input Styles */
+.password_inp {
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+    padding: 10px;
+    width: 100%;
+}
+
+/* Focus Effect */
+.password_inp:focus {
+    border-color: #007bff;
+    outline: none;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+/* Error Message Styles */
+.text-danger {
+    font-size: 0.875rem;
+}
+
+/* Button Styles */
+.btn {
+   
+    border: none;
+    border-radius: 5px;
+    padding: 10px 15px;
+    font-size: 1rem;
+    color: white;
+    cursor: pointer;
+}
+
+
+@media (max-width: 576px) {
+    .otp_box {
+        width: 90%;
+    }
+}
+  
+</style>
 <body class="log_body">
     <div class="otp_box ">
         <h2 class="text-center mt-5 fw-bolder">Reset Your Password</h2>
@@ -7,10 +68,17 @@
         <div class="row">
            
                 <div class="d-flex justify-content-center">
+                  <label for="password"> Password</label>
                     <input class="password_inp m-2 mt-2 test center form-control rounded py-1 width-50" type="text" name="password" id="password" />
                   
                 </div>
                 <p class="text-danger ps-4" id="password-error"></p>
+                <div class="d-flex justify-content-center">
+                  <label for="Confirmpassword">Confirm Password</label>
+                  <input class="password_inp m-2 mt-2 test center form-control rounded py-1 width-50" type="text" name="confirmPassword" id="Confirmpassword" />
+                
+              </div>
+              <p class="text-danger ps-4" id="Confirmpassword-error"></p>
 
             </div>
         
@@ -24,12 +92,17 @@
      document.getElementById('changePass').addEventListener('click', async () => {
   let password = document.getElementById("password").value;
 
+  let confirmPassword = document.getElementById("Confirmpassword").value;
 
   const passwordRegex =  /^(?=.*[!@#$%^&*]).{6,}$/;
   
   if (!password || !passwordRegex.test(password)) {
       document.getElementById('password-error').textContent = 'Password must be at least 6 characters and contain a special character.';
       return false;
+  }
+  if(password!==confirmPassword){
+    document.getElementById('Confirmpassword-error').textContent = 'confirm password should be equal to password';
+    return false;
   }
   try {
     let response = await fetch("/resetPass", {

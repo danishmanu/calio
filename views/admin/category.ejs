@@ -54,7 +54,9 @@
                      
                     <td class=" text-center d-flex justify-content-center ">
                      <div class="d-flex flex-row ">
-                      
+                      <button class="btn" onclick="openEditModal('<%= cat._id %>', '<%= cat.cat_name %>')">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
                       <%if(cat.isDelete==false) {%>
                       
                         <form action="/admin/categories/<%= cat._id %>?_method=DELETE" method="post">
@@ -82,15 +84,120 @@
                
              </tbody>
             </table>
+            <div class="w-100 d-flex justify-content-center mt-3">
+              <nav aria-label="Page navigation ">
+                  <ul class="pagination">
+                      <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
+                          <a class="page-link" href="?page=<%= currentPage - 1 %>" aria-label="Previous">
+                              <span aria-hidden="true">&laquo;</span>
+                          </a>
+                      </li>
+          
+                      <% for (let i = 1; i <= totalPages; i++) { %> <!-- Loop up to totalPages -->
+                          <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+                              <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+                          </li>
+                      <% } %>
+          
+                      <li class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>"> 
+                          <a class="page-link" href="?page=<%= currentPage + 1 %>" aria-label="Next">
+                              <span aria-hidden="true">&raquo;</span>
+                          </a>
+                      </li>
+                  </ul>
+              </nav>
+          </div>
            </div>
     </div>
-    <!-- content-wrapper ends -->
-
-    <!-- partial:../../partials/_footer.html -->
-   
-    <!-- partial -->
+  
   </div>
+  <div class="modal fade" id="editCategoryModal" tabindex="-1" role="dialog" aria-labelledby="editCategoryModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editCategoryModalTitle">Edit Category</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"  onclick="hideModal()">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editCategoryForm" action="/admin/categories" method="post" onsubmit="return false;">
+                    <input type="hidden" id="editCategoryId" name="categoryId">
+                    <div class="form-group">
+                        <label for="editCategoryName">Category Name</label>
+                        <input type="text" class="form-control" id="editCategoryName" name="categoryName" required>
+                        <p class="text-danger" id="editCategoryNameError"></p>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="hideModal()">Close</button>
+                <button type="button" class="btn btn-primary" onclick="submitEditForm()">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
   <script>
+    function hideModal(){
+      $('#editCategoryModal').modal('hide');
+    }
+    function openEditModal(categoryId, categoryName) {
+    document.getElementById('editCategoryId').value = categoryId;
+    document.getElementById('editCategoryName').value = categoryName;
+    $('#editCategoryModal').modal('show'); 
+}
+   async function submitEditForm() {
+    const form = document.getElementById('editCategoryForm');
+    const categoryId = document.getElementById('editCategoryId').value;
+    const categoryName = document.getElementById('editCategoryName').value;
+
+    
+    if (!categoryName) {
+        document.getElementById('editCategoryNameError').textContent = 'Category name is required';
+        return;
+    }
+
+  
+    const data = {
+        categoryId,
+        categoryName,
+    };
+
+  
+    let response=await fetch('/admin/categories', {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+    })
+    try{
+      let data=await response.json()
+      if(response.ok){
+        await $('#editCategoryModal').modal('hide'); 
+    Swal.fire({
+        icon: "success",
+        title: "Category has changed"
+    }).then(() => {
+       
+     
+            window.location.reload();
+      
+    });
+        
+      }
+      else{
+        Swal.fire({
+          icon:"error",
+          title:data.message
+        })
+      }
+    }
+    catch(error){
+
+    }
+    
+}
     function validCategory(){
       cat_name=document.getElementById('cat_name').value;
 

@@ -130,7 +130,7 @@
                                         Profile Information
                                     </a>
                                     <a href="#" class="list-group-item list-group-item-action border-0" onclick="showOrderDetails()">Orders</a>
-                                    <a href="#" class="list-group-item list-group-item-action border-0" onclick="showWallet()">Wallet</a> <!-- New Wallet Section Link -->
+                                    <a href="#" class="list-group-item list-group-item-action border-0" onclick="showWallet()">Wallet</a> 
                                     <a href="#" class="list-group-item list-group-item-action border-0" onclick="showAddressBook()">
                                         Address Book
                                     </a>
@@ -163,7 +163,7 @@
                     <tr>
                         <th>Order ID</th>
                       
-                        <th>Qty</th>
+                   
                         <th>Date</th>
                         <th>Total Amount</th>
                         <th>Status</th>
@@ -172,15 +172,13 @@
                 </thead>
                 <tbody>
                     <% orders.forEach((order) => { %>
-                        <% order.items.forEach(item => { %>
+                      
                             <tr>
                                 <td><%=  order._id.toString().slice(-6) %></td>
                                 
-                                <td>
-                                    <%= item.quantity %>
-                                </td>
+                               
                                 <td id="date"><%= order.formattedDate %></td>
-                                <td>₹ <%= item.quantity * item.price %></td>
+                                <td>₹ <%= Number(order.payableAmount).toFixed(2) %></td>
                                 <td>
                                     <a href="/profile/orderDetail/<%=order._id %>">
                                  <button class="btn btn-primary" >view details</button>
@@ -188,10 +186,38 @@
                                 </td>
                                
                             </tr>
-                        <% }); %>
+                        <% %>
                     <% }); %>
+                  
                 </tbody>
+                
             </table>
+            <div class="w-100 d-flex justify-content-center mt-3">
+                <nav aria-label="Page navigation">
+                  <ul class="pagination">
+                   
+                    <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
+                      <a class="page-link" href="?pageOrders=<%= currentPage - 1 %>" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                      </a>
+                    </li>
+              
+                    
+                    <% for (let i = 1; i <= totalPagesOrders; i++) { %> 
+                      <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+                        <a class="page-link" href="?pageOrders=<%= i %>"><%= i %></a>
+                      </li>
+                    <% } %>
+              
+                    
+                    <li class="page-item <%= currentPage === totalPagesOrders ? 'disabled' : '' %>">
+                      <a class="page-link" href="?pageOrders=<%= currentPage + 1 %>" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                      </a>
+                    </li>
+                  </ul>
+                </nav>
+              </div>
         </div>
     </div>
     <% } else{ %>
@@ -252,10 +278,7 @@
                            
 <div class="container mt-5">
     <div class="row">
-      <!-- Left Side Image -->
-     
-      
-      <!-- Right Side Wallet Info -->
+   
       <div class="col-12">
         <div class="wallet-card">
           <h4>My Wallet</h4>
@@ -267,7 +290,7 @@
 
 
   
-          <!-- Recent Transactions -->
+          
           <% if(wallet && wallet.history.length>0){ %>
           <h5>Recent Transactions</h5>
         <% wallet.history.forEach((history)=>{ %>
@@ -283,7 +306,7 @@
               <h6 class="<%=history.status=="credit"?"text-success":"text-danger"%> ps-2"><%=history.status%></h6>
               <p class="text-muted"><%= history.description %></p>
             </div>
-            <p class="<%=history.status=="credit"?"text-success":"text-danger"%>">₹<%= history.amount %></p>
+            <p class="<%=history.status=="credit"?"text-success":"text-danger"%>">₹<%= history.amount.toFixed(2) %></p>
           </div>
           <% })} %>
           
@@ -322,7 +345,7 @@
                                 </div>
                                 <% })} %>
                         
-                                <!-- Add New Address Button -->
+                              
                                 <div class="col-md-6 d-flex align-items-center">
                                     
                                         <div class="add-new-address" style="padding-left: 100px; padding-right: 100px">
@@ -590,37 +613,7 @@ async function proceedToPayment() {
     document.getElementById('fundsForm').reset(); 
 }
 
-        function rtnproduct(product_Id,order_Id){
-            Swal.fire({
-      title: 'Enter your reason to return',
-      input: 'text',  
-       customClass: {
-        title: 'swal-custom-title'
-    },
-      inputPlaceholder: 'Enter your reason here',
-      showCancelButton: true,
-      confirmButtonText: 'Submit',
-      showLoaderOnConfirm: true,
-      preConfirm: (value) => {
-        if (!value) {
-          Swal.showValidationMessage('You need to write something!');
-        }
-        return value;
-      }
-    }).then(async(result) => {
-      if (result.isConfirmed) {
-      let response=await fetch("/profile/returnProduct",{
-        method:"post",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({product_Id,order_Id,reason:value})
-      })
-      }
-    });
-    if(response.ok){
-        window.location.reload()
-    }
-    
-        }
+      
        
         document.addEventListener("DOMContentLoaded",()=>{
             const addressSaved=localStorage.getItem('addressSaved');
@@ -727,54 +720,72 @@ async function proceedToPayment() {
     
         }
     </script>
- 
-          <script>
-          
-       
-
-     
-        function showProfileDetails() {
-            hideAllSections();
-            document.getElementById('profileDetails').style.display = 'block';
-            setActiveLink(0);
-        }
-
-        function showOrderDetails() {
-            hideAllSections();
-            document.getElementById('orderDetails').style.display = 'block';
-            setActiveLink(1);
-        }
-        function showWallet() {
-    hideAllSections();
-    document.getElementById('walletDetails').style.display = 'block';
-    setActiveLink(2); 
-}
-        function showAddressBook() {
-            hideAllSections();
-            document.getElementById('addressBook').style.display = 'block';
-            setActiveLink(2);
-        }
-
-        function hideAllSections() {
-            document.getElementById('orderDetails').style.display = 'none';
-            document.getElementById('profileDetails').style.display = 'none';
-            document.getElementById('addressBook').style.display = 'none';
-            document.getElementById('walletDetails').style.display = 'none';
-        }
-
-        function setActiveLink(index) {
-    const activeItem = document.querySelector('.list-group-item.active');
+ <script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const activeSection = localStorage.getItem('activeSection');
     
+        switch (activeSection) {
+            case 'profile':
+                showProfileDetails();
+                break;
+            case 'orders':
+                showOrderDetails();
+                break;
+            case 'wallet':
+                showWallet();
+                break;
+            case 'address':
+                showAddressBook();
+                break;
+            default:
+                showProfileDetails(); 
+        }
+    });
     
-    if (activeItem) {
-        activeItem.classList.remove('active');
+    function showProfileDetails() {
+        hideAllSections();
+        document.getElementById('profileDetails').style.display = 'block';
+        setActiveLink(0);
+        localStorage.setItem('activeSection', 'profile');
     }
-
     
-    document.querySelectorAll('.list-group-item')[index].classList.add('active');
-}
-
-        showProfileDetails();
+    function showOrderDetails() {
+        hideAllSections();
+        document.getElementById('orderDetails').style.display = 'block';
+        setActiveLink(1);
+        localStorage.setItem('activeSection', 'orders');
+    }
+    
+    function showWallet() {
+        hideAllSections();
+        document.getElementById('walletDetails').style.display = 'block';
+        setActiveLink(2);
+        localStorage.setItem('activeSection', 'wallet');
+    }
+    
+    function showAddressBook() {
+        hideAllSections();
+        document.getElementById('addressBook').style.display = 'block';
+        setActiveLink(3);
+        localStorage.setItem('activeSection', 'address');
+    }
+    
+    function hideAllSections() {
+        document.getElementById('orderDetails').style.display = 'none';
+        document.getElementById('profileDetails').style.display = 'none';
+        document.getElementById('addressBook').style.display = 'none';
+        document.getElementById('walletDetails').style.display = 'none';
+    }
+    
+    function setActiveLink(index) {
+        const activeItem = document.querySelector('.list-group-item.active');
+    
+        if (activeItem) {
+            activeItem.classList.remove('active');
+        }
+    
+        document.querySelectorAll('.list-group-item')[index].classList.add('active');
+    }
     </script>
     
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>

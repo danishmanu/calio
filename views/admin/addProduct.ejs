@@ -2,6 +2,16 @@
 <%- include('../partials/admin-sidebar.ejs') %>
 <div class="main-panel">
     <div class="content-wrapper">
+        <% if (message.success) { %>
+            <div class="alert alert-success">
+              <%= message.success %>
+            </div>
+          <% } %>
+          <% if (message.error) { %>
+            <div class="alert alert-danger">
+              <%= message.error %>
+            </div>
+          <% } %>
         <div class="product-form-container">
             <h2 class="form-title">Product Information</h2>
             <form action="/admin/products/addProduct" method="post" enctype="multipart/form-data" onsubmit="return validProduct()">
@@ -148,10 +158,10 @@ function cropAndSaveImage() {
 }
 
 function closeCropModal() {
-    document.getElementById('cropModal').style.display = 'none'; // Hide the modal
+    document.getElementById('cropModal').style.display = 'none'; 
     if (cropper) {
-        cropper.destroy(); // Destroy the cropper instance
-        cropper = null; // Reset the cropper variable
+        cropper.destroy();
+        cropper = null; 
     }
 }
 

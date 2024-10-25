@@ -9,10 +9,10 @@ const aboutController=require("../controllers/aboutController")
 const shopController=require("../controllers/shopcontroller")
 const checkoutController=require("../controllers/checkoutController")
 const wishlistController=require("../controllers/wishlistController")
+
+// Login Routes
 router.get("/",userController.main)
 router.get("/login",userController.getLogin)
-router.get("/login/forget_password",userController.forgetPass)
-
 router.post("/login",userController.login)
 router.get("/signup",userController.getSignup)
 router.get("/otp_verification",userController.getOtp)
@@ -21,6 +21,7 @@ router.post("/resetOtpVerify",userController.resetOtpVerify)
 router.post("/resetPass",userController.resetPass)
 
 router.put("/resetPassWithOld",cartController.Auth,userController.resetPassWithOld)
+//Google Auth
 router.get("/auth/google",passport.authenticate("google",{scope:['profile','email'],prompt:"select_account"}))
 router.get("/auth/google/callback",passport.authenticate("google",{failureRedirect:'/login'}),(req,res)=>{
     
@@ -30,6 +31,10 @@ router.get("/auth/google/callback",passport.authenticate("google",{failureRedire
 
 router.get("/login/forget_password/emailVerication",userController.getEmailVerify)
 router.post("/login/forget_password/emailVerication",userController.emailVerify)
+router.get("/login/forget_password",userController.forgetPass)
+router.post('/resend-otp/:reset',userController.resendOtp)
+
+
 router.get("/home",userController.Auth,userController.main)
 router.get("/shop",shopController.getShop)
 router.get("/product/:id",userController.getProduct)
@@ -37,15 +42,15 @@ router.post("/signup",userController.signup)
 
 router.post("/logout", userController.logout)
 
+//Cart Routes
 router.get("/cart",cartController.Auth,cartController.getCart)
 router.post("/addToCart/:id",cartController.addToCart)
-
-
 router.post("/updateCart/:id",cartController.Auth,cartController.updateCart)
 router.get("/deleteCart/:id",cartController.Auth,cartController.deleteCart)
+
+// profile Routes
 router.get("/profile",cartController.Auth,profileController.getProfile)
 router.get("/profile/orderDetail/:orderId",cartController.Auth,profileController.getOrderDetails)
-
 router.get("/profile/addAddress",addressController.Auth,addressController.getAddAddress)
 router.post("/profile/addAddress",addressController.Auth,addressController.addAddress)
 router.post("/profile/editUserDetails",addressController.Auth,profileController.editUserDetails)
@@ -53,21 +58,31 @@ router.post("/profile/returnProduct",addressController.Auth,profileController.re
 router.get("/profile/editAddress/:id",addressController.Auth,addressController.getEditAddress)
 router.put("/profile/editAddress",addressController.Auth,addressController.editAddress)
 router.delete("/profile/deleteAddress/:id",addressController.Auth,addressController.deletAddress)
+
+//checkout Routes
 router.get("/checkout",addressController.Auth,checkoutController.getCheckout)
 router.post("/checkout",addressController.Auth,checkoutController.checkout)
 router.post("/checkout/applyCoupon",addressController.Auth,checkoutController.applyCoupon)
 router.put("/checkout/removeCoupon/:couponCode",addressController.Auth,checkoutController.removeCoupon)
 router.post("/orders/cancel",addressController.Auth,checkoutController.cancelOrder)
-router.post("/add-to-wallet",addressController.Auth,checkoutController.addToWallet)
 router.post("/updatePaymentStatus",addressController.Auth,checkoutController.updatePaymentStatus)
+
+//Wishlist Routes
 router.get("/wishlist",cartController.Auth,wishlistController.getWishlist)
-router.post("/addToWishlist",addressController.Auth,wishlistController.addToWishlist)
+router.post("/addToWishlist",wishlistController.addToWishlist)
 router.delete("/wishlist/remove/:productId",addressController.Auth,wishlistController.removeWishlist)
+
+//wallet Routes
+router.post("/add-to-wallet",addressController.Auth,checkoutController.addToWallet)
 router.post('/wallet/verify-payment',addressController.Auth,checkoutController.verifyWallet
 )
+
+
 router.get("/downloadInvoice/:orderId", cartController.Auth, profileController.downloadInvoice);
 router.post("/orderDetails/getRepaymentDetails", cartController.Auth, checkoutController.getRepaymentDetails);
 router.post("/orderDetails/repayment", cartController.Auth, checkoutController.confirmRepayment);
+//about Routes
 router.get("/about",aboutController.getAbout)
+//contact Routes
 router.get("/contact",aboutController.getContact)
 module.exports=router
