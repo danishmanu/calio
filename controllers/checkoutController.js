@@ -15,57 +15,7 @@ const razorpay=new Razorpay({
   key_id:process.env.RAZORPAY_KEY_ID,
   key_secret:process.env.RAZORPAY_KEY_SECRET
 })
-exports.addToWallet = async (req, res) => {
-  const { amount } = req.body;
 
-  try {
-      const options = {
-          amount: amount * 100, 
-          currency: 'INR',
-          receipt: 'receipt#1',
-          payment_capture: 1 
-      };
-
-      const order = await razorpay.orders.create(options);
-      
-      res.json({
-          ...order,
-          key_Id: razorpay.key_id 
-      });
-  } catch (error) {
-      console.error('Error creating order:', error);
-      res.status(500).send('Internal Server Error');
-  }
-};
-exports.verifyWallet= async (req, res) => {
-  const {  amount } = req.body;
-
- let wallet =await Wallet.findOne({user_Id:req.session.user})
- if(!wallet){
-  res.status(401).json({messaee:"wallet not found"})
- }
-
- wallet.balance+=parseFloat(amount);
- const options = { 
-  day: '2-digit', 
-  month: 'short', 
-  year: 'numeric', 
-  hour: '2-digit', 
-  minute: '2-digit', 
-  hour12: true 
-};
-const formattedDate = new Date().toLocaleString('en-GB', options).replace(',', '');
-
- history={
-  amount:amount,
-  status:'credit',
-  description:`${amount} is credited to wallet via razorpay at ${formattedDate}`
- }
- wallet.history.push(history)
- wallet.save()
- res.status(200).json({message:'Payment verified and funds added to wallet.'});
- 
-};
 exports.getCheckout=async(req,res)=>{
     try{
 
@@ -428,34 +378,32 @@ exports.updatePaymentStatus = async (req, res) => {
 
 exports.cancelOrder = async (req, res) => {
   try {
-    console.log("here")
+    
       const { product_Id,order_Id } = req.body;
-      console.log(order_Id)
-      console.log(product_Id)
-      console.log(req.session.user)
+   
 const order = await Order.findOne({ user_Id:req.session.user,_id:order_Id,"items.product_Id": product_Id });
 console.log(order)
       if (!order) {
-        console.log("here2")
+      
           return res.status(404).json({ message: 'Order not found' });
       }
 
-      console.log("here3")
+    
       const item = order.items.find(item => item.product_Id.toString() === product_Id);
 
       if (!item) {
-        console.log("here4")
+     
           return res.status(404).json({ message: 'Product not found in the order' });
       }
 
       
       if (item.orderStatus === 'delivered') {
-        console.log("here5")
+      
           return res.status(400).json({ message: 'Delivered orders cannot be canceled' });
       }
 
       if (item.orderStatus === 'canceled') {
-        console.log("here6")
+     
           return res.status(400).json({ message: 'Order is already canceled' });
       }
 
@@ -480,10 +428,10 @@ console.log(order)
                 description: `Refund for canceled product ${item.productName} in order:${order.orderId ?order.orderId:""} `
             }]
         });
-        console.log("here7")
+      
         await newWallet.save();
     } else {
-      console.log("here8")
+    
       wallet.balance += refundAmount; 
       wallet.history.push({
             amount: refundAmount,
@@ -493,7 +441,7 @@ console.log(order)
         await wallet.save();
     }
 }
-console.log("here9")
+
       
 let product = await Product.findByIdAndUpdate(
   item.product_Id,
@@ -514,7 +462,7 @@ let product = await Product.findByIdAndUpdate(
 exports.removeCoupon = async (req, res) => {
   const couponCode = req.params.couponCode;
   const userId = req.session.user;
-console.log("dfhfhhirguigruifuisgui")
+
   try {
     const coupon = await Coupon.findOne({ coupon_code: couponCode });
 
@@ -590,11 +538,11 @@ exports.applyCoupon = async (req, res) => {
 
 exports.getRepaymentDetails = async (req, res) => {
   try {
-    console.log("")
+  
       const { orderId } = req.body;
-      console.log(orderId)
+     
       const order = await Order.findOne({_id:orderId});
-      console.log(order)
+     
       if (!order) {
           return res.status(404).json({ message: 'Order not found' });
       }

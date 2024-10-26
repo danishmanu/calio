@@ -46,7 +46,7 @@ const orders = await Order.find({ user_Id: user._id })
 exports.returnProduct = async (req, res) => {
     try {
         
-        console.log("Request Body:", req.body);
+      
 
         const { product_Id, order_Id, reason } = req.body;
 
@@ -99,14 +99,14 @@ exports.getOrderDetails=async (req,res) => {
         console.log(orderId)
         console.log(user)
         let order=await Order.findOne({user_Id:user,_id:orderId}).populate("user_Id")
-        console.log("i am here ")
+        
         if(!order){
-            console.log("i would not be here");
+         
             return res.redirect("/")
             
             
         }
-        console.log("i will be here");
+      
         res.render("users/orderDetail",{user,order})
     } catch (err) {
         console.error('Error returning product:', err);
@@ -116,7 +116,7 @@ exports.getOrderDetails=async (req,res) => {
 
 exports.downloadInvoice = async (req, res) => {
     try {
-        console.log("called generafjfjkdfte order")
+       
         const orderId = req.params.orderId;
         const user = req.session.user;
 

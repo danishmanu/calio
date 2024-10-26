@@ -6,6 +6,7 @@ const addressController=require("../controllers/addressController");
 const passport = require("passport");
 const profileController=require("../controllers/profileController")
 const aboutController=require("../controllers/aboutController")
+const walletController=require("../controllers/walletController")
 const shopController=require("../controllers/shopcontroller")
 const checkoutController=require("../controllers/checkoutController")
 const wishlistController=require("../controllers/wishlistController")
@@ -73,8 +74,8 @@ router.post("/addToWishlist",wishlistController.addToWishlist)
 router.delete("/wishlist/remove/:productId",addressController.Auth,wishlistController.removeWishlist)
 
 //wallet Routes
-router.post("/add-to-wallet",addressController.Auth,checkoutController.addToWallet)
-router.post('/wallet/verify-payment',addressController.Auth,checkoutController.verifyWallet
+router.post("/add-to-wallet",addressController.Auth,walletController.addToWallet)
+router.post('/wallet/verify-payment',addressController.Auth,walletController.verifyWallet
 )
 
 
