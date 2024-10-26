@@ -15,7 +15,7 @@ function otp_generation(){
 
 }
 
-exports.Auth=(async(req,res,next)=>{
+exports.Auth=async(req,res,next)=>{
   userData=await User.findOne({_id:req.session.user})
     if(req.session.user && userData.isBlock==false){
        return next()
@@ -24,7 +24,7 @@ exports.Auth=(async(req,res,next)=>{
         res.redirect("/home")
     }
 
-})
+}
 exports.main=(async(req,res)=>{
     let products=await Product.find({isDelete:false})
     let popularBrands=await Brands.find({isDelete:false,isPopular:true})
