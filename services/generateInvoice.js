@@ -16,7 +16,8 @@ const generatePdf = async (orderId, user, res) => {
 
      
         const doc = new PDFDocument({ margin: 50 });
-
+        doc.registerFont('NotoSans', fontPath);
+        doc.font('NotoSans');
        
         const filePath = `./invoices/invoice_${orderId}.pdf`;
         const writeStream = fs.createWriteStream(filePath);
@@ -44,7 +45,7 @@ const generatePdf = async (orderId, user, res) => {
 
         doc.moveDown();
 
-        // Billing and Payment Information
+        
         doc.text(`Billed To: ${order.user_Id.username}`, { underline: true });
         doc.text(`Address: ${order.deliveryAddress.address_line}, ${order.deliveryAddress.city}, ${order.deliveryAddress.pincode}, ${order.deliveryAddress.country}`);
         doc.text(`Email: ${order.user_Id.email}`);
