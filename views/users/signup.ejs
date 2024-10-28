@@ -13,8 +13,8 @@
 </head>
 <style>
   .form-container {
-    width: 80%; /* Adjust width as needed */
-    max-width: 600px; /* Optional: set a max width */
+    width: 80%;
+    max-width: 600px; 
 }
 </style>
 <body class="sign_body overflow-hidden container-fluid ps-0 ">
@@ -42,7 +42,7 @@
                     </div>
                     <div class="mb-3">
                      
-                      <input type="number" name="phone"  class="form-control rounded-0 border-0 border-bottom border-dark" id="phone_number" placeholder="Phone Number">
+                      <input type="text" name="phone"  class="form-control rounded-0 border-0 border-bottom border-dark" id="phone_number" placeholder="Phone Number">
                       <p id="mobile-error" class="text-danger text-decoration-none"></p>
                     </div>
                     <div class="mb-3">
@@ -80,7 +80,6 @@ const email = document.getElementById('email').value;
   const password = document.getElementById('password').value;
   const conform_password = document.getElementById('conform_password').value;
 
-  // Clear any previous error messages
   document.getElementById('name-error').textContent = '';
 
   document.getElementById('email-error').textContent = '';
@@ -88,7 +87,7 @@ const email = document.getElementById('email').value;
   document.getElementById('password-error').textContent = '';
   document.getElementById('password-mismatch').style.display = 'none';
 
-  console.log(username.trim())
+ 
   if (!username || username.trim().length==0) {
       document.getElementById('name-error').textContent = 'Username field should not be empty!';
       return false;

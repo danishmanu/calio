@@ -6,7 +6,7 @@ exports.getAbout=async (req,res)=>{
       res.render("users/about",{user});
     } catch (error) {
      
-      console.log(error);
+
       res.status(500).send('Server Error');
     }
   }

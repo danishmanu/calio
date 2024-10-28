@@ -149,7 +149,7 @@
     const percentY = (mouseY / containerRect.height) * 100;
 
     mainImage.style.transformOrigin = `${percentX}% ${percentY}%`;
-    mainImage.style.transform = "scale(2.0)"; // Adjust scale as needed
+    mainImage.style.transform = "scale(2.0)"; 
   });
 
   mainImageContainer.addEventListener("mouseleave", function () {
@@ -193,7 +193,7 @@ async function addToCart() {
       Swal.fire({
         icon: 'warning',
         title: 'You must log in first!',
-        text: 'Please log in to add items to your cart.',
+        text: 'Please log in to add items to your cart.',       
         confirmButtonText: 'Login',
         showCancelButton: true,
         cancelButtonText: 'Cancel',
@@ -220,6 +220,7 @@ async function addToCart() {
         showConfirmButton: false,
         timer: 1500,
       });
+      document.getElementById
     } else {
       
       console.error('Something went wrong');

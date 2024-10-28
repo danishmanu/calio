@@ -96,7 +96,7 @@ const generatePdf = async (orderId, user, res) => {
 
     } catch (error) {
        
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ message: "Internal server error" });     
     }
 };
 

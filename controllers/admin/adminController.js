@@ -272,7 +272,6 @@ exports.getDash = async (req, res) => {
                 (acc, curr) => acc + curr.totalAmount,
                 0
             );
-            console.log(yearlyData)
 
             data = {
                 label: "Yearly",
@@ -310,7 +309,7 @@ exports.getDash = async (req, res) => {
                 (acc, curr) => acc + curr.totalAmount,
                 0
             );
-            console.log(monthlyData)
+          
 
             data = {
                 labels: [
@@ -330,7 +329,7 @@ exports.getDash = async (req, res) => {
                 label: "Monthly",
                 values: monthlyAmounts,
                 totalPrice: monthlyTotalPrice,
-            };
+            };      
             break;
 
         case "week":
@@ -420,7 +419,7 @@ exports.getDash = async (req, res) => {
             break;
     }
 
-    console.log(data)
+    
     res.render("admin/dashboard", {
         orders,
         page,
@@ -454,7 +453,7 @@ exports.getExcelreport = async (req, res) => {
         let startDate = req.query.startDate ? new Date(req.query.startDate) : null;
         let endDate = req.query.endDate ? new Date(req.query.endDate) : null;
 
-        console.log(startDate, endDate);
+      
 
         const sortType = req.query.sort || 'all';
 
@@ -476,7 +475,7 @@ exports.getExcelreport = async (req, res) => {
         let totalAmount = orders.reduce((acc, order) => acc + Number(order.totalAmount), 0);
         let payableAmount = orders.reduce((acc, order) => acc + Number(order.payableAmount), 0);
         let totalDiscount = totalAmount - payableAmount;
-        const workbook = new ExcelJS.Workbook();
+        const workbook = new ExcelJS.Workbook();        
         const worksheet = workbook.addWorksheet('Sales Report')
         worksheet.columns = [
             { header: 'Order ID', key: 'orderId', width: 20 },
@@ -503,16 +502,16 @@ exports.getExcelreport = async (req, res) => {
         await workbook.xlsx.write(res);
         res.end();
     } catch (error) {
-        console.error(error);
+      
         res.status(500).send("Error generating report.");
     }
 }
-exports.getSalesreport = async (req, res) => {
-    try {
+exports.getSalesreport = async (req, res) => {  
+    try {   
         let startDate = req.query.startDate ? new Date(req.query.startDate) : null;
         let endDate = req.query.endDate ? new Date(req.query.endDate) : null;
 
-        console.log(startDate, endDate);
+       
 
         const sortType = req.query.sort || 'all';
 
@@ -622,7 +621,7 @@ exports.getSalesreport = async (req, res) => {
         });
 
     } catch (error) {
-        console.error(error);
+      
         res.status(500).send("Error generating report.");
     }
 };
@@ -661,7 +660,7 @@ exports.blockUser = async (req, res) => {
         res.redirect("/admin/users")
     }
     catch (err) {
-        console.log(err)
+       
     }
 
 }
@@ -674,7 +673,7 @@ exports.unblockUser = async (req, res) => {
         res.redirect("/admin/users")
     }
     catch (err) {
-        console.log(err)
+       
     }
 
 }
@@ -698,7 +697,7 @@ exports.listProduct = async (req, res) => {
         res.redirect("/admin/products")
     }
     catch (err) {
-        console.log(err)
+       
     }
 
 }
@@ -720,7 +719,7 @@ exports.getProducts = async (req, res) => {
         })
     }
     catch (err) {
-        console.log(err)
+      
     }
 }
 exports.getOrders = async (req, res) => {
@@ -756,17 +755,15 @@ exports.getOrders = async (req, res) => {
         });
 
     } catch (err) {
-        console.log(err);
+        
         res.status(500).send('Server Error');
     }
 };
 exports.deliverOrder = async (req, res) => {
     try {
-        console.log("heyfool")
-        console.log("hekjeiu");
+      
         const { product_Id, user_Id, order_Id } = req.body;
-        console.log(req.body)
-
+      
         const order = await Order.findOne({ user_Id: user_Id, _id: order_Id, "items.product_Id": product_Id });
         if (!order) {
             return res.status(404).json({ message: 'Order not found' });
@@ -792,7 +789,7 @@ exports.deliverOrder = async (req, res) => {
 
         return res.status(200).json({ message: 'Order marked as delivered successfully' });
     } catch (error) {
-        console.error('Error marking order as delivered:', error);
+       
         return res.status(500).json({ message: 'Internal server error' });
     }
 };
@@ -860,7 +857,7 @@ exports.cancelOrder = async (req, res) => {
 
         return res.status(200).json({ message: 'Order canceled successfully' });
     } catch (error) {
-        console.error('Error canceling order:', error);
+
         return res.status(500).json({ message: 'Internal server error' });
     }
 };
@@ -875,7 +872,7 @@ exports.getAddProduct = async (req, res) => {
         res.render("admin/addProduct", { category, brands })
     }
     catch (err) {
-        console.log(err)
+       
     }
 }
 
@@ -935,7 +932,7 @@ exports.addCategory = async (req, res) => {
 
     }
     catch (err) {
-        console.log(err)
+     
     }
 }
 exports.getCategory = async (req, res) => {
@@ -981,9 +978,9 @@ exports.deleteProduct = async (req, res) => {
 }
 exports.editCategory = async (req, res) => {
     try {
-        console.log("ikdf")
+      
         let { categoryId, categoryName } = req.body
-        console.log(categoryId, categoryName)
+       
         const existingCategory = await Category.findOne({ cat_name: { $regex: new RegExp(`^${categoryName.trim()}$`, 'i') }, _id: { $ne: categoryId } });
 
         if (existingCategory) {
@@ -994,7 +991,7 @@ exports.editCategory = async (req, res) => {
         return res.status(200).json({ message: "category name changed successfully" })
     }
     catch (err) {
-        console.log(err)
+      
         res.status(500).json({ message: "failed to Change name", err })
     }
 }
@@ -1008,7 +1005,7 @@ exports.deleteCategory = async (req, res) => {
         res.redirect("/admin/categories")
     }
     catch (err) {
-        console.log(err)
+       
     }
 
 }
@@ -1039,7 +1036,7 @@ exports.getBrand = async (req, res) => {
             currentPage: page
         });
     } catch (err) {
-        console.error(err);
+       
         res.status(500).send("Internal Server Error");
     }
 };
@@ -1065,7 +1062,7 @@ exports.addBrand = async (req, res) => {
         req.flash('success', 'New Brand added successfully!');
         res.redirect('/admin/brands');
     } catch (err) {
-        console.error(err);
+       
         req.flash('error_msg', 'Server error. Please try again later.');
         res.redirect('/admin/brands');
     }
@@ -1084,7 +1081,7 @@ exports.deleteBrand = async (req, res) => {
         res.redirect("/admin/brands")
     }
     catch (err) {
-        console.log(err)
+       
     }
 
 }
@@ -1092,7 +1089,7 @@ exports.deleteBrand = async (req, res) => {
 exports.getEditProduct = async (req, res) => {
     id = req.params.id
     let product = await Product.findOne({ _id: id }).populate('category_Id', 'cat_name').populate('brand_Id', 'brand_name')
-    console.log(product)
+  
     let category = await Category.find({ isDelete: false })
     let brands = await Brands.find({ isDelete: false })
     res.render("admin/editProduct", { product, category, brands })
@@ -1172,7 +1169,7 @@ exports.editBrand = async (req, res) => {
         res.redirect('/admin/brands');
 
     } catch (error) {
-        console.error(error);
+       
         req.flash('error', 'An error occurred while updating the brand.');
         res.redirect('/admin/brands');
     }
@@ -1190,7 +1187,7 @@ exports.listBrand = async (req, res) => {
 exports.logout = (req, res) => {
     req.session.destroy((err) => {
         if (err) {
-            console.log(err)
+           
         }
         else {
             res.redirect("/admin/login")
@@ -1202,27 +1199,26 @@ exports.approveReturn = async (req, res) => {
     try {
 
         let { order_Id, product_Id, user_Id } = req.body;
-        console.log("djfkfdj", order_Id, product_Id,)
+      
         const order = await Order.findOne({ user_Id: user_Id, _id: order_Id });
 
         if (!order) {
-            console.log("no order")
+            
             return res.status(404).json({ message: 'Order or product not found' });
 
         }
 
         const item = order.items.find(item => item.product_Id.toString() === product_Id);
         if (!item) {
-            console.log("no item")
             return res.status(404).json({ message: 'Product not found in the order' });
         }
         if (item.orderStatus == "returned") {
-            console.log("no item")
+            
             return res.status(404).json({ message: 'Product already returned' });
         }
 
 
-        console.log("hai")
+       
 
         if (order.paymentStatus === true) {
             let wallet = await Wallet.findOne({ user_Id: order.user_Id });
@@ -1254,7 +1250,7 @@ exports.approveReturn = async (req, res) => {
             }
         }
 
-        console.log("done")
+      
         item.orderStatus = "returned";
         item.returnStatus = "Approved"
         await order.save();
@@ -1263,7 +1259,6 @@ exports.approveReturn = async (req, res) => {
         return res.status(200).json({ message: 'Return approved and refund processed successfully.' });
 
     } catch (error) {
-        console.error(error);
         return res.status(500).json({ message: 'An error occurred while processing the return.' });
     }
 };
@@ -1281,7 +1276,7 @@ exports.rejectReturn = async (req, res) => {
 
         const item = order.items.find(item => item.product_Id.toString() === product_Id);
         if (!item) {
-            console.log("no item")
+          
             return res.status(404).json({ message: 'Product not found in the order' });
         }
 
@@ -1290,7 +1285,6 @@ exports.rejectReturn = async (req, res) => {
         return res.status(200).json({ message: 'Return rejected successfully' });
 
     } catch (error) {
-        console.error(error);
         return res.status(500).json({ message: 'An error occurred while rejecting the return' });
     }
 }
@@ -1311,7 +1305,6 @@ exports.getOrderDetails = async (req, res) => {
 
         res.render("admin/orderDetail", { order })
     } catch (err) {
-        console.error('Error returning product:', err);
         return res.status(500).json({ message: 'Server error while processing return' });
     }
 }
