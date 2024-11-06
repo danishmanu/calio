@@ -7,7 +7,7 @@ const Wallet = require('../../models/Wallet');
 const bcrypt = require("bcrypt")
 const moment = require('moment');
 const ExcelJS = require('exceljs');
-const htmlPdf = require('html-pdf');
+const PDFDocument = require('pdfkit');
 
 function getDateRange(sortType) {
     let startDate = new Date();
@@ -506,17 +506,14 @@ exports.getExcelreport = async (req, res) => {
         res.status(500).send("Error generating report.");
     }
 }
+
 exports.getSalesreport = async (req, res) => {  
     try {   
         let startDate = req.query.startDate ? new Date(req.query.startDate) : null;
         let endDate = req.query.endDate ? new Date(req.query.endDate) : null;
-
-       
-
         const sortType = req.query.sort || 'all';
 
         if (!startDate && !endDate) {
-
             const dateRange = getDateRange(sortType);
             startDate = dateRange.startDate || '';
             endDate = dateRange.endDate || '';
@@ -539,89 +536,49 @@ exports.getSalesreport = async (req, res) => {
         let payableAmount = orders.reduce((acc, order) => acc + Number(order.payableAmount), 0);
         let totalDiscount = totalAmount - payableAmount;
 
-        let htmlContent = `
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Sales Report</title>
-            <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-            <style>
-                body {
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    height: 100vh;
-                    margin: 0;
-                }
-                .container {
-                    width: 90%;
-                    max-width: 800px;
-                    margin: 0 auto;
-                }
-                .report-title {
-                    text-align: center;
-                    margin-bottom: 20px;
-                }
-                table {
-                    width: 100%;
-                    border-collapse: collapse;
-                }
-                th, td {
-                    padding: 8px;
-                    text-align: center;
-                    border: 1px solid #ddd;
-                }
-                th {
-                    background-color: #f2f2f2;
-                }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <h1 class="report-title">Sales Report</h1>
-                <h5 class="report-title">Period: ${startDate.toISOString().split('T')[0]} to ${endDate.toISOString().split('T')[0]}</h5>
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>Order ID</th>
-                            <th>User ID</th>
-                            <th>Total Amount</th>
-                            <th>Payable Amount</th>
-                            <th>Date</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${orders.map(order => `
-                            <tr>
-                                <td>${order.orderId ? order.orderId : order._id}</td>
-                                <td>${order.user_Id.username}</td>
-                                <td>₹${order.totalAmount}</td>
-                                <td>₹${order.payableAmount}</td>
-                                <td>${new Date(order.createdAt).toLocaleDateString()}</td>
-                            </tr>`).join('')}
-                    </tbody>
-                </table>
-                <h4>Total Sales: ₹${totalAmount}</h4>
-                <h4>Payable Amount: ₹${payableAmount}</h4>
-                <h4>Total Discount: ₹${totalDiscount.toFixed(2)}</h4>
-            </div>
-        </body>
-        </html>
-        `;
+        const doc = new PDFDocument();
 
-        htmlPdf.create(htmlContent).toBuffer((err, buffer) => {
-            if (err) {
-                return res.status(500).send(err);
-            }
-            res.setHeader('Content-Type', 'application/pdf');
-            res.setHeader('Content-Disposition', 'attachment; filename=sales_report.pdf');
-            res.send(buffer);
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', 'attachment; filename=sales_report.pdf');
+        doc.pipe(res);
+
+        // Title and Date Range
+        doc.fontSize(20).text('Sales Report', { align: 'center' });
+        doc.moveDown();
+        doc.fontSize(12).text(`Period: ${startDate.toISOString().split('T')[0]} to ${endDate.toISOString().split('T')[0]}`, { align: 'center' });
+        doc.moveDown();
+
+        // Table Headers
+        doc.fontSize(12);
+        const columnWidths = { orderId: 100, userId: 100, totalAmount: 100, payableAmount: 100, date: 100 };
+        let y = doc.y;
+        doc.text('Order ID', 50, y, { width: columnWidths.orderId, align: 'center' });
+        doc.text('User ID', 150, y, { width: columnWidths.userId, align: 'center' });
+        doc.text('Total Amount', 250, y, { width: columnWidths.totalAmount, align: 'center' });
+        doc.text('Payable Amount', 350, y, { width: columnWidths.payableAmount, align: 'center' });
+        doc.text('Date', 450, y, { align: 'center' });
+        doc.moveDown();
+
+        // Table Content
+        orders.forEach(order => {
+            y = doc.y;
+            doc.text(order.orderId || order._id.toString(), 50, y, { width: columnWidths.orderId, align: 'center' });
+            doc.text(order.user_Id.username, 150, y, { width: columnWidths.userId, align: 'center' });
+            doc.text(`₹${order.totalAmount}`, 250, y, { width: columnWidths.totalAmount, align: 'center' });
+            doc.text(`₹${order.payableAmount}`, 350, y, { width: columnWidths.payableAmount, align: 'center' });
+            doc.text(new Date(order.createdAt).toLocaleDateString(), 450, y, { align: 'center' });
+            doc.moveDown();
         });
 
+        // Summary
+        doc.moveDown();
+        doc.text(`Total Sales: ₹${totalAmount}`, { align: 'left' });
+        doc.text(`Payable Amount: ₹${payableAmount}`, { align: 'left' });
+        doc.text(`Total Discount: ₹${totalDiscount.toFixed(2)}`, { align: 'left' });
+
+        doc.end();
+
     } catch (error) {
-      
         res.status(500).send("Error generating report.");
     }
 };

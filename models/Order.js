@@ -54,6 +54,14 @@ const orderSchema = mongoose.Schema({
             type: String,
             default: null,
         },
+        cancelStatus:{
+            type:String,
+            default:null
+        },
+        cancelReason:{
+            type:String,
+            default:null
+        },
         returnReason: {
             type: String
         },

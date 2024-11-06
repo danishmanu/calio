@@ -7,7 +7,7 @@ const Order=require('../models/Order')
 const sendEmail=require("../services/sendEmail")
 const Wallet=require("../models/Wallet")
 const bcrypt=require("bcrypt")
-
+const Cart =require("../models/Cart")
 function otp_generation(){
   otp=Math.floor(100000 + Math.random() * 900000);
  
@@ -272,6 +272,7 @@ exports.checkOtp = async (req, res) => {
       if (reffered_user) {
         // Find wallet of the referred user
         let wallet = await Wallet.findOne({ user_Id: reffered_user._id });
+        const formattedDate = new Date().toLocaleString('en-GB', options).replace(',', '');
 
         if (wallet) {
          
@@ -279,7 +280,7 @@ exports.checkOtp = async (req, res) => {
           wallet.history.push({
             amount: 50,
             status: 'credit',
-            description: `Amount for referral of ${req.session.userdata.username}`
+            description: `Amount for referral of ${req.session.userdata.username} at ${formattedDate}`
           });
 
           await wallet.save();  
@@ -291,7 +292,7 @@ exports.checkOtp = async (req, res) => {
             history: [{
               amount: 50,
               status: 'credit',
-              description: `Amount for referral of ${req.session.userdata.username}`
+              description: `Amount for referral of ${req.session.userdata.username}  at ${formattedDate}`
             }]
           });
 
@@ -318,20 +319,23 @@ exports.checkOtp = async (req, res) => {
 
 exports.getProduct=async(req,res)=>{
   try{
-
+    id=req.params.id;
+    let product=await Product.findById(id)
+    if(!product){
+     return res.render("users/product",{user})
+    }
+    const relatedProducts = await Product.find({ category_Id: product.category_Id,isDelete:false, _id: { $ne: product._id } });
+    const existInCart = await Cart.findOne({
+      user_Id: req.session.user,  
+      "items.product_Id": product._id
+  });
+    user=req.session.user
+    res.render("users/product",{product,relatedProducts,user,existInCart})
+  
   }catch(error){
     console.log(error)
   }
-  id=req.params.id;
-  let product=await Product.findById(id)
-  if(!product){
-    res.render("users/product",{user})
-  }
-  const relatedProducts = await Product.find({ category_Id: product.category_Id,isDelete:false, _id: { $ne: product._id } });
-  
-  user=req.session.user
-  res.render("users/product",{product,relatedProducts,user})
-
+ 
 }
 
 exports.resetPass=async (req,res)=>{
@@ -385,38 +389,30 @@ return res.status(500).json({ message: 'Server error while processing return' })
 }
 exports.getEmailVerify=async(req,res)=>{
   try {
-    console.log("jfjj")
+  
     res.render("users/verifyEmail")
   } catch (error) {
-    console.error('Error returning product:', err);
+   
     return res.status(500).json({ message: 'Server error while processing return' });
   }
 }
 exports.emailVerify = async (req, res) => {
   try {
-    console.log("Verifying email...");
     let email = req.body.email;
-    console.log(email);
-    
     let user = await User.findOne({ email, isBlock: false });
-
     if (!user) {
       return res.status(404).json({ message: 'Invalid email' });
     }
-
-    const created_at = new Date().getTime();
-    const expires_at = created_at + 1000 * 60;
+  const created_at = new Date().getTime();  const expires_at = created_at + 1000 * 60;
     
     const otp = otp_generation();
-    console.log(otp);
-
     const otpData = {
       email: email,
       otp: otp,
       expiresAt: expires_at
     };
     
-    await Otp_collection.create(otpData);
+   await Otp_collection.create(otpData);
     
     const emailData = {
       to: email,
@@ -440,7 +436,7 @@ exports.emailVerify = async (req, res) => {
   }
 }
 
-exports.logout = (req, res) => {
+exports.logout = (req, res) => {  
   req.session.destroy((err) => {
       if (err) {
           console.log(err)

@@ -379,10 +379,10 @@ exports.updatePaymentStatus = async (req, res) => {
 exports.cancelOrder = async (req, res) => {
   try {
     
-      const { product_Id,order_Id } = req.body;
+      const { product_Id,order_Id,reason } = req.body;
    
 const order = await Order.findOne({ user_Id:req.session.user,_id:order_Id,"items.product_Id": product_Id });
-console.log(order)
+
       if (!order) {
       
           return res.status(404).json({ message: 'Order not found' });
@@ -408,48 +408,9 @@ console.log(order)
       }
 
 
+      item.cancelStatus="requested";
+        item.cancelReason = reason;
      
-      item.orderStatus = 'canceled';
-      if(order.paymentStatus==true){
-
-        const itemTotalPrice = item.price * item.quantity;
-        const itemProportion = itemTotalPrice / order.totalAmount;
-        const discountAmount = (order.discountAmount || 0) * itemProportion;
-        const refundAmount = itemTotalPrice - discountAmount;
-
-        let wallet=await Wallet.findOne({user_Id:order.user_Id})
-        if(!wallet){
-          const newWallet = new Wallet({
-            userId: order.user_Id,
-            balance:refundAmount,  
-            history: [{
-                amount: refundAmount,
-                status: 'credit',
-                description: `Refund for canceled product ${item.productName} in order:${order.orderId ?order.orderId:""} `
-            }]
-        });
-      
-        await newWallet.save();
-    } else {
-    
-      wallet.balance += refundAmount; 
-      wallet.history.push({
-            amount: refundAmount,
-            status: 'credit',
-            description: `Refund for canceled product ${item.productName} in order:${order.orderId ?order.orderId:""} `
-        });
-        await wallet.save();
-    }
-}
-
-      
-let product = await Product.findByIdAndUpdate(
-  item.product_Id,
-  {
-      $inc: { stock: item.quantity } 
-  },
-  { new: true } 
-);
       await order.save();
 
      
@@ -530,7 +491,6 @@ exports.applyCoupon = async (req, res) => {
     
     });
   } catch (error) {
-    console.error("Error applying coupon:", error); 
     return res.status(500).json({ coupon: false, message: "An error occurred while applying the coupon" });
   }
 };
@@ -563,7 +523,7 @@ exports.getRepaymentDetails = async (req, res) => {
         }
       
     }
-    console.log(typeof(order.payableAmount))
+  
       const repayAmount =Math.round(Number(order.payableAmount)); 
 
      
@@ -590,10 +550,8 @@ exports.getRepaymentDetails = async (req, res) => {
 };
 exports.confirmRepayment = async (req, res) => {
   try {
-      const { orderId, paymentId, razorpaySignature, razorpayOrderId } = req.body;
-
-     
-      const order = await Order.findById(orderId);
+     const { orderId, paymentId, razorpaySignature, razorpayOrderId } = req.body;
+    const order = await Order.findById(orderId);
       if (!order) {
           return res.status(404).json({ message: 'Order not found' });
       }
@@ -633,7 +591,8 @@ exports.confirmRepayment = async (req, res) => {
           });
       }
   } catch (error) {
-      console.error('Error confirming repayment:', error);
-      res.status(500).json({ message: 'Server error while confirming repayment' });
+    res.status(500).json({ message: 'Server error while confirming repayment' });
   }
 };
+
+

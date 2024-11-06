@@ -71,7 +71,7 @@
          <% }else{ %>
             <h4 class=""> <span class="text-danger"> Only <%= product.stock %> stock left !  </span></h4>
             <% } %>
-            
+          <% if(!existInCart){ %>
          <div class="d-flex align-items-center">
             <button class="btn btn-outline-secondary" type="button" id="minus" onclick="minus()">-</button>
             <input type="number" name="quantity" class="form-control text-center mx-2"  value=1 style="width: 50px;" id="quantity" readonly>
@@ -79,8 +79,13 @@
           </div>
        
      <button  class="btn btn-primary rounded rounded-5 px-3  mt-3 mb-3" onclick="addToCart()"  style="font-size: 12px;">ADD TO CART </button>
-
-        <% } else{%>
+          <%} else{ %>
+            <a href="/cart">
+              <button   class="btn btn-primary rounded rounded-5 px-3  mt-3 mb-3"   style="font-size: 12px;">GO TO CART </button>
+            </a>
+           
+       <% } %>
+        <%} else{%>
             <h2 class="text-danger">Out of Stock!</h2>
             <% }  %>
 
@@ -109,7 +114,7 @@
             <h5 class="product-title"><%= element.name %></h5>
             <div class="price">
               <span>₹<%= element.price %></span>
-              <span class="text-muted">₹360</span>
+             
             </div>
             <div class="rating mt-2">
               <i class="bi bi-star-fill"></i>
@@ -219,11 +224,13 @@ async function addToCart() {
         text: 'The item has been successfully added to your cart.',
         showConfirmButton: false,
         timer: 1500,
-      });
-      document.getElementById
+      })
+      setTimeout(()=>{
+        window.location.reload()
+      },1000)
     } else {
       
-      console.error('Something went wrong');
+      
       Swal.fire({
         icon: 'error',
         title: 'Error',
@@ -233,7 +240,7 @@ async function addToCart() {
     }
   } catch (err) {
    
-    console.error('Error:', err);
+    
     Swal.fire({
       icon: 'error',
       title: 'Error',

@@ -80,7 +80,7 @@
                               <p class="text-muted mb-0 small"><%= item.returnStatus == "requested" ? "return requested" : item.returnStatus == "rejected" ? "return rejected" : "" %></p>
                             </div>
                             
-                            <% if(item.orderStatus==="pending"){%>
+                              <% if(item.orderStatus==="pending"){%>
                               <% if ( order.paymentStatus==true){ %>
                                 <div class="col-md-10">
                                 <div class="progress" style="height: 6px; border-radius: 16px;">
@@ -91,7 +91,7 @@
                                   </div>
                                
                                 <div class="d-flex justify-content-around mb-1">
-                                  <p class="text-muted mt-1 mb-0 small ms-xl-5">Out for delivary</p>
+                                  <p class="text-muted mt-1 mb-0 small ms-xl-5">Out for delivery</p>
                                   <p class="text-muted mt-1 mb-0 small ms-xl-5">Delivered</p>
                                 </div>
                               </div>
@@ -160,7 +160,7 @@
                               <div class="justify-contents-center">
                                   <button class="btn btn-warning" type="button" onclick=" rtnproduct(`<%=item.product_Id%>`,`<%=order._id%>`)">return</button>
                               </div>
-                              <% }} %>
+                              <% }}%>
                            
                           </div>
                         </div>
@@ -195,7 +195,7 @@
                       style="background-color: #ba9524; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px;">
                       <h5 class="d-flex align-items-center justify-content-end text-white text-uppercase mb-0">Total
                         paid: <span class="h2 mb-0 ms-2">₹ <%= Number(order.payableAmount).toFixed(2) %></span></h5>
-                    </div>
+                    </div>    
                   </div>
                 </div>
               </div>
@@ -315,55 +315,47 @@ async function rtnproduct(product_Id, order_Id) {
     }
   });
 }
-       
-        function cancel(product_Id,order_Id) {
-       
-       Swal.fire({
-           title: 'Are you sure?',
-           text: "Do you want to cancel this product?",
-           icon: 'warning',
-           showCancelButton: true,
-           confirmButtonColor: '#d33',
-           cancelButtonColor: '#3085d6',
-           confirmButtonText: 'Yes, cancel it!'
-       }).then(async (result) => {
-           if (result.isConfirmed) {
-               try {
-                  
-                   let response = await fetch(`/orders/cancel`, {
-                       method: 'POST',
-                       headers: {
-                           'Content-Type': 'application/json'
-                       },
-                       body: JSON.stringify({ product_Id ,order_Id})
-                   });
-   
-                   if (response.ok) {
-                      
-                       Swal.fire(
-                           'Cancelled!',
-                           'Your order has been canceled.',
-                           'success'
-                       );
-                       
-                       setTimeout(() => {
-                           window.location.reload();
-                       }, 1500);
-                   } else {
-                       throw new Error('Failed to cancel the order.');
-                   }
-               } catch (error) {
-                   console.error('Error:', error);
-                  
-                   Swal.fire(
-                       'Error!',
-                       'Something went wrong. Please try again later.',
-                       'error'
-                   );
-               }
-           }
-       });
-   }
+  
+async function cancel(product_Id,order_Id) {
+  Swal.fire({
+    title: 'Enter your reason to cancel',
+    input: 'text',
+    customClass: {
+      title: 'swal-custom-title'
+    },
+    inputPlaceholder: 'Enter your reason here',
+    showCancelButton: true,
+    confirmButtonText: 'Submit',
+    showLoaderOnConfirm: true,
+
+    preConfirm: (value) => {
+      if (!value) {
+        Swal.showValidationMessage('You need to write something!');
+      }
+      return value;
+    }
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      const reason = result.value;  
+      let response = await fetch("/orders/cancel", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ product_Id, order_Id, reason })  
+      });
+
+      const resData = await response.json();
+      if (response.ok) {
+        Swal.fire('Success', resData.message, 'success').then(()=>{
+          window.location.reload()
+        })
+
+      } else {
+        Swal.fire('Error', resData.message, 'error');
+      }
+    }
+  });
+}
+      
    
       </script>
         <%- include('../partials/footer.ejs') %>

@@ -63,12 +63,8 @@ exports.getShop = async (req, res) => {
     const totalProducts = productData.length;
     const totalPages = Math.ceil(totalProducts / limit);
     const paginatedProducts = productData.slice((page - 1) * limit, page * limit);
-
-
     const categoryData = await Category.find({ isDelete: false });
-    const brandData = await Brands.find({ isDelete: false });
-
-    const user = req.session.user;
+    const brandData = await Brands.find({ isDelete: false });    const user = req.session.user;
 
     res.render('users/shop', { productData: paginatedProducts, filter, brand, category, categoryData, brandData, user, totalPages, currentPage: Number(page) });
   } catch (error) {
